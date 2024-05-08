@@ -182,7 +182,7 @@ namespace LethalIntelligence.Patches
 
         public float enterTerminalCodeTimer;
 
-        public int enterTermianlSpecialCodeTime;
+        public int enterTerminalSpecialCodeTime;
 
         public LethalNetworkVariable<int> enterTermianlSpecialCodeInt = new LethalNetworkVariable<int>("enterTermianlSpecialCodeInt");
 
@@ -416,7 +416,7 @@ namespace LethalIntelligence.Patches
 
         private void SyncTermianlInt(int num)
         {
-            enterTermianlSpecialCodeTime = num;
+            enterTerminalSpecialCodeTime = num;
         }
 
         public void Update()
@@ -1757,7 +1757,7 @@ namespace LethalIntelligence.Patches
                     }
                     float num2 = Random.Range(0.2f, 1.5f);
                     enterTerminalCodeTimer += Time.deltaTime;
-                    if (enterTerminalCodeTimer > terminalTimeFloat.Value && enterTermianlSpecialCodeTime > 0)
+                    if (enterTerminalCodeTimer > terminalTimeFloat.Value && enterTerminalSpecialCodeTime > 0)
                     {
                         if (GameNetworkManager.Instance.isHostingGame)
                         {
@@ -1765,10 +1765,10 @@ namespace LethalIntelligence.Patches
                         }
                         terminal.CallFunctionInAccessibleTerminalObject(terminalAccessibleObject[Random.Range(0, terminalAccessibleObject.Length)].objectCode);
                         terminal.terminalAudio.PlayOneShot(terminal.codeBroadcastSFX);
-                        enterTermianlSpecialCodeTime--;
+                        enterTerminalSpecialCodeTime--;
                         enterTerminalCodeTimer = 0f;
                     }
-                    if (enterTermianlSpecialCodeTime == 0)
+                    if (enterTerminalSpecialCodeTime == 0)
                     {
                         isUsingTerminal = false;
                         noMoreTerminal = true;
