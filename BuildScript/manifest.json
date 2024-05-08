@@ -1,0 +1,10 @@
+{
+    "name": "LethalIntelligence",
+    "version_number": "0.0.1",
+    "website_url": "",
+    "description": "Improved AI in Lethal Company (WIP) - this version is a slight recode of Masked AI Revamp by Piggy so all credits go to them for this version. The only edits I have made are so I could compile it from the Decompiled DLL.",
+    "dependencies": [
+        "BepInEx-BepInExPack-5.4.2100",
+	"xilophor-LethalNetworkAPI-2.1.7"
+    ]
+}
