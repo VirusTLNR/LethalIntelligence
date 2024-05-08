@@ -27,7 +27,7 @@ using Object = UnityEngine.Object;
 namespace LethalIntelligence
 {
     [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
-    [BepInDependency("BMX.LobbyCompatibility", BepInDependency.DependencyFlags.HardDependency)]
+    [BepInDependency("BMX.LobbyCompatibility", BepInDependency.DependencyFlags.SoftDependency)]
     [LobbyCompatibility(CompatibilityLevel.Everyone, VersionStrictness.Patch)]
     public class LethalIntelligence : BaseUnityPlugin
     {
@@ -61,8 +61,8 @@ namespace LethalIntelligence
             }
             mls = base.Logger;
             PluginDirectory = ((BaseUnityPlugin)this).Info.Location;
-            mls.LogInfo($"{MyPluginInfo.PLUGIN_GUID} v{MyPluginInfo.PLUGIN_VERSION} has started loading!");
             LoadAssets();
+            mls.LogInfo($"{MyPluginInfo.PLUGIN_GUID} v{MyPluginInfo.PLUGIN_VERSION} has loaded!");
             enableExperimentalFeatures = ((BaseUnityPlugin)this).Config.Bind<bool>("General", "Experimental Features", true, "Turn on experimental features. If this feature is disabled, it will only change Masked's radar movement. *This option must be enabled to change Masked's AI.*").Value;
             enableSkinWalkers = ((BaseUnityPlugin)this).Config.Bind<bool>("General", "SkinWalkers mod Compatibility", true, "Enables compatibility with the SkinWalkers mod. (Requires SkinWalkers mod installed, automatically disables on launch if not installed)").Value;
             useTerminal = ((BaseUnityPlugin)this).Config.Bind<bool>("Masked", "Masked terminal access", true, "Allows Masked to use the terminal.").Value;
@@ -74,8 +74,6 @@ namespace LethalIntelligence
             Instance = this;
 
             Patch();*/
-
-            Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} v{MyPluginInfo.PLUGIN_VERSION} has finished loading!");
         }
 
         internal static void Patch()
