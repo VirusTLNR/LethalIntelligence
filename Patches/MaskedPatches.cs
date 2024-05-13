@@ -94,7 +94,7 @@ namespace LethalIntelligence.Patches
         [HarmonyPatch("Awake")]
         private static void Awake_Postfix()
         {
-            if (LethalIntelligence.enableExperimentalFeatures)
+            if (LethalIntelligence.enableMaskedFeatures)
             {
                 ((Component)StartOfRound.Instance).gameObject.AddComponent<SyncConfiguration>();
                 ((Component)StartOfRound.Instance).gameObject.AddComponent<GlobalItemList>();
@@ -112,7 +112,7 @@ namespace LethalIntelligence.Patches
         [HarmonyPatch("Start")]
         private static void Start_Postfix(GrabbableObject __instance)
         {
-            if (LethalIntelligence.enableExperimentalFeatures)
+            if (LethalIntelligence.enableMaskedFeatures)
             {
                 ((Component)__instance).gameObject.AddComponent<CheckItemCollision>();
                 GlobalItemList.Instance.allitems.Add(__instance);
@@ -127,7 +127,7 @@ namespace LethalIntelligence.Patches
         [HarmonyPatch("DestroyObjectInHand")]
         private static void DestroyObjectInHand_Postfix(GrabbableObject __instance)
         {
-            if (LethalIntelligence.enableExperimentalFeatures)
+            if (LethalIntelligence.enableMaskedFeatures)
             {
                 GlobalItemList.Instance.allitems.Remove(__instance);
                 if (__instance is WalkieTalkie)
@@ -2057,7 +2057,7 @@ namespace LethalIntelligence.Patches
         [HarmonyPatch("Awake")]
         private static void Awake_Prefix(EnemyAI __instance)
         {
-            if (LethalIntelligence.enableExperimentalFeatures)
+            if (LethalIntelligence.enableMaskedFeatures)
             {
                 vd = ((Component)__instance).gameObject.AddComponent<LethalIntelligence>();
             }
