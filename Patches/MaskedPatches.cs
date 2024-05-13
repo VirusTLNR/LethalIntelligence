@@ -180,7 +180,7 @@ namespace LethalIntelligence.Patches
 
         public CheckItemCollision itemSystem;
 
-        public float enterTerminalCodeTimer;
+        public float enterTermianlCodeTimer;
 
         public int enterTermianlSpecialCodeTime;
 
@@ -1760,8 +1760,8 @@ namespace LethalIntelligence.Patches
                         return;
                     }
                     float num2 = Random.Range(0.2f, 1.5f);
-                    enterTerminalCodeTimer += Time.deltaTime;
-                    if (enterTerminalCodeTimer > terminalTimeFloat.Value && enterTermianlSpecialCodeTime > 0)
+                    enterTermianlCodeTimer += Time.deltaTime;
+                    if (enterTermianlCodeTimer > terminalTimeFloat.Value && enterTermianlSpecialCodeTime > 0)
                     {
                         if (GameNetworkManager.Instance.isHostingGame)
                         {
@@ -1770,7 +1770,7 @@ namespace LethalIntelligence.Patches
                         terminal.CallFunctionInAccessibleTerminalObject(terminalAccessibleObject[Random.Range(0, terminalAccessibleObject.Length)].objectCode);
                         terminal.terminalAudio.PlayOneShot(terminal.codeBroadcastSFX);
                         enterTermianlSpecialCodeTime--;
-                        enterTerminalCodeTimer = 0f;
+                        enterTermianlCodeTimer = 0f;
                     }
                     if (enterTermianlSpecialCodeTime == 0)
                     {
