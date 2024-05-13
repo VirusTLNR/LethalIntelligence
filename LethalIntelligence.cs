@@ -39,7 +39,7 @@ namespace LethalIntelligence
         //====================
         public static string logPluginName = "Lethal Intelligence";
         public static AssetBundle Bundle;
-        public static bool enableExperimentalFeatures;
+        public static bool enableMaskedFeatures;
         public static bool enableSkinWalkers;
         public static bool useTerminal;
         public static bool useTerminalCredit;
@@ -63,12 +63,14 @@ namespace LethalIntelligence
             PluginDirectory = ((BaseUnityPlugin)this).Info.Location;
             LoadAssets();
             mls.LogInfo($"{MyPluginInfo.PLUGIN_GUID} v{MyPluginInfo.PLUGIN_VERSION} has loaded!");
-            enableExperimentalFeatures = ((BaseUnityPlugin)this).Config.Bind<bool>("General", "Experimental Features", true, "Turn on experimental features. If this feature is disabled, it will only change Masked's radar movement. *This option must be enabled to change Masked's AI.*").Value;
+
+            //loading config
+            enableMaskedFeatures = ((BaseUnityPlugin)this).Config.Bind<bool>("General", "Masked AI Features", true, "Turn on masked AI features. If this feature is disabled, it will only change Masked's radar movement. *This option must be enabled to change Masked's AI.*").Value;
             enableSkinWalkers = ((BaseUnityPlugin)this).Config.Bind<bool>("General", "SkinWalkers mod Compatibility", true, "Enables compatibility with the SkinWalkers mod. (Requires SkinWalkers mod installed, automatically disables on launch if not installed)").Value;
             useTerminal = ((BaseUnityPlugin)this).Config.Bind<bool>("Masked", "Masked terminal access", true, "Allows Masked to use the terminal.").Value;
             useTerminalCredit = ((BaseUnityPlugin)this).Config.Bind<bool>("Masked", "Masked uses credits", false, "(Not working rn) Allows Masked to use the terminal to spend credits.").Value;
             maskedShipDeparture = ((BaseUnityPlugin)this).Config.Bind<bool>("Masked", "Masked pulls the brake lever", false, "(Not working rn) Allows Masked to pull the brake lever. Um... really...?").Value;
-
+            
             Patch();
             /*Logger = base.Logger;
             Instance = this;
@@ -95,7 +97,7 @@ namespace LethalIntelligence
 
         private void Start()
         {
-            if (enableExperimentalFeatures)
+            if (enableMaskedFeatures)
             {
                 mls.LogInfo((object)"Experimental feature has been enabled! Masked AI's behavior changes.");
             }

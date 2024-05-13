@@ -94,7 +94,7 @@ namespace LethalIntelligence.Patches
         [HarmonyPatch("Awake")]
         private static void Awake_Postfix()
         {
-            if (LethalIntelligence.enableExperimentalFeatures)
+            if (LethalIntelligence.enableMaskedFeatures)
             {
                 ((Component)StartOfRound.Instance).gameObject.AddComponent<SyncConfiguration>();
                 ((Component)StartOfRound.Instance).gameObject.AddComponent<GlobalItemList>();
@@ -112,7 +112,7 @@ namespace LethalIntelligence.Patches
         [HarmonyPatch("Start")]
         private static void Start_Postfix(GrabbableObject __instance)
         {
-            if (LethalIntelligence.enableExperimentalFeatures)
+            if (LethalIntelligence.enableMaskedFeatures)
             {
                 ((Component)__instance).gameObject.AddComponent<CheckItemCollision>();
                 GlobalItemList.Instance.allitems.Add(__instance);
@@ -127,7 +127,7 @@ namespace LethalIntelligence.Patches
         [HarmonyPatch("DestroyObjectInHand")]
         private static void DestroyObjectInHand_Postfix(GrabbableObject __instance)
         {
-            if (LethalIntelligence.enableExperimentalFeatures)
+            if (LethalIntelligence.enableMaskedFeatures)
             {
                 GlobalItemList.Instance.allitems.Remove(__instance);
                 if (__instance is WalkieTalkie)
@@ -1456,7 +1456,9 @@ namespace LethalIntelligence.Patches
                         LethalIntelligence.mls.LogInfo((object)("angle2: " + angle2));
                         ((Component)__instance).transform.localEulerAngles = new Vector3(((Component)__instance).transform.localEulerAngles.x, angle1, ((Component)__instance).transform.localEulerAngles.z);
                     }
-                    LethalIntelligence.mls.LogWarning((object)"곧 30도이상 회전");
+                    //original log message in korean
+                    //LethalIntelligence.mls.LogWarning((object)"곧 30도이상 회전");
+                    LethalIntelligence.mls.LogWarning((object)"Soon to rotate more than 30 degrees");   
                 }
                 else
                 {
@@ -1467,7 +1469,9 @@ namespace LethalIntelligence.Patches
             }
             if (((Vector3)(val2)).magnitude <= agent.stoppingDistance)
             {
-                LethalIntelligence.mls.LogWarning((object)"코너에 거의 도착했으며 다음 코너를 검사하기 위해 인덱스 증가");
+                //original log message in korean
+                //LethalIntelligence.mls.LogWarning((object)"코너에 거의 도착했으며 다음 코너를 검사하기 위해 인덱스 증가");
+                LethalIntelligence.mls.LogWarning((object)"Almost reached corner, increase index to check next corner");
                 num++;
             }
         }
@@ -2053,7 +2057,7 @@ namespace LethalIntelligence.Patches
         [HarmonyPatch("Awake")]
         private static void Awake_Prefix(EnemyAI __instance)
         {
-            if (LethalIntelligence.enableExperimentalFeatures)
+            if (LethalIntelligence.enableMaskedFeatures)
             {
                 vd = ((Component)__instance).gameObject.AddComponent<LethalIntelligence>();
             }
