@@ -11,7 +11,7 @@ using LethalNetworkAPI;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
-namespace LethalIntelligence.Patches
+namespace LethalIntelligence
 {
     public class BushSystem : MonoBehaviour
     {
@@ -94,7 +94,7 @@ namespace LethalIntelligence.Patches
         [HarmonyPatch("Awake")]
         private static void Awake_Postfix()
         {
-            if (LethalIntelligence.enableMaskedFeatures)
+            if (Plugin.enableMaskedFeatures)
             {
                 ((Component)StartOfRound.Instance).gameObject.AddComponent<SyncConfiguration>();
                 ((Component)StartOfRound.Instance).gameObject.AddComponent<GlobalItemList>();
@@ -112,7 +112,7 @@ namespace LethalIntelligence.Patches
         [HarmonyPatch("Start")]
         private static void Start_Postfix(GrabbableObject __instance)
         {
-            if (LethalIntelligence.enableMaskedFeatures)
+            if (Plugin.enableMaskedFeatures)
             {
                 ((Component)__instance).gameObject.AddComponent<CheckItemCollision>();
                 GlobalItemList.Instance.allitems.Add(__instance);
@@ -127,7 +127,7 @@ namespace LethalIntelligence.Patches
         [HarmonyPatch("DestroyObjectInHand")]
         private static void DestroyObjectInHand_Postfix(GrabbableObject __instance)
         {
-            if (LethalIntelligence.enableMaskedFeatures)
+            if (Plugin.enableMaskedFeatures)
             {
                 GlobalItemList.Instance.allitems.Remove(__instance);
                 if (__instance is WalkieTalkie)
@@ -197,6 +197,8 @@ namespace LethalIntelligence.Patches
         public LethalNetworkVariable<bool> isJumped = new LethalNetworkVariable<bool>("isJumped");
 
         public LethalNetworkVariable<int> SelectPersonalityInt = new LethalNetworkVariable<int>("SelectPersonalityInt");
+
+        public LethalNetworkVariable<int> LastSelectPersonalityInt = new LethalNetworkVariable<int>("LastSelectPersonalityInt");
 
         public LethalNetworkVariable<int> maxDanceCount = new LethalNetworkVariable<int>("maxDanceCount");
 
@@ -346,13 +348,13 @@ namespace LethalIntelligence.Patches
             {
                 maxDanceCount.Value = Random.Range(2, 4);
             }
-            if ((Object)(object)creatureAnimator.runtimeAnimatorController != (Object)(object)LethalIntelligence.MaskedAnimController)
+            if ((Object)(object)creatureAnimator.runtimeAnimatorController != (Object)(object)Plugin.MaskedAnimController)
             {
-                creatureAnimator.runtimeAnimatorController = LethalIntelligence.MaskedAnimController;
+                creatureAnimator.runtimeAnimatorController = Plugin.MaskedAnimController;
             }
-            if ((Object)(object)((Component)((Component)__instance).transform.GetChild(3).GetChild(0)).GetComponent<Animator>().runtimeAnimatorController != (Object)(object)LethalIntelligence.MapDotRework)
+            if ((Object)(object)((Component)((Component)__instance).transform.GetChild(3).GetChild(0)).GetComponent<Animator>().runtimeAnimatorController != (Object)(object)Plugin.MapDotRework)
             {
-                ((Component)((Component)__instance).transform.GetChild(3).GetChild(0)).GetComponent<Animator>().runtimeAnimatorController = LethalIntelligence.MapDotRework;
+                ((Component)((Component)__instance).transform.GetChild(3).GetChild(0)).GetComponent<Animator>().runtimeAnimatorController = Plugin.MapDotRework;
             }
             dropship = Object.FindObjectOfType<ItemDropship>();
             TerminalAccessibleObject[] array2 = Object.FindObjectsOfType<TerminalAccessibleObject>();
@@ -387,12 +389,12 @@ namespace LethalIntelligence.Patches
 
         private void InvokeAllClientsSynced()
         {
-            LethalIntelligence.mls.LogWarning((object)"InvokeAllClientsSynced");
+            Plugin.mls.LogWarning((object)"InvokeAllClientsSynced");
         }
 
         private void InvokeOtherClientsSynced()
         {
-            LethalIntelligence.mls.LogWarning((object)"InvokeOtherClientsSynced");
+            Plugin.mls.LogWarning((object)"InvokeOtherClientsSynced");
         }
 
         private void SelectPersonality(int num)
@@ -421,6 +423,7 @@ namespace LethalIntelligence.Patches
 
         public void Update()
         {
+            Plugin.mls.LogInfo("MaskedAIRevamp.Update()");
             //IL_025e: Unknown result type (might be due to invalid IL or missing references)
             //IL_0273: Unknown result type (might be due to invalid IL or missing references)
             //IL_04ab: Unknown result type (might be due to invalid IL or missing references)
@@ -477,9 +480,22 @@ namespace LethalIntelligence.Patches
             }
             if (GameNetworkManager.Instance.isHostingGame)
             {
+                //Plugin.mls.LogInfo("Switching Personality!");
                 if (maskedPersonality == Personality.None)
                 {
-                    SelectPersonalityInt.Value = Random.Range(0, 4);
+                    int upper = 4;
+                    SelectPersonalityInt.Value = Random.Range(0, upper);
+                    if(SelectPersonalityInt.Value == LastSelectPersonalityInt.Value)
+                    {
+                        if(SelectPersonalityInt.Value == 0)
+                        {
+                            SelectPersonalityInt.Value = upper;
+                        }
+                        else
+                        {
+                            SelectPersonalityInt.Value = SelectPersonalityInt.Value - 1;
+                        }
+                    }
                 }
                 if (SelectPersonalityInt.Value == 0)
                 {
@@ -502,30 +518,30 @@ namespace LethalIntelligence.Patches
             {
                 agent = ((Component)this).GetComponent<NavMeshAgent>();
             }
-            if (LethalIntelligence.skinWalkersIntergrated && ((NetworkBehaviour)this).IsHost && maskedPersonality == Personality.Deceiving)
+            if (Plugin.skinWalkersIntergrated && ((NetworkBehaviour)this).IsHost && maskedPersonality == Personality.Deceiving)
             {
                 useWalkie.Value = true;
             }
             if ((Object)(object)creatureAnimator == (Object)null)
             {
-                LethalIntelligence.mls.LogError((object)"VariableDeclarationClass.Update():  creatureAnimator is null!");
+                Plugin.mls.LogError((object)"VariableDeclarationClass.Update():  creatureAnimator is null!");
                 return;
             }
             if ((Object)(object)agent == (Object)null)
             {
-                LethalIntelligence.mls.LogError((object)"VariableDeclarationClass.Update():  __agent is null!");
+                Plugin.mls.LogError((object)"VariableDeclarationClass.Update():  __agent is null!");
                 return;
             }
             if ((Object)(object)__instance == (Object)null)
             {
-                LethalIntelligence.mls.LogError((object)"VariableDeclarationClass.Update():  __instance is null!");
+                Plugin.mls.LogError((object)"VariableDeclarationClass.Update():  __instance is null!");
                 return;
             }
             if (maskedPersonality == Personality.Cunning)
             {
                 MaskedCunning();
             }
-            if (LethalIntelligence.useTerminal && (maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Deceiving))
+            if (Plugin.useTerminal && (maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Deceiving))
             {
                 UsingTerminal();
             }
@@ -565,7 +581,7 @@ namespace LethalIntelligence.Patches
                     creatureAnimator.SetTrigger("Dancing");
                     __instance.SetDestinationToPosition(((Component)__instance).transform.position, false);
                     agent.speed = 0f;
-                    LethalIntelligence.mls.LogInfo((object)"Dancing");
+                    Plugin.mls.LogInfo((object)"Dancing");
                 }
                 else if (!maskedEnemy.running && !isCrouched.Value)
                 {
@@ -920,7 +936,7 @@ namespace LethalIntelligence.Patches
                                 if (target.health > 20)
                                 {
                                     target.DamagePlayer(20, true, true, (CauseOfDeath)1, 0, false, default(Vector3));
-                                    LethalIntelligence.mls.LogInfo((object)"Damage With Shovel");
+                                    Plugin.mls.LogInfo((object)"Damage With Shovel");
                                 }
                                 else
                                 {
@@ -928,7 +944,7 @@ namespace LethalIntelligence.Patches
                                     ((EnemyAI)maskedEnemy).targetPlayer = null;
                                     maskedEnemy.lastPlayerKilled = null;
                                     ((EnemyAI)maskedEnemy).inSpecialAnimation = false;
-                                    LethalIntelligence.mls.LogInfo((object)"Killed With Shovel");
+                                    Plugin.mls.LogInfo((object)"Killed With Shovel");
                                 }
                             }
                             ((Component)closestGrabbable).GetComponent<Shovel>().shovelAudio.PlayOneShot(((Component)closestGrabbable).GetComponent<Shovel>().swing);
@@ -944,7 +960,7 @@ namespace LethalIntelligence.Patches
                 }
                 if ((Object)(object)((EnemyAI)maskedEnemy).targetPlayer != (Object)null && closestGrabbable is ShotgunItem && maskedPersonality == Personality.Aggressive)
                 {
-                    LethalIntelligence.mls.LogInfo((object)"Shotgun Guy targeted player");
+                    Plugin.mls.LogInfo((object)"Shotgun Guy targeted player");
                     ShotgunItem component = ((Component)closestGrabbable).GetComponent<ShotgunItem>();
                     if (component.shellsLoaded > 0)
                     {
@@ -960,22 +976,22 @@ namespace LethalIntelligence.Patches
                                 component.safetyOn = false;
                                 component.gunAudio.PlayOneShot(component.switchSafetyOffSFX);
                                 WalkieTalkie.TransmitOneShotAudio(component.gunAudio, component.switchSafetyOffSFX, 1f);
-                                LethalIntelligence.mls.LogInfo((object)"Safety On");
+                                Plugin.mls.LogInfo((object)"Safety On");
                             }
                             else if (!component.safetyOn && num > 12f)
                             {
                                 component.safetyOn = true;
                                 component.gunAudio.PlayOneShot(component.switchSafetyOnSFX);
                                 WalkieTalkie.TransmitOneShotAudio(component.gunAudio, component.switchSafetyOnSFX, 1f);
-                                LethalIntelligence.mls.LogInfo((object)"Safety Off");
+                                Plugin.mls.LogInfo((object)"Safety Off");
                             }
                             if (num < 10f && shootTimer <= 0f)
                             {
                                 Vector3 val = ((Component)((Component)__instance).transform.GetChild(0).GetChild(3).GetChild(3)).transform.position - ((Component)((Component)__instance).transform.GetChild(0).GetChild(3).GetChild(3)).transform.up * 0.45f;
                                 Vector3 forward = ((Component)((Component)__instance).transform.GetChild(0).GetChild(3).GetChild(3)).transform.forward;
-                                LethalIntelligence.mls.LogInfo((object)"Calling shoot gun....");
+                                Plugin.mls.LogInfo((object)"Calling shoot gun....");
                                 component.ShootGun(val, forward);
-                                LethalIntelligence.mls.LogInfo((object)"Calling shoot gun and sync");
+                                Plugin.mls.LogInfo((object)"Calling shoot gun and sync");
                                 component.localClientSendingShootGunRPC = true;
                                 component.ShootGunServerRpc(val, forward);
                                 shootTimer = 3f;
@@ -1444,7 +1460,7 @@ namespace LethalIntelligence.Patches
                         {
                             angle1 = ((Component)__instance).transform.localEulerAngles.y + 10f;
                         }
-                        LethalIntelligence.mls.LogInfo((object)("angle1: " + angle1));
+                        Plugin.mls.LogInfo((object)("angle1: " + angle1));
                         ((Component)__instance).transform.localEulerAngles = new Vector3(((Component)__instance).transform.localEulerAngles.x, angle1, ((Component)__instance).transform.localEulerAngles.z);
                     }
                     else if ((double)rotationTimer > 0.5 && rotationTimer < 1.1f)
@@ -1453,12 +1469,12 @@ namespace LethalIntelligence.Patches
                         {
                             angle1 = ((Component)__instance).transform.localEulerAngles.y - 5f;
                         }
-                        LethalIntelligence.mls.LogInfo((object)("angle2: " + angle2));
+                        Plugin.mls.LogInfo((object)("angle2: " + angle2));
                         ((Component)__instance).transform.localEulerAngles = new Vector3(((Component)__instance).transform.localEulerAngles.x, angle1, ((Component)__instance).transform.localEulerAngles.z);
                     }
                     //original log message in korean
                     //LethalIntelligence.mls.LogWarning((object)"곧 30도이상 회전");
-                    LethalIntelligence.mls.LogWarning((object)"Soon to rotate more than 30 degrees");   
+                    Plugin.mls.LogWarning((object)"Soon to rotate more than 30 degrees");   
                 }
                 else
                 {
@@ -1471,14 +1487,14 @@ namespace LethalIntelligence.Patches
             {
                 //original log message in korean
                 //LethalIntelligence.mls.LogWarning((object)"코너에 거의 도착했으며 다음 코너를 검사하기 위해 인덱스 증가");
-                LethalIntelligence.mls.LogWarning((object)"Almost reached corner, increase index to check next corner");
+                Plugin.mls.LogWarning((object)"Almost reached corner, increase index to check next corner");
                 num++;
             }
         }
 
         private void HoldWalkie()
         {
-            if (LethalIntelligence.skinWalkersIntergrated && isHoldingObject && closestGrabbable is WalkieTalkie)
+            if (Plugin.skinWalkersIntergrated && isHoldingObject && closestGrabbable is WalkieTalkie)
             {
                 WalkieTalkie component = ((Component)closestGrabbable).GetComponent<WalkieTalkie>();
                 walkieCooldown += Time.deltaTime;
@@ -1502,7 +1518,7 @@ namespace LethalIntelligence.Patches
 
         public void UseWalkie()
         {
-            if (!LethalIntelligence.skinWalkersIntergrated || !isHoldingObject || !(closestGrabbable is WalkieTalkie))
+            if (!Plugin.skinWalkersIntergrated || !isHoldingObject || !(closestGrabbable is WalkieTalkie))
             {
                 return;
             }
@@ -1522,7 +1538,7 @@ namespace LethalIntelligence.Patches
             }
             if (walkieTimer > 1.5f && !walkieVoiceTransmitted)
             {
-                LethalIntelligence.mls.LogInfo((object)"Walkie Voice Transmitted!");
+                Plugin.mls.LogInfo((object)"Walkie Voice Transmitted!");
                 foreach (WalkieTalkie allWalkieTalky in GlobalItemList.Instance.allWalkieTalkies)
                 {
                     if (((GrabbableObject)allWalkieTalky).isBeingUsed)
@@ -1825,7 +1841,7 @@ namespace LethalIntelligence.Patches
             //IL_01e0: Unknown result type (might be due to invalid IL or missing references)
             if (!(closestGrabbable is ShotgunItem) && isHoldingObject && !isDroppedShotgunAvailable)
             {
-                LethalIntelligence.mls.LogInfo((object)"Drop Item!");
+                Plugin.mls.LogInfo((object)"Drop Item!");
                 dropItem.Value = true;
             }
             foreach (GrabbableObject allitem in GlobalItemList.Instance.allitems)
@@ -1839,7 +1855,7 @@ namespace LethalIntelligence.Patches
                     if (!allitem.isHeldByEnemy)
                     {
                         HandleShotgunHeldByPlayer();
-                        LethalIntelligence.mls.LogInfo((object)"Held Shotgun Found!");
+                        Plugin.mls.LogInfo((object)"Held Shotgun Found!");
                         isDroppedShotgunAvailable = false;
                     }
                 }
@@ -2051,19 +2067,19 @@ namespace LethalIntelligence.Patches
     [HarmonyPatch(typeof(MaskedPlayerEnemy))]
     internal class MaskedPlayerEnemyPatch
     {
-        public static LethalIntelligence vd;
+        public static MaskedAIRevamp vd;
 
         [HarmonyPrefix]
         [HarmonyPatch("Awake")]
         private static void Awake_Prefix(EnemyAI __instance)
         {
-            if (LethalIntelligence.enableMaskedFeatures)
+            if (Plugin.enableMaskedFeatures)
             {
-                vd = ((Component)__instance).gameObject.AddComponent<LethalIntelligence>();
+                vd = ((Component)__instance).gameObject.AddComponent<MaskedAIRevamp>();
             }
-            else if ((Object)(object)((Component)((Component)__instance).transform.GetChild(3).GetChild(0)).GetComponent<Animator>().runtimeAnimatorController != (Object)(object)LethalIntelligence.MapDotRework)
+            else if ((Object)(object)((Component)((Component)__instance).transform.GetChild(3).GetChild(0)).GetComponent<Animator>().runtimeAnimatorController != (Object)(object)Plugin.MapDotRework)
             {
-                ((Component)((Component)__instance).transform.GetChild(3).GetChild(0)).GetComponent<Animator>().runtimeAnimatorController = LethalIntelligence.MapDotRework;
+                ((Component)((Component)__instance).transform.GetChild(3).GetChild(0)).GetComponent<Animator>().runtimeAnimatorController = Plugin.MapDotRework;
             }
         }
     }

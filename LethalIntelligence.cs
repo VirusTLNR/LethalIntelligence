@@ -29,9 +29,9 @@ namespace LethalIntelligence
     [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
     [BepInDependency("BMX.LobbyCompatibility", BepInDependency.DependencyFlags.SoftDependency)]
     [LobbyCompatibility(CompatibilityLevel.Everyone, VersionStrictness.Patch)]
-    public class LethalIntelligence : BaseUnityPlugin
+    public class Plugin : BaseUnityPlugin
     {
-        public static LethalIntelligence Instance { get; private set; } = null!;
+        public static Plugin Instance { get; private set; } = null!;
         internal new static ManualLogSource mls { get; private set; } = null!;
         internal static Harmony? harmony { get; set; }
 
@@ -85,7 +85,7 @@ namespace LethalIntelligence
             mls.LogDebug("Patching...");
 
             //harmony.PatchAll();
-            harmony.PatchAll(typeof(LethalIntelligence));
+            harmony.PatchAll(typeof(Plugin));
             harmony.PatchAll(typeof(MaskedPlayerEnemyPatch));
             harmony.PatchAll(typeof(ShotgunItemPatch));
             harmony.PatchAll(typeof(GrabbableObjectPatch));
