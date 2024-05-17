@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.0.4
+
+- Added more words to the selection of words for the insane to use.
+
 ### 0.0.3
 
 - Fixed "SoftDependency" with BMX.LobbyCompatibility

@@ -1864,7 +1864,7 @@ namespace LethalIntelligence.Patches
         public string InsaneTransmitMessageSelection()
         {
             string msg = null;
-            int m = Random.RandomRangeInt(0, 3);
+            int m = Random.Range(0, 10);
             switch (m)
             {
                 case 0:
@@ -1874,7 +1874,53 @@ namespace LethalIntelligence.Patches
                     msg = "danger";
                     break;
                 case 2:
-                    msg = "im scared";
+                    //entities
+                    int e = Random.Range(0, 7);
+                    switch (e)
+                    {
+                        case 0:
+                            msg = "dogs";
+                            break;
+                        case 1:
+                            msg = "bracken";
+                            break;
+                        case 2:
+                            msg = "giant";
+                            break;
+                        case 3:
+                            msg = "worm";
+                            break;
+                        case 4:
+                            msg = "coilhead";
+                            break;
+                        case 5:
+                            msg = "mine";
+                            break;
+                        case 6:
+                            msg = "turret";
+                            break;
+                    }
+                    break;
+                case 3:
+                    msg = "7pm";
+                    break;
+                case 4:
+                    msg = "9pm";
+                    break;
+                case 5:
+                    msg = "behind u";
+                    break;
+                case 6: 
+                    msg = "left";
+                    break;
+                case 7:
+                    msg = "right";
+                    break;
+                case 8:
+                    msg = "go back";
+                    break;
+                case 9:
+                    msg = "watch out";
                     break;
             }
             //msg.Substring(0, 10);
