@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.0.3
+
+- Fixed "SoftDependency" with BMX.LobbyCompatibility
+
 ### 0.0.2
 
 - Added a new masked Personality (Insane) - may rename this later, but for now this is what it is called, the Insane will enter randomised signal translator messages to confuse/help/kill you. More functionality will come soon.

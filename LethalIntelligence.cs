@@ -55,15 +55,22 @@ namespace LethalIntelligence
 
         private void Awake()
         {
-            PluginHelper.RegisterPlugin(MyPluginInfo.PLUGIN_GUID, System.Version.Parse(MyPluginInfo.PLUGIN_VERSION), CompatibilityLevel.Everyone, VersionStrictness.Patch);
             if ((Object)(object)Instance == (Object)null)
             {
                 Instance = this;
             }
             mls = base.Logger;
+
+            
+            if (LobbyCompatibilityChecker.Enabled)
+            {
+                mls.LogInfo($"BMX.LobbyCompatibility has been found, Initiating Soft Dependency!");
+                LobbyCompatibilityChecker.Init();
+            }
+
             PluginDirectory = ((BaseUnityPlugin)this).Info.Location;
             LoadAssets();
-            mls.LogInfo($"{MyPluginInfo.PLUGIN_GUID} v{MyPluginInfo.PLUGIN_VERSION} has loaded!");
+            mls.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} v{MyPluginInfo.PLUGIN_VERSION} has loaded!");
 
             //loading config
             //general settings

@@ -49,3 +49,4 @@ Recommended to install with this mod:
 
 - Piggy for the original Masked AI Revamp to which this mod is built on and inspired me to do more, and for the permission to use your code as a base point.
 - TestAccount666 for the signal translator code from AutomaticSignals.
+- MattyMatty for the LobbyCompatibility softdependency class.
