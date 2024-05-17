@@ -23,12 +23,12 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
 using Object = UnityEngine.Object;
+using LobbyCompatibility.Features;
 
 namespace LethalIntelligence
 {
     [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
     [BepInDependency("BMX.LobbyCompatibility", BepInDependency.DependencyFlags.SoftDependency)]
-    [LobbyCompatibility(CompatibilityLevel.Everyone, VersionStrictness.Patch)]
     public class Plugin : BaseUnityPlugin
     {
         public static Plugin Instance { get; private set; } = null!;
@@ -55,6 +55,7 @@ namespace LethalIntelligence
 
         private void Awake()
         {
+            PluginHelper.RegisterPlugin(MyPluginInfo.PLUGIN_GUID, System.Version.Parse(MyPluginInfo.PLUGIN_VERSION), CompatibilityLevel.Everyone, VersionStrictness.Patch);
             if ((Object)(object)Instance == (Object)null)
             {
                 Instance = this;
@@ -65,11 +66,14 @@ namespace LethalIntelligence
             mls.LogInfo($"{MyPluginInfo.PLUGIN_GUID} v{MyPluginInfo.PLUGIN_VERSION} has loaded!");
 
             //loading config
+            //general settings
             enableMaskedFeatures = ((BaseUnityPlugin)this).Config.Bind<bool>("General", "Masked AI Features", true, "Turn on masked AI features. If this feature is disabled, it will only change Masked's radar movement. *This option must be enabled to change Masked's AI.*").Value;
             enableSkinWalkers = ((BaseUnityPlugin)this).Config.Bind<bool>("General", "SkinWalkers mod Compatibility", true, "Enables compatibility with the SkinWalkers mod. (Requires SkinWalkers mod installed, automatically disables on launch if not installed)").Value;
-            useTerminal = ((BaseUnityPlugin)this).Config.Bind<bool>("Masked", "Masked terminal access", true, "Allows Masked to use the terminal.").Value;
-            useTerminalCredit = ((BaseUnityPlugin)this).Config.Bind<bool>("Masked", "Masked uses credits", false, "(Not working rn) Allows Masked to use the terminal to spend credits.").Value;
-            maskedShipDeparture = ((BaseUnityPlugin)this).Config.Bind<bool>("Masked", "Masked pulls the brake lever", false, "(Not working rn) Allows Masked to pull the brake lever. Um... really...?").Value;
+            
+            //masked settings
+            useTerminal = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedAI", "Masked terminal access", true, "Allows Masked to use the terminal.").Value;
+            useTerminalCredit = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedAI", "Masked uses credits", false, "(Not working rn) Allows Masked to use the terminal to spend credits.").Value;
+            maskedShipDeparture = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedAI", "Masked pulls the brake lever", false, "(Not working rn) Allows Masked to pull the brake lever. Um... really...?").Value;
             
             Patch();
             /*Logger = base.Logger;
@@ -86,6 +90,8 @@ namespace LethalIntelligence
 
             //harmony.PatchAll();
             harmony.PatchAll(typeof(Plugin));
+
+            //all masked patches
             harmony.PatchAll(typeof(MaskedPlayerEnemyPatch));
             harmony.PatchAll(typeof(ShotgunItemPatch));
             harmony.PatchAll(typeof(GrabbableObjectPatch));

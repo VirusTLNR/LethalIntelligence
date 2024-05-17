@@ -11,7 +11,7 @@ using LethalNetworkAPI;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
-namespace LethalIntelligence
+namespace LethalIntelligence.Patches
 {
     public class BushSystem : MonoBehaviour
     {
@@ -145,10 +145,13 @@ namespace LethalIntelligence
             Aggressive,
             Stealthy,
             Cunning,
-            Deceiving
+            Deceiving,
+            Insane
         }
 
         public Personality maskedPersonality;
+
+        public Personality lastMaskedPersonality;
 
         public AISearchRoutine searchForItems;
 
@@ -182,6 +185,10 @@ namespace LethalIntelligence
 
         public float enterTermianlCodeTimer;
 
+        public float transmitMessageTimer; //for transmitting a signal translator message
+
+        public float transmitPauseTimer; //for adding a delay between messages
+
         public int enterTermianlSpecialCodeTime;
 
         public LethalNetworkVariable<int> enterTermianlSpecialCodeInt = new LethalNetworkVariable<int>("enterTermianlSpecialCodeInt");
@@ -198,11 +205,11 @@ namespace LethalIntelligence
 
         public LethalNetworkVariable<int> SelectPersonalityInt = new LethalNetworkVariable<int>("SelectPersonalityInt");
 
-        public LethalNetworkVariable<int> LastSelectPersonalityInt = new LethalNetworkVariable<int>("LastSelectPersonalityInt");
-
         public LethalNetworkVariable<int> maxDanceCount = new LethalNetworkVariable<int>("maxDanceCount");
 
         public LethalNetworkVariable<float> terminalTimeFloat = new LethalNetworkVariable<float>("terminalTimeFloat");
+
+        public LethalNetworkVariable<float> delayMaxTime = new LethalNetworkVariable<float>("delayMaxTime");
 
         public float jumpTime = 1f;
 
@@ -304,6 +311,8 @@ namespace LethalIntelligence
 
         public bool isDroppedShotgunAvailable;
 
+        public string maskedId = null;
+
         public void Start()
         {
             //IL_00ed: Unknown result type (might be due to invalid IL or missing references)
@@ -312,7 +321,8 @@ namespace LethalIntelligence
             //IL_018e: Unknown result type (might be due to invalid IL or missing references)
             if (GameNetworkManager.Instance.isHostingGame)
             {
-                enterTermianlSpecialCodeInt.Value = Random.Range(0, 4);
+                maskedId = this.GetInstanceID().ToString();
+                enterTermianlSpecialCodeInt.Value = Random.Range(0, Enum.GetNames(typeof(Personality)).Length);
             }
             if ((Object)(object)GameObject.FindGameObjectWithTag("Bush") != (Object)null)
             {
@@ -357,7 +367,7 @@ namespace LethalIntelligence
                 ((Component)((Component)__instance).transform.GetChild(3).GetChild(0)).GetComponent<Animator>().runtimeAnimatorController = Plugin.MapDotRework;
             }
             dropship = Object.FindObjectOfType<ItemDropship>();
-            TerminalAccessibleObject[] array2 = Object.FindObjectsOfType<TerminalAccessibleObject>();
+            terminalAccessibleObject = Object.FindObjectsOfType<TerminalAccessibleObject>();
         }
 
         private void Jump(bool enable)
@@ -413,6 +423,9 @@ namespace LethalIntelligence
                 case 3:
                     maskedPersonality = Personality.Stealthy;
                     break;
+                case 4:
+                    maskedPersonality = Personality.Insane;
+                    break;
             }
         }
 
@@ -423,7 +436,6 @@ namespace LethalIntelligence
 
         public void Update()
         {
-            Plugin.mls.LogInfo("MaskedAIRevamp.Update()");
             //IL_025e: Unknown result type (might be due to invalid IL or missing references)
             //IL_0273: Unknown result type (might be due to invalid IL or missing references)
             //IL_04ab: Unknown result type (might be due to invalid IL or missing references)
@@ -480,22 +492,9 @@ namespace LethalIntelligence
             }
             if (GameNetworkManager.Instance.isHostingGame)
             {
-                //Plugin.mls.LogInfo("Switching Personality!");
                 if (maskedPersonality == Personality.None)
                 {
-                    int upper = 4;
-                    SelectPersonalityInt.Value = Random.Range(0, upper);
-                    if(SelectPersonalityInt.Value == LastSelectPersonalityInt.Value)
-                    {
-                        if(SelectPersonalityInt.Value == 0)
-                        {
-                            SelectPersonalityInt.Value = upper;
-                        }
-                        else
-                        {
-                            SelectPersonalityInt.Value = SelectPersonalityInt.Value - 1;
-                        }
-                    }
+                    SelectPersonalityInt.Value = Random.Range(0, Enum.GetNames(typeof(Personality)).Length);
                 }
                 if (SelectPersonalityInt.Value == 0)
                 {
@@ -508,10 +507,21 @@ namespace LethalIntelligence
                 else if (SelectPersonalityInt.Value == 2)
                 {
                     maskedPersonality = Personality.Deceiving;
+                    SyncTermianlInt(60);
                 }
                 else if (SelectPersonalityInt.Value == 3)
                 {
                     maskedPersonality = Personality.Stealthy;
+                }
+                else if(SelectPersonalityInt.Value == 4)
+                {
+                    maskedPersonality = Personality.Insane;
+                    SyncTermianlInt(30);
+                }
+                if(lastMaskedPersonality != maskedPersonality)
+                {
+                    lastMaskedPersonality = maskedPersonality;
+                    Plugin.mls.LogDebug("Masked '" + maskedId + "' personality changed to '" + maskedPersonality.ToString()+"'");
                 }
             }
             if (!((Component)this).TryGetComponent<NavMeshAgent>(out agent))
@@ -521,6 +531,7 @@ namespace LethalIntelligence
             if (Plugin.skinWalkersIntergrated && ((NetworkBehaviour)this).IsHost && maskedPersonality == Personality.Deceiving)
             {
                 useWalkie.Value = true;
+                //Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + "' with skinwalkers so useWalkie=true");
             }
             if ((Object)(object)creatureAnimator == (Object)null)
             {
@@ -541,18 +552,21 @@ namespace LethalIntelligence
             {
                 MaskedCunning();
             }
-            if (Plugin.useTerminal && (maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Deceiving))
+            if (Plugin.useTerminal && (maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane))
             {
+                //Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + "' so can use the terminal."); //too much spam!
                 UsingTerminal();
             }
             if (((EnemyAI)maskedEnemy).isInsidePlayerShip && isHoldingObject && maskedPersonality == Personality.Cunning)
             {
                 dropItem.Value = true;
+                //Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + "' so dropped an item in the ship.");
             }
             if ((Object)(object)__instance.targetPlayer != (Object)null)
             {
                 distanceToPlayer = Vector3.Distance(((Component)creatureAnimator).transform.position, ((Component)__instance.targetPlayer).transform.position);
                 maskedEnemy.lookAtPositionTimer = 0f;
+                //Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + "' and targeting (a player) " + __instance.targetPlayer.name);
             }
             if (!__instance.isEnemyDead)
             {
@@ -1762,12 +1776,47 @@ namespace LethalIntelligence
                     }
                     if (dropShipTimer > 12f)
                     {
+                        Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + " called in an item dropship.");
                         dropShipTimer = 0f;
                         terminal.terminalAudio.PlayOneShot(terminal.leaveTerminalSFX);
                         isUsingTerminal = false;
                         noMoreTerminal = true;
                         __instance.SwitchToBehaviourState(2);
                     }
+                }
+                else if(maskedPersonality == Personality.Insane)
+                {
+                    if(!TerminalPatches.Transmitter.IsSignalTranslatorUnlocked())
+                    {
+                        return;
+                    }
+                    transmitMessageTimer += Time.deltaTime;
+
+                    if (GameNetworkManager.Instance.isHostingGame)
+                    {
+                        terminalTimeFloat.Value = Random.Range(5.2f, 12.5f);
+                        delayMaxTime.Value = Random.Range(15f, 45f);
+                    }
+                    if (transmitMessageTimer > terminalTimeFloat.Value && transmitPauseTimer > delayMaxTime.Value)
+                    {
+                        Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + "' and sending a message using the signal translator");
+                        string sentMessage = InsaneTransmitMessageSelection();
+                        TerminalPatches.Transmitter.SendMessage(sentMessage);
+                        Plugin.mls.LogDebug("Message sent is: " + sentMessage + " (" + enterTermianlSpecialCodeTime + " message sends remaining)");
+                        transmitMessageTimer = 0f;
+                        transmitPauseTimer = 0f;
+                    }
+                    if (transmitMessageTimer <= delayMaxTime.Value)
+                    {
+                        transmitPauseTimer += Time.deltaTime;  
+                    }
+                    if(enterTermianlSpecialCodeTime == 0)
+                    {
+                        isUsingTerminal = false;
+                        noMoreTerminal = true; // we want them to come back to the terminal "eventually" or stay on the terminal perhaps
+                        __instance.SwitchToBehaviourState(2);
+                    }
+
                 }
                 else
                 {
@@ -1781,10 +1830,17 @@ namespace LethalIntelligence
                     {
                         if (GameNetworkManager.Instance.isHostingGame)
                         {
-                            terminalTimeFloat.Value = Random.Range(0.2f, 1.5f);
+                            terminalTimeFloat.Value = Random.Range(2.2f, 8.5f);
                         }
-                        terminal.CallFunctionInAccessibleTerminalObject(terminalAccessibleObject[Random.Range(0, terminalAccessibleObject.Length)].objectCode);
-                        terminal.terminalAudio.PlayOneShot(terminal.codeBroadcastSFX);
+                        TerminalAccessibleObject obj = terminalAccessibleObject[Random.Range(0, terminalAccessibleObject.Length)];
+                        string code = obj.objectCode;
+                        if (obj!=null)
+                        {
+                            Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + "' and broadcasting a terminal code");
+                            terminal.CallFunctionInAccessibleTerminalObject(code);
+                            Plugin.mls.LogDebug("Code broadcasted is " + code + " (" + enterTermianlSpecialCodeTime + " code entries remaining)");
+                            terminal.terminalAudio.PlayOneShot(terminal.codeBroadcastSFX);
+                        }
                         enterTermianlSpecialCodeTime--;
                         enterTermianlCodeTimer = 0f;
                     }
@@ -1804,6 +1860,27 @@ namespace LethalIntelligence
                 ((Component)maskedEnemy.headTiltTarget).gameObject.SetActive(true);
             }
         }
+
+        public string InsaneTransmitMessageSelection()
+        {
+            string msg = null;
+            int m = Random.RandomRangeInt(0, 3);
+            switch (m)
+            {
+                case 0:
+                    msg = "safe";
+                    break;
+                case 1:
+                    msg = "danger";
+                    break;
+                case 2:
+                    msg = "im scared";
+                    break;
+            }
+            //msg.Substring(0, 10);
+            return msg;
+        }
+
 
         public void MaskedCunning()
         {
