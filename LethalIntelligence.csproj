@@ -39,9 +39,6 @@
         -->
         <PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))=./</PathMap>
     </PropertyGroup>
-    <ItemGroup>
-      <None Remove="CompatibilityDLLs\SkinwalkerMod.dll" />
-    </ItemGroup>
   <ItemGroup>
     <Reference Include="SkinwalkerMod">
       <HintPath>CompatibilityDLLs\SkinwalkerMod.dll</HintPath>
