@@ -507,7 +507,6 @@ namespace LethalIntelligence.Patches
                 else if (SelectPersonalityInt.Value == 2)
                 {
                     maskedPersonality = Personality.Deceiving;
-                    SyncTermianlInt(60);
                 }
                 else if (SelectPersonalityInt.Value == 3)
                 {
@@ -516,11 +515,18 @@ namespace LethalIntelligence.Patches
                 else if(SelectPersonalityInt.Value == 4)
                 {
                     maskedPersonality = Personality.Insane;
-                    SyncTermianlInt(30);
                 }
                 if(lastMaskedPersonality != maskedPersonality)
                 {
                     lastMaskedPersonality = maskedPersonality;
+                    if(maskedPersonality == Personality.Deceiving)
+                    {
+                        SyncTermianlInt(60);
+                    }
+                    else if(maskedPersonality == Personality.Insane)
+                    {
+                        SyncTermianlInt(30);
+                    }
                     Plugin.mls.LogDebug("Masked '" + maskedId + "' personality changed to '" + maskedPersonality.ToString()+"'");
                 }
             }
@@ -1802,17 +1808,35 @@ namespace LethalIntelligence.Patches
                     if (dropShipTimer > 12f)
                     {
                         Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + " called in an item dropship.");
-                        dropShipTimer = 0f;
                         terminal.terminalAudio.PlayOneShot(terminal.leaveTerminalSFX);
+                        __instance.inSpecialAnimation = false;
+                        __instance.SwitchToBehaviourState(2);
+                        terminal.placeableObject.inUse = false;
+                        terminal.terminalLight.enabled = false;
+                        creatureAnimator.ResetTrigger("Terminal");
+                        maskedEnemy.headTiltTarget.gameObject.SetActive(true);
+                        __instance.SetDestinationToPosition(GameObject.Find("ItemShip").transform.position, false); //doesnt actually route to the item ship, just uses it as a hook to get off i guess.
                         isUsingTerminal = false;
                         noMoreTerminal = true;
-                        __instance.SwitchToBehaviourState(2);
+                        dropShipTimer = 0;
                     }
                 }
                 else if(maskedPersonality == Personality.Insane)
                 {
                     if(!TerminalPatches.Transmitter.IsSignalTranslatorUnlocked())
                     {
+                        //should play a cry/laugh here instead of doing nothing??
+                        Plugin.mls.LogDebug("SignalTranslator is NOT unlocked :(");
+                        terminal.terminalAudio.PlayOneShot(terminal.leaveTerminalSFX);
+                        __instance.inSpecialAnimation = false;
+                        __instance.SwitchToBehaviourState(2);
+                        terminal.placeableObject.inUse = false;
+                        terminal.terminalLight.enabled = false;
+                        creatureAnimator.ResetTrigger("Terminal");
+                        maskedEnemy.headTiltTarget.gameObject.SetActive(true);
+                        //__instance.SetDestinationToPosition(GameObject.Find("ItemShip").transform.position, false); //doesnt actually route to the item ship, just uses it as a hook to get off i guess.
+                        isUsingTerminal = false;
+                        noMoreTerminal = true;
                         return;
                     }
                     transmitMessageTimer += Time.deltaTime;
@@ -1828,6 +1852,7 @@ namespace LethalIntelligence.Patches
                         string sentMessage = InsaneTransmitMessageSelection();
                         TerminalPatches.Transmitter.SendMessage(sentMessage);
                         Plugin.mls.LogDebug("Message sent is: " + sentMessage + " (" + enterTermianlSpecialCodeTime + " message sends remaining)");
+                        enterTermianlSpecialCodeTime--;
                         transmitMessageTimer = 0f;
                         transmitPauseTimer = 0f;
                     }
@@ -1837,9 +1862,16 @@ namespace LethalIntelligence.Patches
                     }
                     if(enterTermianlSpecialCodeTime == 0)
                     {
-                        isUsingTerminal = false;
-                        noMoreTerminal = true; // we want them to come back to the terminal "eventually" or stay on the terminal perhaps
+                        terminal.terminalAudio.PlayOneShot(terminal.leaveTerminalSFX);
+                        __instance.inSpecialAnimation = false;
                         __instance.SwitchToBehaviourState(2);
+                        terminal.placeableObject.inUse = false;
+                        terminal.terminalLight.enabled = false;
+                        creatureAnimator.ResetTrigger("Terminal");
+                        maskedEnemy.headTiltTarget.gameObject.SetActive(true);
+                        //__instance.SetDestinationToPosition(GameObject.Find("ItemShip").transform.position, false); //doesnt actually route to the item ship, just uses it as a hook to get off i guess.
+                        isUsingTerminal = false;
+                        noMoreTerminal = true;
                     }
 
                 }
@@ -1847,6 +1879,17 @@ namespace LethalIntelligence.Patches
                 {
                     if (maskedPersonality != Personality.Deceiving)
                     {
+                        Plugin.mls.LogDebug("Personality is not Deceiving :( (I am "+maskedPersonality.ToString()+")");
+                        terminal.terminalAudio.PlayOneShot(terminal.leaveTerminalSFX);
+                        __instance.inSpecialAnimation = false;
+                        __instance.SwitchToBehaviourState(2);
+                        terminal.placeableObject.inUse = false;
+                        terminal.terminalLight.enabled = false;
+                        creatureAnimator.ResetTrigger("Terminal");
+                        maskedEnemy.headTiltTarget.gameObject.SetActive(true);
+                        //__instance.SetDestinationToPosition(GameObject.Find("ItemShip").transform.position, false); //doesnt actually route to the item ship, just uses it as a hook to get off i guess.
+                        isUsingTerminal = false;
+                        noMoreTerminal = true;
                         return;
                     }
                     float num2 = Random.Range(0.2f, 1.5f);
@@ -1871,14 +1914,22 @@ namespace LethalIntelligence.Patches
                     }
                     if (enterTermianlSpecialCodeTime == 0)
                     {
+                        terminal.terminalAudio.PlayOneShot(terminal.leaveTerminalSFX);
+                        __instance.inSpecialAnimation = false;
+                        __instance.SwitchToBehaviourState(2);
+                        terminal.placeableObject.inUse = false;
+                        terminal.terminalLight.enabled = false;
+                        creatureAnimator.ResetTrigger("Terminal");
+                        maskedEnemy.headTiltTarget.gameObject.SetActive(true);
+                        //__instance.SetDestinationToPosition(GameObject.Find("ItemShip").transform.position, false); //doesnt actually route to the item ship, just uses it as a hook to get off i guess.
                         isUsingTerminal = false;
                         noMoreTerminal = true;
-                        __instance.SwitchToBehaviourState(2);
                     }
                 }
             }
             else if (!((Component)maskedEnemy.headTiltTarget).gameObject.activeSelf)
             {
+                //is this even needed anymore? its repeatedly used above.
                 terminal.placeableObject.inUse = false;
                 ((Behaviour)terminal.terminalLight).enabled = false;
                 creatureAnimator.ResetTrigger("Terminal");
