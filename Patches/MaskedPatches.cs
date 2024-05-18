@@ -1124,6 +1124,22 @@ namespace LethalIntelligence.Patches
             float num = float.PositiveInfinity;
             foreach (GrabbableObject allitem in GlobalItemList.Instance.allitems)
             {
+                //null reference exception fix here
+                if(((Component)this).transform.position==null)
+                {
+                    Plugin.mls.LogDebug("GrabItem() NullReferenceFix - Masked Entity or its position was NULL");
+                    Plugin.mls.LogDebug("this.name = " + ((Component)this).name.ToString());
+                    Plugin.mls.LogDebug("this.transform.position = " + ((Component)this).transform.position);
+                    return;
+                }
+                if (((Component)allitem).transform.position == null)
+                {
+                    Plugin.mls.LogDebug("GrabItem() NullReferenceFix - Item Entity or its position was NULL");
+                    Plugin.mls.LogDebug("allitem.name = " + ((Component)allitem).name.ToString());
+                    Plugin.mls.LogDebug("allitem.transform.position = " + ((Component)allitem).transform.position);
+                    return;
+                }
+                //null reference exception fix above
                 float num2 = Vector3.Distance(((Component)this).transform.position, ((Component)allitem).transform.position);
                 if (!(num2 < num) || !(num2 <= 10f) || allitem.isHeld || allitem.isHeldByEnemy || notGrabClosestItem)
                 {
