@@ -38,6 +38,11 @@ The current version is a **very very early** version, no optimization work has b
 
  </details>
 
+## Known Issues
+- sometimes masked have issues with picking up items (possibly fixed)
+- position in relation to the terminal is a bit weird (will look into it next)
+- masked sometimes seem a bit confused after leaving the terminal (they need to be given some direction)
+
 ## Mods
 Recommended to install with this mod:
 
@@ -50,3 +55,4 @@ Recommended to install with this mod:
 - Piggy for the original Masked AI Revamp to which this mod is built on and inspired me to do more, and for the permission to use your code as a base point.
 - TestAccount666 for the signal translator code from AutomaticSignals.
 - MattyMatty for the LobbyCompatibility softdependency class.
+- Kite (on discord) for the Masked joining/leaving terminal fixes.

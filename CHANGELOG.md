@@ -1,5 +1,10 @@
 ## Changelog
 
+### 0.0.5
+
+- Fixing masked terminal interactions (hopefully) (joining/leaving mostly)
+- Prevented a null exception related to masked picking up items
+
 ### 0.0.4
 
 - Added more words to the selection of words for the insane to use.
