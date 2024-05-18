@@ -1128,27 +1128,23 @@ namespace LethalIntelligence.Patches
                 if ((Component)this == null)
                 {
                     Plugin.mls.LogDebug("GrabItem() NullReferenceFix - Masked Entity was NULL");
-                    Plugin.mls.LogDebug("this.name = " + ((Component)this).name.ToString());
                     return;
                 }
                 else if (((Component)this).transform.position == null)
                 {
                         Plugin.mls.LogDebug("GrabItem() NullReferenceFix - Masked Entity position was NULL");
                         Plugin.mls.LogDebug("this.name = " + ((Component)this).name.ToString());
-                        Plugin.mls.LogDebug("this.transform.position = " + ((Component)this).transform.position);
                         return;
                 }
                 if ((Component)allitem == null)
                 {
                     Plugin.mls.LogDebug("GrabItem() NullReferenceFix - Item Entity was NULL");
-                    Plugin.mls.LogDebug("allitem.name = " + ((Component)allitem).name.ToString());
                     return;
                 }
                 else if (((Component)allitem).transform.position == null)
                 {
                         Plugin.mls.LogDebug("GrabItem() NullReferenceFix - Item Entity position was NULL");
                         Plugin.mls.LogDebug("allitem.name = " + ((Component)allitem).name.ToString());
-                        Plugin.mls.LogDebug("allitem.transform.position = " + ((Component)allitem).transform.position);
                         return;
                 }
                 //null reference exception fix above
@@ -1758,7 +1754,8 @@ namespace LethalIntelligence.Patches
             //IL_00de: Unknown result type (might be due to invalid IL or missing references)
             float num = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position);
             if (num < 40f)
-            {
+            //if (num < 60)
+                {
                 dropItem.Value = true;
                 if (!terminal.terminalInUse && !noMoreTerminal && num < 3.5f)
                 {
