@@ -631,7 +631,7 @@ namespace LethalIntelligence.Patches
                     PlayerLikeAction();
                 }
             }
-            if (maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Cunning)
+            if (maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Insane)
             {
                 __instance.targetPlayer = null;
                 if (__instance.isOutside && !__instance.isInsidePlayerShip && !__instance.isEnemyDead)
