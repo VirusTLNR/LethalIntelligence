@@ -599,6 +599,7 @@ namespace LethalIntelligence.Patches
                 if (isDancing.Value)
                 {
                     creatureAnimator.ResetTrigger("Crouching");
+                    ((EnemyAI)maskedEnemy).creatureAnimator.ResetTrigger("Running"); //issue#3 fix?
                     creatureAnimator.SetTrigger("Dancing");
                     __instance.SetDestinationToPosition(((Component)__instance).transform.position, false);
                     agent.speed = 0f;
