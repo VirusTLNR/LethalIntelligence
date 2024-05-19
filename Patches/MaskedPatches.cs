@@ -608,6 +608,7 @@ namespace LethalIntelligence.Patches
                 {
                     agent.speed = 3.8f;
                     creatureAnimator.ResetTrigger("Dancing");
+                    ((EnemyAI)maskedEnemy).creatureAnimator.ResetTrigger("Running"); //issue#3 fix?
                 }
             }
             if (!((EnemyAI)maskedEnemy).isEnemyDead && !isUsingTerminal && (maskedPersonality != Personality.Aggressive || !isHoldingObject || (!(closestGrabbable is Shovel) && !(closestGrabbable is ShotgunItem))))
