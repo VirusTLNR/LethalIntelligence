@@ -590,7 +590,8 @@ namespace LethalIntelligence.Patches
                 }
                 else if (maskedEnemy.running)
                 {
-                    ((EnemyAI)maskedEnemy).creatureAnimator.SetBool("Running", true);
+                    //((EnemyAI)maskedEnemy).creatureAnimator.SetBool("Running", true);
+                    ((EnemyAI)maskedEnemy).creatureAnimator.SetTrigger("Running"); //issue#3 fix? masked run normally now?
                     MaskedPlayerEnemy obj = maskedEnemy;
                     obj.staminaTimer -= Time.deltaTime * 0.05f;
                     agent.speed = 7f;
