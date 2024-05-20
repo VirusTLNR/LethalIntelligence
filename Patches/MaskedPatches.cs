@@ -1094,15 +1094,26 @@ namespace LethalIntelligence.Patches
             //IL_004c: Unknown result type (might be due to invalid IL or missing references)
             //IL_0057: Unknown result type (might be due to invalid IL or missing references)
             //IL_0068: Unknown result type (might be due to invalid IL or missing references)
-            Debug.Log((object)$"Look at position {pos} called! lookatpositiontimer setting to {lookAtTime}");
-            maskedEnemy.focusOnPosition = pos;
-            maskedEnemy.lookAtPositionTimer = lookAtTime;
-            float num = Vector3.Angle(((Component)this).transform.forward, pos - ((Component)this).transform.position);
-            if (pos.y - maskedEnemy.headTiltTarget.position.y < 0f)
+            bool canSeePos = __instance.CheckLineOfSightForPosition(pos, 160f, 40, -1, null);
+            if (canSeePos)
             {
-                num *= -1f;
+                Debug.Log((object)$"Look at position {pos} called! lookatpositiontimer setting to {lookAtTime}");
+                maskedEnemy.focusOnPosition = pos;
+                maskedEnemy.lookAtPositionTimer = lookAtTime;
+                float num = Vector3.Angle(((Component)this).transform.forward, pos - ((Component)this).transform.position);
+                if (pos.y - maskedEnemy.headTiltTarget.position.y < 0f)
+                {
+                    num *= -1f;
+                }
+                maskedEnemy.verticalLookAngle = num;
             }
-            maskedEnemy.verticalLookAngle = num;
+            else
+            {
+                Debug.Log((object)$"Look at position {pos} failed! Cannot see target, walking normally!");
+                //these lines seemingly are not needed, as the default directioning is enough.
+                //maskedEnemy.LookAtDirection(originDestination);
+                //maskedEnemy.lookAtPositionTimer = lookAtTime;
+            }
         }
 
         [HarmonyPatch(typeof(MaskedPlayerEnemy), "LookAtPlayerServerRpc")]
