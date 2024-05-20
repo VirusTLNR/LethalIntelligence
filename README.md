@@ -40,8 +40,9 @@ The current version is a **very very early** version, no optimization work has b
 
 ## Known Issues
 - sometimes masked have issues with picking up items (possibly fixed)
-- position in relation to the terminal is a bit weird (will look into it next)
-- masked sometimes seem a bit confused after leaving the terminal (they need to be given some direction)
+- masked sometimes seem a bit confused after leaving the terminal (they need to be given some direction, will fix later)
+- masked have aimbot (beleive fixed in 0.0.6)
+- slow running issue (beleive fixed in 0.0.6)
 
 ## Mods
 Recommended to install with this mod:

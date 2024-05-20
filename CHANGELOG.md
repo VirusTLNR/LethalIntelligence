@@ -1,5 +1,10 @@
 ## Changelog
 
+### 0.0.6
+
+- Potentially fixed masked "aimbot" by stopping them look at you if they visually cant see you
+- potentially fixed an issue causing masked to run slowly
+
 ### 0.0.5
 
 - Fixing masked terminal interactions (hopefully) (joining/leaving mostly)
