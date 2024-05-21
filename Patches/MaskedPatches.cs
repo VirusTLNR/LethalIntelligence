@@ -1777,6 +1777,18 @@ namespace LethalIntelligence.Patches
             //if (num < 60)
                 {
                 dropItem.Value = true;
+                if (maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane)
+                {
+                    if (maskedEnemy.isInsidePlayerShip)
+                    {
+                        DropItem(); //drop inside the ship if you will use the terminal
+                    }
+                }
+                else
+                {
+                    DropItem(); //drop once deciding to go to the player ship, you dont care where.
+                }
+
                 if (!terminal.terminalInUse && !noMoreTerminal && num < 3.5f)
                 {
                     if (!isUsingTerminal)
