@@ -11,6 +11,7 @@ using LethalNetworkAPI;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 using System.Reflection;
+using System.Linq;
 
 namespace LethalIntelligence.Patches
 {
@@ -1156,7 +1157,17 @@ namespace LethalIntelligence.Patches
                 return;
             }
             float num = float.PositiveInfinity;
-            foreach (GrabbableObject allitem in GlobalItemList.Instance.allitems)
+            List<GrabbableObject> allItemsList;
+            if(maskedPersonality == Personality.Cunning)
+            {
+                //filtering out only items cunning wants (in the ship)
+                allItemsList = GlobalItemList.Instance.allitems.FindAll(item => item.isInShipRoom == true).ToList();
+            }
+            else
+            {
+                allItemsList = GlobalItemList.Instance.allitems;
+            }
+            foreach (GrabbableObject allitem in allItemsList)
             {
                 //null reference exception fix here
                 if ((Component)this == null)
