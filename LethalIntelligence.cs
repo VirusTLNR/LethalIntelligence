@@ -35,6 +35,10 @@ namespace LethalIntelligence
         internal new static ManualLogSource mls { get; private set; } = null!;
         internal static Harmony? harmony { get; set; }
 
+        //debug config so potentially spammy logs can be contained and prevented.
+        public static bool DebugMode { get { return BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("giosuel.Imperium"); } }
+        public static string LastDebugModeMsg;
+
         //variables for mod
         //====================
         public static string logPluginName = "Lethal Intelligence";
@@ -66,6 +70,11 @@ namespace LethalIntelligence
             {
                 mls.LogInfo($"BMX.LobbyCompatibility has been found, Initiating Soft Dependency!");
                 LobbyCompatibilityChecker.Init();
+            }
+
+            if(DebugMode)
+            {
+                mls.LogWarning($"Imperium has been found, All Hail TheEmperor!, Initiating Debug Mode (More Logs!)");
             }
 
             PluginDirectory = ((BaseUnityPlugin)this).Info.Location;
@@ -146,6 +155,20 @@ namespace LethalIntelligence
             catch (Exception ex2)
             {
                 this.Logger.LogError((object)("Couldn't load assets: " + ex2.Message));
+            }
+        }
+
+        //for debug mode.
+        public static void Debugging(string classString, string methodString, string positionInMethod = "start")
+        {
+            if (Plugin.DebugMode)
+            {
+                string debugMsg = classString + "." + methodString + " @ " + positionInMethod;
+                if (debugMsg != LastDebugModeMsg)
+                {
+                    LastDebugModeMsg = debugMsg;
+                    mls.LogDebug(debugMsg);
+                }
             }
         }
     }

@@ -10,6 +10,7 @@ using SkinwalkerMod;
 using LethalNetworkAPI;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
+using System.Reflection;
 
 namespace LethalIntelligence.Patches
 {
@@ -152,6 +153,10 @@ namespace LethalIntelligence.Patches
         public Personality maskedPersonality;
 
         public Personality lastMaskedPersonality;
+
+        public bool ignoringPersonality;
+
+        public bool focusingPersonality;
 
         public AISearchRoutine searchForItems;
 
@@ -315,6 +320,8 @@ namespace LethalIntelligence.Patches
 
         public void Start()
         {
+            //example "debugging" line to place in other places when debugging..
+            Plugin.Debugging(this.GetType().FullName, MethodBase.GetCurrentMethod().Name);
             //IL_00ed: Unknown result type (might be due to invalid IL or missing references)
             //IL_00f7: Expected O, but got Unknown
             //IL_0169: Unknown result type (might be due to invalid IL or missing references)
@@ -512,22 +519,22 @@ namespace LethalIntelligence.Patches
                 {
                     maskedPersonality = Personality.Stealthy;
                 }
-                else if(SelectPersonalityInt.Value == 4)
+                else if (SelectPersonalityInt.Value == 4)
                 {
                     maskedPersonality = Personality.Insane;
                 }
-                if(lastMaskedPersonality != maskedPersonality)
+                if (lastMaskedPersonality != maskedPersonality)
                 {
                     lastMaskedPersonality = maskedPersonality;
-                    if(maskedPersonality == Personality.Deceiving)
+                    if (maskedPersonality == Personality.Deceiving)
                     {
                         SyncTermianlInt(60);
                     }
-                    else if(maskedPersonality == Personality.Insane)
+                    else if (maskedPersonality == Personality.Insane)
                     {
                         SyncTermianlInt(30);
                     }
-                    Plugin.mls.LogDebug("Masked '" + maskedId + "' personality changed to '" + maskedPersonality.ToString()+"'");
+                    Plugin.mls.LogDebug("Masked '" + maskedId + "' personality changed to '" + maskedPersonality.ToString() + "'");
                 }
             }
             if (!((Component)this).TryGetComponent<NavMeshAgent>(out agent))
@@ -554,350 +561,353 @@ namespace LethalIntelligence.Patches
                 Plugin.mls.LogError((object)"VariableDeclarationClass.Update():  __instance is null!");
                 return;
             }
-            if (maskedPersonality == Personality.Cunning)
+            IdleAnimationSelector(creatureAnimator, __instance);
+            if (maskedPersonality == Personality.Cunning && !ignoringPersonality)
             {
                 MaskedCunning();
             }
-            if (Plugin.useTerminal && (maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane))
+            if (!focusingPersonality)
             {
-                //Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + "' so can use the terminal."); //too much spam!
-                UsingTerminal();
-            }
-            if (((EnemyAI)maskedEnemy).isInsidePlayerShip && isHoldingObject && maskedPersonality == Personality.Cunning)
-            {
-                dropItem.Value = true;
-                //Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + "' so dropped an item in the ship.");
-            }
-            if ((Object)(object)__instance.targetPlayer != (Object)null)
-            {
-                distanceToPlayer = Vector3.Distance(((Component)creatureAnimator).transform.position, ((Component)__instance.targetPlayer).transform.position);
-                maskedEnemy.lookAtPositionTimer = 0f;
-                //Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + "' and targeting (a player) " + __instance.targetPlayer.name);
-            }
-            if (!__instance.isEnemyDead)
-            {
-                if (isCrouched.Value)
+                if (Plugin.useTerminal && (maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane) && !noMoreTerminal)
                 {
-                    creatureAnimator.SetTrigger("Crouching");
+                    //Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + "' so can use the terminal."); //too much spam!
+                    UsingTerminal();
                 }
-                else
-                {
-                    creatureAnimator.ResetTrigger("Crouching");
-                }
-                if (isCrouched.Value && !maskedEnemy.running)
-                {
-                    agent.speed = 1.9f;
-                }
-                else if (maskedEnemy.running)
-                {
-                    //((EnemyAI)maskedEnemy).creatureAnimator.SetBool("Running", true);
-                    ((EnemyAI)maskedEnemy).creatureAnimator.SetTrigger("Running"); //issue#3 fix? masked run normally now?
-                    MaskedPlayerEnemy obj = maskedEnemy;
-                    obj.staminaTimer -= Time.deltaTime * 0.05f;
-                    agent.speed = 7f;
-                }
-                if (isDancing.Value)
-                {
-                    creatureAnimator.ResetTrigger("Crouching");
-                    ((EnemyAI)maskedEnemy).creatureAnimator.ResetTrigger("Running"); //issue#3 fix?
-                    creatureAnimator.SetTrigger("Dancing");
-                    __instance.SetDestinationToPosition(((Component)__instance).transform.position, false);
-                    agent.speed = 0f;
-                    Plugin.mls.LogInfo((object)"Dancing");
-                }
-                else if (!maskedEnemy.running && !isCrouched.Value)
-                {
-                    agent.speed = 3.8f;
-                    creatureAnimator.ResetTrigger("Dancing");
-                    ((EnemyAI)maskedEnemy).creatureAnimator.ResetTrigger("Running"); //issue#3 fix?
-                }
-            }
-            if (!((EnemyAI)maskedEnemy).isEnemyDead && !isUsingTerminal && (maskedPersonality != Personality.Aggressive || !isHoldingObject || (!(closestGrabbable is Shovel) && !(closestGrabbable is ShotgunItem))))
-            {
-                PlayerControllerB[] allPlayerScripts = StartOfRound.Instance.allPlayerScripts;
-                foreach (PlayerControllerB val in allPlayerScripts)
-                {
-                    float num = Vector3.Distance(((Component)val).transform.position, ((Component)this).transform.position);
-                    if (num < 1f)
-                    {
-                        maskedEnemy.KillPlayerAnimationServerRpc((int)val.playerClientId);
-                        maskedEnemy.startingKillAnimationLocalClient = true;
-                        if (val.isCrouching)
-                        {
-                            val.Crouch(false);
-                        }
-                    }
-                }
-            }
-            if (!__instance.isEnemyDead)
-            {
-                if (((NetworkBehaviour)this).IsHost && maskedPersonality == Personality.Stealthy)
-                {
-                    AwayFromPlayer();
-                }
-                if (((NetworkBehaviour)this).IsHost && maskedPersonality == Personality.Stealthy)
-                {
-                    PlayerLikeAction();
-                }
-            }
-            if (maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Insane)
-            {
-                __instance.targetPlayer = null;
-                if (__instance.isOutside && !__instance.isInsidePlayerShip && !__instance.isEnemyDead)
-                {
-                    maskedEnemy.lostLOSTimer = 0f;
-                    maskedEnemy.stopAndStareTimer = 0f;
-                    __instance.SetDestinationToPosition(GameObject.Find("LockerAudio").transform.position, true);
-                    if (maskedEnemy.staminaTimer >= 5f && !isStaminaDowned)
-                    {
-                        if (!isJumped.Value)
-                        {
-                            isJumped.Value = true;
-                        }
-                        else
-                        {
-                            creatureAnimator.ResetTrigger("FakeJump");
-                        }
-                        maskedEnemy.running = true;
-                        return;
-                    }
-                    if (maskedEnemy.staminaTimer < 0f)
-                    {
-                        isStaminaDowned = true;
-                        maskedEnemy.running = false;
-                        ((EnemyAI)maskedEnemy).creatureAnimator.SetTrigger("Tired");
-                    }
-                    if (isStaminaDowned)
-                    {
-                        MaskedPlayerEnemy obj2 = maskedEnemy;
-                        obj2.staminaTimer += Time.deltaTime * 0.2f;
-                        if (maskedEnemy.staminaTimer < 3f)
-                        {
-                            isStaminaDowned = false;
-                            ((EnemyAI)maskedEnemy).creatureAnimator.ResetTrigger("Tired");
-                        }
-                    }
-                }
-            }
-            if (!((EnemyAI)maskedEnemy).isEnemyDead)
-            {
-                if (maskedPersonality == Personality.Aggressive && GlobalItemList.Instance.isShotgun)
-                {
-                    FindAndGrabShotgun();
-                    if (isHoldingObject && closestGrabbable is ShotgunItem)
-                    {
-                        UseItem(((EnemyAI)maskedEnemy).targetPlayer, distanceToPlayer);
-                    }
-                }
-                else if (!__instance.isInsidePlayerShip && !isHoldingObject)
-                {
-                    GrabItem();
-                }
-            }
-            if (((EnemyAI)maskedEnemy).isEnemyDead && isHoldingObject)
-            {
-                closestGrabbable.parentObject = null;
-                closestGrabbable.isHeld = false;
-                closestGrabbable.isHeldByEnemy = false;
-                isHoldingObject = false;
-            }
-            if ((Object)(object)__instance.targetPlayer == (Object)null && isHoldingObject)
-            {
-                dropTimer = 0f;
-            }
-            if (maskedPersonality != Personality.Cunning && (Object)(object)__instance.targetPlayer != (Object)null && isHoldingObject && !(closestGrabbable is Shovel) && !(closestGrabbable is ShotgunItem) && maskedPersonality == Personality.Aggressive)
-            {
-                dropTimer += Time.deltaTime;
-                if (((NetworkBehaviour)this).IsHost)
-                {
-                    if (!itemDroped)
-                    {
-                        dropTimerB = Random.Range(0.2f, 4f);
-                        itemDroped = true;
-                    }
-                    if (dropTimer > dropTimerB)
-                    {
-                        dropItem.Value = true;
-                    }
-                }
-            }
-            else if ((Object)(object)__instance.targetPlayer != (Object)null && isHoldingObject && maskedPersonality != Personality.Aggressive && maskedPersonality != Personality.Stealthy && maskedPersonality != Personality.Cunning)
-            {
-                dropTimer += Time.deltaTime;
-                if (((NetworkBehaviour)this).IsHost)
-                {
-                    if (!itemDroped)
-                    {
-                        dropTimerB = Random.Range(0.2f, 4f);
-                        itemDroped = true;
-                    }
-                    if (dropTimer > dropTimerB)
-                    {
-                        dropItem.Value = true;
-                    }
-                }
-            }
-            if (isHoldingObject && (Object)(object)__instance.targetPlayer != (Object)null && closestGrabbable is StunGrenadeItem && maskedPersonality == Personality.Aggressive)
-            {
-                StunGrenadeItem component = ((Component)closestGrabbable).GetComponent<StunGrenadeItem>();
-                if (distanceToPlayer < 8f && !stunThrowed)
-                {
-                    stunThrowed = true;
-                    creatureAnimator.SetTrigger("StunPin");
-                    component.inPullingPinAnimation = true;
-                    ((GrabbableObject)component).playerHeldBy.activatingItem = true;
-                    ((GrabbableObject)component).playerHeldBy.doingUpperBodyEmote = 1.16f;
-                    component.itemAnimator.SetTrigger("pullPin");
-                    component.itemAudio.PlayOneShot(component.pullPinSFX);
-                    WalkieTalkie.TransmitOneShotAudio(component.itemAudio, component.pullPinSFX, 0.8f);
-                    component.inPullingPinAnimation = false;
-                    component.pinPulled = true;
-                    ((GrabbableObject)component).itemUsedUp = true;
-                    ((GrabbableObject)component).grabbable = false;
-                    Vector3 position = ((Component)component).transform.position;
-                    component.grenadeThrowRay = new Ray(((Component)((GrabbableObject)component).playerHeldBy.gameplayCamera).transform.position, ((Component)((GrabbableObject)component).playerHeldBy.gameplayCamera).transform.forward);
-                    position = !Physics.Raycast(component.grenadeThrowRay, out component.grenadeHit, 12f, StartOfRound.Instance.collidersAndRoomMaskAndDefault) ? ((Ray)(component.grenadeThrowRay)).GetPoint(10f) : ((Ray)(component.grenadeThrowRay)).GetPoint(((RaycastHit)(component.grenadeHit)).distance - 0.05f);
-                    Debug.DrawRay(position, Vector3.down, Color.blue, 15f);
-                    component.grenadeThrowRay = new Ray(position, Vector3.down);
-                    Vector3 val2 = !Physics.Raycast(component.grenadeThrowRay, out component.grenadeHit, 30f, StartOfRound.Instance.collidersAndRoomMaskAndDefault) ? ((Ray)(component.grenadeThrowRay)).GetPoint(30f) : (((RaycastHit)(component.grenadeHit)).point + Vector3.up * 0.05f);
-                    closestGrabbable.parentObject = null;
-                    ((Component)closestGrabbable).transform.SetParent(StartOfRound.Instance.propsContainer, true);
-                    closestGrabbable.EnablePhysics(true);
-                    closestGrabbable.fallTime = 0f;
-                    closestGrabbable.startFallingPosition = ((Component)closestGrabbable).transform.parent.InverseTransformPoint(((Component)closestGrabbable).transform.position);
-                    closestGrabbable.targetFloorPosition = ((Component)closestGrabbable).transform.parent.InverseTransformPoint(val2);
-                    closestGrabbable.floorYRot = -1;
-                    isHoldingObject = false;
-                    closestGrabbable.DiscardItemFromEnemy();
-                }
-            }
-            IdleAnimationSelector(creatureAnimator, __instance);
-            if (!__instance.isEnemyDead && isHoldingObject && (Object)(object)__instance.targetPlayer != (Object)null && (maskedPersonality != Personality.Aggressive || (!(closestGrabbable is Shovel) && !(closestGrabbable is ShotgunItem))))
-            {
-                if (__instance.isOutside)
-                {
-                    __instance.SetDestinationToPosition(maskedEnemy.shipHidingSpot, false);
-                }
-                else
-                {
-                    __instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, false);
-                }
-            }
-            if (__instance.isInsidePlayerShip && maskedPersonality != Personality.Aggressive && isHoldingObject)
-            {
-                float num2 = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position);
-                if (num2 < 6f)
+                if (((EnemyAI)maskedEnemy).isInsidePlayerShip && isHoldingObject && maskedPersonality == Personality.Cunning)
                 {
                     dropItem.Value = true;
+                    //Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + "' so dropped an item in the ship.");
                 }
-            }
-            if (noMoreTerminal && !__instance.isEnemyDead)
-            {
-                maskedEnemy.LookAndRunRandomly(true, true);
-                if (((EnemyAI)maskedEnemy).isOutside)
+                if ((Object)(object)__instance.targetPlayer != (Object)null)
                 {
-                    ((EnemyAI)maskedEnemy).SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
+                    distanceToPlayer = Vector3.Distance(((Component)creatureAnimator).transform.position, ((Component)__instance.targetPlayer).transform.position);
+                    maskedEnemy.lookAtPositionTimer = 0f;
+                    //Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + "' and targeting (a player) " + __instance.targetPlayer.name);
                 }
-            }
-            if (maskedEnemy.stopAndStareTimer >= 0f && stopAndTbagCooldown <= 0f && !__instance.isEnemyDead)
-            {
-                if (GameNetworkManager.Instance.isHostingGame)
+                if (!__instance.isEnemyDead)
                 {
-                    if (stopAndTbagTimer <= 0f)
+                    if (isCrouched.Value)
                     {
-                        randomPose = Random.Range(0, 4);
+                        creatureAnimator.SetTrigger("Crouching");
                     }
-                    stopAndTbagTimer -= Time.deltaTime;
-                    if (randomPose == 0)
+                    else
                     {
-                        if (stopAndTbagTimer < 1f && stopAndTbagTimer > 0.8f)
-                        {
-                            isCrouched.Value = true;
-                        }
-                        else if (stopAndTbagTimer < 0.8f && stopAndTbagTimer > 0.6f)
-                        {
-                            isCrouched.Value = false;
-                        }
-                        else if (stopAndTbagTimer < 0.6f && stopAndTbagTimer > 0.4f)
-                        {
-                            isCrouched.Value = true;
-                        }
-                        else if (stopAndTbagTimer > 0f && stopAndTbagTimer < 0.4f)
-                        {
-                            isCrouched.Value = false;
-                            stopAndTbagCooldown = 10f;
-                        }
+                        creatureAnimator.ResetTrigger("Crouching");
                     }
-                    else if (randomPose == 1 && maskedPersonality != Personality.Aggressive)
+                    if (isCrouched.Value && !maskedEnemy.running)
                     {
-                        if (stopAndTbagTimer < 1.1f && stopAndTbagTimer > 0.8f)
-                        {
-                            isDancing.Value = true;
-                        }
-                        else if (stopAndTbagTimer < 0.7f && stopAndTbagTimer > 0.2f)
-                        {
-                            isDancing.Value = false;
-                            isCrouched.Value = true;
-                        }
-                        else if (stopAndTbagTimer > 0f && stopAndTbagTimer < 0.2f)
-                        {
-                            stopAndTbagCooldown = 10f;
-                            isCrouched.Value = false;
-                        }
+                        agent.speed = 1.9f;
+                    }
+                    else if (maskedEnemy.running)
+                    {
+                        //((EnemyAI)maskedEnemy).creatureAnimator.SetBool("Running", true);
+                        ((EnemyAI)maskedEnemy).creatureAnimator.SetTrigger("Running"); //issue#3 fix? masked run normally now?
+                        MaskedPlayerEnemy obj = maskedEnemy;
+                        obj.staminaTimer -= Time.deltaTime * 0.05f;
+                        agent.speed = 7f;
+                    }
+                    if (isDancing.Value)
+                    {
+                        creatureAnimator.ResetTrigger("Crouching");
+                        ((EnemyAI)maskedEnemy).creatureAnimator.ResetTrigger("Running"); //issue#3 fix?
+                        creatureAnimator.SetTrigger("Dancing");
+                        __instance.SetDestinationToPosition(((Component)__instance).transform.position, false);
+                        agent.speed = 0f;
+                        Plugin.mls.LogInfo((object)"Dancing");
+                    }
+                    else if (!maskedEnemy.running && !isCrouched.Value)
+                    {
+                        agent.speed = 3.8f;
+                        creatureAnimator.ResetTrigger("Dancing");
+                        ((EnemyAI)maskedEnemy).creatureAnimator.ResetTrigger("Running"); //issue#3 fix?
                     }
                 }
-            }
-            else
-            {
-                stopAndTbagTimer = 2.5f;
-                if (stopAndTbagCooldown > 0f)
+                if (!((EnemyAI)maskedEnemy).isEnemyDead && !isUsingTerminal && (maskedPersonality != Personality.Aggressive || !isHoldingObject || (!(closestGrabbable is Shovel) && !(closestGrabbable is ShotgunItem))))
                 {
-                    stopAndTbagCooldown -= Time.deltaTime;
+                    PlayerControllerB[] allPlayerScripts = StartOfRound.Instance.allPlayerScripts;
+                    foreach (PlayerControllerB val in allPlayerScripts)
+                    {
+                        float num = Vector3.Distance(((Component)val).transform.position, ((Component)this).transform.position);
+                        if (num < 1f)
+                        {
+                            maskedEnemy.KillPlayerAnimationServerRpc((int)val.playerClientId);
+                            maskedEnemy.startingKillAnimationLocalClient = true;
+                            if (val.isCrouching)
+                            {
+                                val.Crouch(false);
+                            }
+                        }
+                    }
                 }
-            }
-            if (!((Object)(object)__instance.targetPlayer != (Object)null))
-            {
-                return;
-            }
-            LookAtPos(((Component)((EnemyAI)maskedEnemy).targetPlayer).transform.position, 0.5f);
-            if (maskedPersonality == Personality.Cunning)
-            {
-                lookTimer += Time.deltaTime;
-                if (lookTimer < 1f && !lookedPlayer)
+                if (!__instance.isEnemyDead)
                 {
-                    LookAtPos(((Component)((EnemyAI)maskedEnemy).targetPlayer).transform.position, 2.5f);
-                    lookedPlayer = true;
+                    if (((NetworkBehaviour)this).IsHost && maskedPersonality == Personality.Stealthy)
+                    {
+                        AwayFromPlayer();
+                    }
+                    if (((NetworkBehaviour)this).IsHost && maskedPersonality == Personality.Stealthy)
+                    {
+                        PlayerLikeAction();
+                    }
                 }
-                if (lookTimer > 5f)
+                if (maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Insane)
                 {
-                    lookTimer = 0f;
-                    lookedPlayer = false;
+                    __instance.targetPlayer = null;
+                    if (__instance.isOutside && !__instance.isInsidePlayerShip && !__instance.isEnemyDead)
+                    {
+                        maskedEnemy.lostLOSTimer = 0f;
+                        maskedEnemy.stopAndStareTimer = 0f;
+                        __instance.SetDestinationToPosition(GameObject.Find("LockerAudio").transform.position, true);
+                        if (maskedEnemy.staminaTimer >= 5f && !isStaminaDowned)
+                        {
+                            if (!isJumped.Value)
+                            {
+                                isJumped.Value = true;
+                            }
+                            else
+                            {
+                                creatureAnimator.ResetTrigger("FakeJump");
+                            }
+                            maskedEnemy.running = true;
+                            return;
+                        }
+                        if (maskedEnemy.staminaTimer < 0f)
+                        {
+                            isStaminaDowned = true;
+                            maskedEnemy.running = false;
+                            ((EnemyAI)maskedEnemy).creatureAnimator.SetTrigger("Tired");
+                        }
+                        if (isStaminaDowned)
+                        {
+                            MaskedPlayerEnemy obj2 = maskedEnemy;
+                            obj2.staminaTimer += Time.deltaTime * 0.2f;
+                            if (maskedEnemy.staminaTimer < 3f)
+                            {
+                                isStaminaDowned = false;
+                                ((EnemyAI)maskedEnemy).creatureAnimator.ResetTrigger("Tired");
+                            }
+                        }
+                    }
                 }
-            }
-            if (enableDance)
-            {
-                isDancing.Value = true;
-                maskedEnemy.stopAndStareTimer = 0.9f;
-                agent.speed = 0f;
-            }
-            if (distanceToPlayer < 17f && __instance.targetPlayer.performingEmote && maxDanceCount.Value > 0)
-            {
-                if (GameNetworkManager.Instance.isHostingGame && !enableDance)
+                if (!((EnemyAI)maskedEnemy).isEnemyDead)
                 {
-                    LethalNetworkVariable<int> obj3 = maxDanceCount;
-                    obj3.Value -= 1;
+                    if (maskedPersonality == Personality.Aggressive && GlobalItemList.Instance.isShotgun)
+                    {
+                        FindAndGrabShotgun();
+                        if (isHoldingObject && closestGrabbable is ShotgunItem)
+                        {
+                            UseItem(((EnemyAI)maskedEnemy).targetPlayer, distanceToPlayer);
+                        }
+                    }
+                    else if (!__instance.isInsidePlayerShip && !isHoldingObject)
+                    {
+                        GrabItem();
+                    }
+                }
+                if (((EnemyAI)maskedEnemy).isEnemyDead && isHoldingObject)
+                {
+                    closestGrabbable.parentObject = null;
+                    closestGrabbable.isHeld = false;
+                    closestGrabbable.isHeldByEnemy = false;
+                    isHoldingObject = false;
+                }
+                if ((Object)(object)__instance.targetPlayer == (Object)null && isHoldingObject)
+                {
+                    dropTimer = 0f;
+                }
+                if (maskedPersonality != Personality.Cunning && (Object)(object)__instance.targetPlayer != (Object)null && isHoldingObject && !(closestGrabbable is Shovel) && !(closestGrabbable is ShotgunItem) && maskedPersonality == Personality.Aggressive)
+                {
+                    dropTimer += Time.deltaTime;
+                    if (((NetworkBehaviour)this).IsHost)
+                    {
+                        if (!itemDroped)
+                        {
+                            dropTimerB = Random.Range(0.2f, 4f);
+                            itemDroped = true;
+                        }
+                        if (dropTimer > dropTimerB)
+                        {
+                            dropItem.Value = true;
+                        }
+                    }
+                }
+                else if ((Object)(object)__instance.targetPlayer != (Object)null && isHoldingObject && maskedPersonality != Personality.Aggressive && maskedPersonality != Personality.Stealthy && maskedPersonality != Personality.Cunning)
+                {
+                    dropTimer += Time.deltaTime;
+                    if (((NetworkBehaviour)this).IsHost)
+                    {
+                        if (!itemDroped)
+                        {
+                            dropTimerB = Random.Range(0.2f, 4f);
+                            itemDroped = true;
+                        }
+                        if (dropTimer > dropTimerB)
+                        {
+                            dropItem.Value = true;
+                        }
+                    }
+                }
+                if (isHoldingObject && (Object)(object)__instance.targetPlayer != (Object)null && closestGrabbable is StunGrenadeItem && maskedPersonality == Personality.Aggressive)
+                {
+                    StunGrenadeItem component = ((Component)closestGrabbable).GetComponent<StunGrenadeItem>();
+                    if (distanceToPlayer < 8f && !stunThrowed)
+                    {
+                        stunThrowed = true;
+                        creatureAnimator.SetTrigger("StunPin");
+                        component.inPullingPinAnimation = true;
+                        ((GrabbableObject)component).playerHeldBy.activatingItem = true;
+                        ((GrabbableObject)component).playerHeldBy.doingUpperBodyEmote = 1.16f;
+                        component.itemAnimator.SetTrigger("pullPin");
+                        component.itemAudio.PlayOneShot(component.pullPinSFX);
+                        WalkieTalkie.TransmitOneShotAudio(component.itemAudio, component.pullPinSFX, 0.8f);
+                        component.inPullingPinAnimation = false;
+                        component.pinPulled = true;
+                        ((GrabbableObject)component).itemUsedUp = true;
+                        ((GrabbableObject)component).grabbable = false;
+                        Vector3 position = ((Component)component).transform.position;
+                        component.grenadeThrowRay = new Ray(((Component)((GrabbableObject)component).playerHeldBy.gameplayCamera).transform.position, ((Component)((GrabbableObject)component).playerHeldBy.gameplayCamera).transform.forward);
+                        position = !Physics.Raycast(component.grenadeThrowRay, out component.grenadeHit, 12f, StartOfRound.Instance.collidersAndRoomMaskAndDefault) ? ((Ray)(component.grenadeThrowRay)).GetPoint(10f) : ((Ray)(component.grenadeThrowRay)).GetPoint(((RaycastHit)(component.grenadeHit)).distance - 0.05f);
+                        Debug.DrawRay(position, Vector3.down, Color.blue, 15f);
+                        component.grenadeThrowRay = new Ray(position, Vector3.down);
+                        Vector3 val2 = !Physics.Raycast(component.grenadeThrowRay, out component.grenadeHit, 30f, StartOfRound.Instance.collidersAndRoomMaskAndDefault) ? ((Ray)(component.grenadeThrowRay)).GetPoint(30f) : (((RaycastHit)(component.grenadeHit)).point + Vector3.up * 0.05f);
+                        closestGrabbable.parentObject = null;
+                        ((Component)closestGrabbable).transform.SetParent(StartOfRound.Instance.propsContainer, true);
+                        closestGrabbable.EnablePhysics(true);
+                        closestGrabbable.fallTime = 0f;
+                        closestGrabbable.startFallingPosition = ((Component)closestGrabbable).transform.parent.InverseTransformPoint(((Component)closestGrabbable).transform.position);
+                        closestGrabbable.targetFloorPosition = ((Component)closestGrabbable).transform.parent.InverseTransformPoint(val2);
+                        closestGrabbable.floorYRot = -1;
+                        isHoldingObject = false;
+                        closestGrabbable.DiscardItemFromEnemy();
+                    }
+                }
+                if (!__instance.isEnemyDead && isHoldingObject && (Object)(object)__instance.targetPlayer != (Object)null && (maskedPersonality != Personality.Aggressive || (!(closestGrabbable is Shovel) && !(closestGrabbable is ShotgunItem))))
+                {
+                    if (__instance.isOutside)
+                    {
+                        __instance.SetDestinationToPosition(maskedEnemy.shipHidingSpot, false);
+                    }
+                    else
+                    {
+                        __instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, false);
+                    }
+                }
+                if (__instance.isInsidePlayerShip && maskedPersonality != Personality.Aggressive && isHoldingObject)
+                {
+                    float num2 = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position);
+                    if (num2 < 6f)
+                    {
+                        dropItem.Value = true;
+                    }
+                }
+                if (noMoreTerminal && !__instance.isEnemyDead)
+                {
+                    maskedEnemy.LookAndRunRandomly(true, true);
+                    if (((EnemyAI)maskedEnemy).isOutside)
+                    {
+                        ((EnemyAI)maskedEnemy).SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
+                    }
+                }
+                if (maskedEnemy.stopAndStareTimer >= 0f && stopAndTbagCooldown <= 0f && !__instance.isEnemyDead)
+                {
+                    if (GameNetworkManager.Instance.isHostingGame)
+                    {
+                        if (stopAndTbagTimer <= 0f)
+                        {
+                            randomPose = Random.Range(0, 4);
+                        }
+                        stopAndTbagTimer -= Time.deltaTime;
+                        if (randomPose == 0)
+                        {
+                            if (stopAndTbagTimer < 1f && stopAndTbagTimer > 0.8f)
+                            {
+                                isCrouched.Value = true;
+                            }
+                            else if (stopAndTbagTimer < 0.8f && stopAndTbagTimer > 0.6f)
+                            {
+                                isCrouched.Value = false;
+                            }
+                            else if (stopAndTbagTimer < 0.6f && stopAndTbagTimer > 0.4f)
+                            {
+                                isCrouched.Value = true;
+                            }
+                            else if (stopAndTbagTimer > 0f && stopAndTbagTimer < 0.4f)
+                            {
+                                isCrouched.Value = false;
+                                stopAndTbagCooldown = 10f;
+                            }
+                        }
+                        else if (randomPose == 1 && maskedPersonality != Personality.Aggressive)
+                        {
+                            if (stopAndTbagTimer < 1.1f && stopAndTbagTimer > 0.8f)
+                            {
+                                isDancing.Value = true;
+                            }
+                            else if (stopAndTbagTimer < 0.7f && stopAndTbagTimer > 0.2f)
+                            {
+                                isDancing.Value = false;
+                                isCrouched.Value = true;
+                            }
+                            else if (stopAndTbagTimer > 0f && stopAndTbagTimer < 0.2f)
+                            {
+                                stopAndTbagCooldown = 10f;
+                                isCrouched.Value = false;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    stopAndTbagTimer = 2.5f;
+                    if (stopAndTbagCooldown > 0f)
+                    {
+                        stopAndTbagCooldown -= Time.deltaTime;
+                    }
+                }
+                if (!((Object)(object)__instance.targetPlayer != (Object)null))
+                {
+                    return;
+                }
+                LookAtPos(((Component)((EnemyAI)maskedEnemy).targetPlayer).transform.position, 0.5f);
+                if (maskedPersonality == Personality.Cunning)
+                {
+                    lookTimer += Time.deltaTime;
+                    if (lookTimer < 1f && !lookedPlayer)
+                    {
+                        LookAtPos(((Component)((EnemyAI)maskedEnemy).targetPlayer).transform.position, 2.5f);
+                        lookedPlayer = true;
+                    }
+                    if (lookTimer > 5f)
+                    {
+                        lookTimer = 0f;
+                        lookedPlayer = false;
+                    }
+                }
+                if (enableDance)
+                {
+                    isDancing.Value = true;
+                    maskedEnemy.stopAndStareTimer = 0.9f;
+                    agent.speed = 0f;
+                }
+                if (distanceToPlayer < 17f && __instance.targetPlayer.performingEmote && maxDanceCount.Value > 0)
+                {
+                    if (GameNetworkManager.Instance.isHostingGame && !enableDance)
+                    {
+                        LethalNetworkVariable<int> obj3 = maxDanceCount;
+                        obj3.Value -= 1;
+                        randomPose = 1;
+                        enableDance = true;
+                    }
+                    stopAndTbagTimer = 0.9f;
+                    __instance.agent.speed = 0f;
+                }
+                else if (isDancing.Value && GameNetworkManager.Instance.isHostingGame)
+                {
+                    isDancing.Value = false;
+                    stopAndTbagTimer = 0.4f;
                     randomPose = 1;
-                    enableDance = true;
+                    enableDance = false;
                 }
-                stopAndTbagTimer = 0.9f;
-                __instance.agent.speed = 0f;
-            }
-            else if (isDancing.Value && GameNetworkManager.Instance.isHostingGame)
-            {
-                isDancing.Value = false;
-                stopAndTbagTimer = 0.4f;
-                randomPose = 1;
-                enableDance = false;
             }
         }
 
@@ -1062,6 +1072,10 @@ namespace LethalIntelligence.Patches
                 closestGrabbable.isHeldByEnemy = false;
                 isHoldingObject = false;
                 closestGrabbable.DiscardItemFromEnemy();
+                closestGrabbable.hasHitGround = true;
+                closestGrabbable.grabbable = true;
+                isHoldingObject = false;
+                itemDroped = true;
                 PlayerControllerB targetPlayer = __instance.CheckLineOfSightForClosestPlayer(70f, 50, 1, 3f);
                 __instance.movingTowardsTargetPlayer = true;
                 __instance.targetPlayer = targetPlayer;
@@ -1097,7 +1111,7 @@ namespace LethalIntelligence.Patches
             bool canSeePos = __instance.CheckLineOfSightForPosition(pos, 160f, 40, -1, null);
             if (canSeePos)
             {
-                Debug.Log((object)$"Look at position {pos} called! lookatpositiontimer setting to {lookAtTime}");
+                Plugin.mls.LogDebug((object)$"Look at position {pos} called! lookatpositiontimer setting to {lookAtTime}");
                 maskedEnemy.focusOnPosition = pos;
                 maskedEnemy.lookAtPositionTimer = lookAtTime;
                 float num = Vector3.Angle(((Component)this).transform.forward, pos - ((Component)this).transform.position);
@@ -1109,7 +1123,7 @@ namespace LethalIntelligence.Patches
             }
             else
             {
-                Debug.Log((object)$"Look at position {pos} failed! Cannot see target, walking normally!");
+                Plugin.mls.LogDebug((object)$"Look at position {pos} failed! Cannot see target, walking normally!");
                 //these lines seemingly are not needed, as the default directioning is enough.
                 //maskedEnemy.LookAtDirection(originDestination);
                 //maskedEnemy.lookAtPositionTimer = lookAtTime;
@@ -1179,7 +1193,7 @@ namespace LethalIntelligence.Patches
                 {
                     itemSystem = ((Component)closestGrabbable).GetComponent<CheckItemCollision>();
                 }
-                if (itemSystem.hidedByMasked || closestGrabbable.isHeld || closestGrabbable.isHeldByEnemy)
+                if(itemSystem.hidedByMasked)
                 {
                     continue;
                 }
@@ -1775,18 +1789,12 @@ namespace LethalIntelligence.Patches
             float num = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position);
             if (num < 40f)
             //if (num < 60)
-                {
+            {
                 dropItem.Value = true;
-                if (maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane)
+                creatureAnimator.ResetTrigger("Crouching"); //temp fix for crouching animation issue
+                if (maskedEnemy.isInsidePlayerShip)
                 {
-                    if (maskedEnemy.isInsidePlayerShip)
-                    {
-                        DropItem(); //drop inside the ship if you will use the terminal
-                    }
-                }
-                else
-                {
-                    DropItem(); //drop once deciding to go to the player ship, you dont care where.
+                    DropItem(); //drop inside the ship if you will use the terminal
                 }
 
                 if (!terminal.terminalInUse && !noMoreTerminal && num < 3.5f)
@@ -1800,12 +1808,14 @@ namespace LethalIntelligence.Patches
                 if (!terminal.terminalInUse && !noMoreTerminal && !__instance.isEnemyDead)
                 {
                     __instance.SetDestinationToPosition(((Component)terminal).transform.position, true);
+                    this.ignoringPersonality = true;
                 }
             }
             if (isUsingTerminal)
             {
                 creatureAnimator.SetTrigger("Terminal");
                 __instance.inSpecialAnimation = true;
+                this.ignoringPersonality = false;
                 terminal.placeableObject.inUse = true;
                 ((Behaviour)terminal.terminalLight).enabled = true;
                 __instance.movingTowardsTargetPlayer = false;
@@ -1836,12 +1846,14 @@ namespace LethalIntelligence.Patches
                         Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + " called in an item dropship.");
                         terminal.terminalAudio.PlayOneShot(terminal.leaveTerminalSFX);
                         __instance.inSpecialAnimation = false;
+                        this.ignoringPersonality = false;
                         __instance.SwitchToBehaviourState(2);
                         terminal.placeableObject.inUse = false;
                         terminal.terminalLight.enabled = false;
                         creatureAnimator.ResetTrigger("Terminal");
                         maskedEnemy.headTiltTarget.gameObject.SetActive(true);
-                        __instance.SetDestinationToPosition(GameObject.Find("ItemShip").transform.position, false); //doesnt actually route to the item ship, just uses it as a hook to get off i guess.
+                        //GrabItem();
+                        //__instance.SetDestinationToPosition(GameObject.Find("ItemShip").transform.position, false); //doesnt actually route to the item ship, just uses it as a hook to get off i guess.
                         isUsingTerminal = false;
                         noMoreTerminal = true;
                         dropShipTimer = 0;
@@ -1855,6 +1867,7 @@ namespace LethalIntelligence.Patches
                         Plugin.mls.LogDebug("SignalTranslator is NOT unlocked :(");
                         terminal.terminalAudio.PlayOneShot(terminal.leaveTerminalSFX);
                         __instance.inSpecialAnimation = false;
+                        this.ignoringPersonality = false;
                         __instance.SwitchToBehaviourState(2);
                         terminal.placeableObject.inUse = false;
                         terminal.terminalLight.enabled = false;
@@ -1890,6 +1903,7 @@ namespace LethalIntelligence.Patches
                     {
                         terminal.terminalAudio.PlayOneShot(terminal.leaveTerminalSFX);
                         __instance.inSpecialAnimation = false;
+                        this.ignoringPersonality = false;
                         __instance.SwitchToBehaviourState(2);
                         terminal.placeableObject.inUse = false;
                         terminal.terminalLight.enabled = false;
@@ -1908,6 +1922,7 @@ namespace LethalIntelligence.Patches
                         Plugin.mls.LogDebug("Personality is not Deceiving :( (I am "+maskedPersonality.ToString()+")");
                         terminal.terminalAudio.PlayOneShot(terminal.leaveTerminalSFX);
                         __instance.inSpecialAnimation = false;
+                        this.ignoringPersonality = false;
                         __instance.SwitchToBehaviourState(2);
                         terminal.placeableObject.inUse = false;
                         terminal.terminalLight.enabled = false;
@@ -1942,6 +1957,7 @@ namespace LethalIntelligence.Patches
                     {
                         terminal.terminalAudio.PlayOneShot(terminal.leaveTerminalSFX);
                         __instance.inSpecialAnimation = false;
+                        this.ignoringPersonality = false;
                         __instance.SwitchToBehaviourState(2);
                         terminal.placeableObject.inUse = false;
                         terminal.terminalLight.enabled = false;
@@ -2029,30 +2045,54 @@ namespace LethalIntelligence.Patches
             return msg;
         }
 
-
-        public void MaskedCunning()
+        public void MaskedCunning() //cunning's special ability
         {
             //IL_0052: Unknown result type (might be due to invalid IL or missing references)
             //IL_005d: Unknown result type (might be due to invalid IL or missing references)
-            if (!isHoldingObject || !((EnemyAI)maskedEnemy).isOutside || !((NetworkBehaviour)this).IsHost || bushes == null)
+            if (isHoldingObject)
             {
-                return;
+                focusingPersonality = true;
+                creatureAnimator.ResetTrigger("Crouching");
             }
-            GameObject[] array = bushes;
-            foreach (GameObject val in array)
+            if (maskedEnemy.isInsidePlayerShip && !isHoldingObject)
             {
-                bushDistance = Vector3.Distance(((Component)__instance).transform.position, val.transform.position);
-                if (bushDistance < float.PositiveInfinity && !val.GetComponent<BushSystem>().bushWithItem)
+                Plugin.Debugging(this.GetType().FullName, MethodBase.GetCurrentMethod().Name, "GrabItem");
+                GrabItem();
+            }
+            else if (!((EnemyAI)maskedEnemy).isOutside && breakerBoxDistance < 20f) //add logic for breaker box being turned off so if breaker box is turned OFF, then do nothing.
+            {
+                //turn off the breaker box.
+                focusingPersonality = false;
+            }
+            else if(!isUsingTerminal)
+            {
+                if (!isHoldingObject || !((EnemyAI)maskedEnemy).isOutside || !((NetworkBehaviour)this).IsHost || bushes == null)
                 {
-                    if (bushDistance > 2f && bushDistance < float.PositiveInfinity && !val.GetComponent<BushSystem>().bushWithItem && breakerBoxDistance < 20f)
+                    if (isHoldingObject && ((EnemyAI)maskedEnemy).isOutside && bushes == null)
+                        Plugin.mls.LogDebug("MaskedCunning() cannot cannot find any bushes on this moon!");
+                    return;
+                }
+                GameObject[] array = bushes;
+                foreach (GameObject val in array)
+                {
+                    bushDistance = Vector3.Distance(((Component)__instance).transform.position, val.transform.position);
+                    if (bushDistance < float.PositiveInfinity && !val.GetComponent<BushSystem>().bushWithItem)
                     {
-                        moveSpecial = true;
-                    }
-                    if (bushDistance < 2f)
-                    {
-                        val.GetComponent<BushSystem>().bushWithItem = true;
-                        itemSystem.hidedByMasked = true;
-                        dropItem.Value = true;
+                        if (bushDistance > 2f && bushDistance < float.PositiveInfinity && !val.GetComponent<BushSystem>().bushWithItem)
+                        {
+                            maskedEnemy.SetDestinationToPosition(val.transform.position,true);
+                            moveSpecial = true;
+                        }
+                        if (bushDistance < 2f)
+                        {
+                            Plugin.mls.LogDebug("Cunning Is Hiding an Item");
+                            val.GetComponent<BushSystem>().bushWithItem = true;
+                            itemSystem.hidedByMasked = true;
+                            dropItem.Value = true;
+                            DropItem();
+                            maskedEnemy.SetDestinationToPosition(terminal.transform.position); //stealing multiple items
+                            focusingPersonality = false;
+                        }
                     }
                 }
             }
