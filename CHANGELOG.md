@@ -2,7 +2,10 @@
 
 ### 0.0.7 - the Masked "Cunning" major fix patch
 
-- Masked "Cunning" will now successfully steal 1 item from the ship and will no longer bring items to the ship, the stolen item will be hidden in a 'bush' on moons that have 'bushes'.
+- Masked "Cunning" will now successfully steal 1 item from the ship and will no longer bring items to the ship, the stolen item will be hidden in a 'bush' on moons that have 'bushes'. may steal more items as well.
+- Masked "Cunning" will tamper with the breaker box (turn it off), they may be able to turn it on if its already off.. then turn it off later.. but this doesnt 100% work yet.
+- added a check to fix an issue with Masked<->Player collision that caused incompatibility with DramaMask
+- Fixed the list of items which "Cunning" can use to take items from the ship
 
 ### 0.0.6
 

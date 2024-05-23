@@ -27,8 +27,9 @@ The current version is a **very very early** version, no optimization work has b
     * No major features yet..
 
 * Cunning
-    * Hiding items in bushes (currently 1 - planned to fill all bushes with items)
+    * Stealing in the area around the ship and hiding them in bushes (currently 1 occurs 99% of the time, more is possible but not guaranteed!)
     * Call a fake dropship using the terminal
+    * Tampers with the breaker box to turn off the lights, will keep turning the lights off while they are alive.
 
 * Deceiving
     * Use terminal code
@@ -43,6 +44,7 @@ The current version is a **very very early** version, no optimization work has b
 - masked sometimes seem a bit confused after leaving the terminal (they need to be given some direction, will fix later)
 - masked have aimbot (beleive fixed in 0.0.6)
 - slow running issue (beleive fixed in 0.0.6)
+- masked love to crouch to much.. lets make thier knees less bendy!
 
 ## Mods
 Recommended to install with this mod:

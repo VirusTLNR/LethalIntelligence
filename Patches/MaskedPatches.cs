@@ -643,15 +643,15 @@ namespace LethalIntelligence.Patches
                             PlayerControllerB collidePlayer = maskedEnemy.MeetsStandardPlayerCollisionConditions(val.playerCollider, maskedEnemy.inKillAnimation || maskedEnemy.startingKillAnimationLocalClient || !maskedEnemy.enemyEnabled, false);
                             if (collidePlayer != null)
                             {
-                            maskedEnemy.KillPlayerAnimationServerRpc((int)val.playerClientId);
-                            maskedEnemy.startingKillAnimationLocalClient = true;
-                            if (val.isCrouching)
-                            {
-                                val.Crouch(false);
+                                maskedEnemy.KillPlayerAnimationServerRpc((int)val.playerClientId);
+                                maskedEnemy.startingKillAnimationLocalClient = true;
+                                if (val.isCrouching)
+                                {
+                                    val.Crouch(false);
+                                }
                             }
                         }
                     }
-                }
                 }
                 if (!__instance.isEnemyDead)
                 {
@@ -1177,8 +1177,12 @@ namespace LethalIntelligence.Patches
             List<GrabbableObject> allItemsList;
             if(maskedPersonality == Personality.Cunning)
             {
-                //filtering out only items cunning wants (in the ship)
-                allItemsList = GlobalItemList.Instance.allitems.FindAll(item => item.isInShipRoom == true).ToList();
+                //filtering out only items cunning wants (in the ship, this doesnt work as "in the ship" only takes from items in the ship before the round starts.)
+                //allItemsList = GlobalItemList.Instance.allitems.FindAll(item => item.isInShipRoom == true).ToList();
+                //filtering out only items cunning wants (near the ship)
+                allItemsList = GlobalItemList.Instance.allitems.FindAll(item => Vector3.Distance(item.transform.position, ((Component)terminal).transform.position)<15f).ToList();
+                allItemsList.Remove(allItemsList.Find(cbm => cbm.name == "ClipboardManual")); //removing clipboard from the list
+                allItemsList.Remove(allItemsList.Find(sn => sn.name == "StickyNoteItem")); //removing sticky note on the wall from the list
             }
             else
             {
