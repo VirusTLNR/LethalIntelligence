@@ -640,6 +640,9 @@ namespace LethalIntelligence.Patches
                         float num = Vector3.Distance(((Component)val).transform.position, ((Component)this).transform.position);
                         if (num < 1f)
                         {
+                            PlayerControllerB collidePlayer = maskedEnemy.MeetsStandardPlayerCollisionConditions(val.playerCollider, maskedEnemy.inKillAnimation || maskedEnemy.startingKillAnimationLocalClient || !maskedEnemy.enemyEnabled, false);
+                            if (collidePlayer != null)
+                            {
                             maskedEnemy.KillPlayerAnimationServerRpc((int)val.playerClientId);
                             maskedEnemy.startingKillAnimationLocalClient = true;
                             if (val.isCrouching)
@@ -648,6 +651,7 @@ namespace LethalIntelligence.Patches
                             }
                         }
                     }
+                }
                 }
                 if (!__instance.isEnemyDead)
                 {
