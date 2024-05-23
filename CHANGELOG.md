@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.0.7 - the Masked "Cunning" major fix patch
+
+- Masked "Cunning" will now successfully steal 1 item from the ship and will no longer bring items to the ship, the stolen item will be hidden in a 'bush' on moons that have 'bushes'.
+
 ### 0.0.6
 
 - Potentially fixed masked "aimbot" by stopping them look at you if they visually cant see you

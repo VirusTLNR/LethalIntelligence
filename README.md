@@ -27,7 +27,7 @@ The current version is a **very very early** version, no optimization work has b
     * No major features yet..
 
 * Cunning
-    * Hiding items in bushes
+    * Hiding items in bushes (currently 1 - planned to fill all bushes with items)
     * Call a fake dropship using the terminal
 
 * Deceiving
@@ -57,3 +57,4 @@ Recommended to install with this mod:
 - TestAccount666 for the signal translator code from AutomaticSignals.
 - MattyMatty for the LobbyCompatibility softdependency class.
 - Kite (on discord) for the Masked joining/leaving terminal fixes.
+- WhiteSpike (on discord) for help and suggestions regarding the breaker box.

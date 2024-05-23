@@ -13,6 +13,7 @@ using Random = UnityEngine.Random;
 using System.Reflection;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Net;
 
 namespace LethalIntelligence.Patches
 {
@@ -506,6 +507,8 @@ namespace LethalIntelligence.Patches
             }
             if (GameNetworkManager.Instance.isHostingGame)
             {
+                //for testing purposes only
+                SelectPersonalityInt.Value = 1; //for testing a specific personality
                 if (maskedPersonality == Personality.None)
                 {
                     SelectPersonalityInt.Value = Random.Range(0, Enum.GetNames(typeof(Personality)).Length);
@@ -811,10 +814,13 @@ namespace LethalIntelligence.Patches
                 if (noMoreTerminal && !__instance.isEnemyDead)
                 {
                     maskedEnemy.LookAndRunRandomly(true, true);
-                    if (((EnemyAI)maskedEnemy).isOutside)
-                    {
-                        ((EnemyAI)maskedEnemy).SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
-                    }
+                    //if (maskedPersonality != Personality.Cunning || !noMoreBreakerBox) // this seems to make the masked stay at the entrance.. i d k why
+                    //{
+                        if (((EnemyAI)maskedEnemy).isOutside)
+                        {
+                            ((EnemyAI)maskedEnemy).SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
+                        }
+                    //}
                 }
                 if (maskedEnemy.stopAndStareTimer >= 0f && stopAndTbagCooldown <= 0f && !__instance.isEnemyDead)
                 {
@@ -1810,7 +1816,7 @@ namespace LethalIntelligence.Patches
             {
                 dropItem.Value = true;
                 creatureAnimator.ResetTrigger("Crouching"); //temp fix for crouching animation issue
-                if (maskedEnemy.isInsidePlayerShip)
+                if (num<5.5f && isHoldingObject)
                 {
                     DropItem(); //drop inside the ship if you will use the terminal
                 }
@@ -2089,52 +2095,27 @@ namespace LethalIntelligence.Patches
                 noMoreTerminal = true;
                 focusingPersonality = true;
                 maskedEnemy.SetDestinationToPosition(breakerBox.transform.position);
-                if (breakerBoxDistance<3.3f)
+                
+                if(breakerBoxDistance < 3.0f && !isUsingBreakerBox)
                 {
+                    maskedEnemy.LookAtFocusedPosition();
                     isUsingBreakerBox = true;
-                    Plugin.Debugging(this.GetType().FullName, MethodBase.GetCurrentMethod().Name, "UsingBreakerBox");
-                    //__instance.inSpecialAnimation = true;
-                    //__instance.movingTowardsTargetPlayer = false;
-                    //__instance.targetPlayer = null;
+                    creatureAnimator.ResetTrigger("Crouching");
+                    //LookAtPos(breakerBox.transform.position, 8.5f);
                     //((Component)maskedEnemy.headTiltTarget).gameObject.SetActive(false);
                     isCrouched.Value = false;
                     agent.speed = 0f;
                     creatureAnimator.ResetTrigger("IsMoving");
-                    ((Component)this).transform.LookAt(new Vector3(((Component)breakerBox).transform.position.x, ((Component)this).transform.position.y, ((Component)breakerBox).transform.position.z));
-                    //((Component)this).transform.localPosition = new Vector3(((Component)breakerBox).transform.localPosition.x + 0.25f, ((Component)breakerBox).transform.localPosition.y + 0.25f, ((Component)breakerBox).transform.localPosition.z + -0.25f);
-                    maskedEnemy.stopAndStareTimer = 8f;
                     if (breakerBox.isPowerOn)
                     {
-                        //works but we can do better
-                        RoundManager.Instance.PowerSwitchOffClientRpc();
-                        //RoundManager.Instance.TurnBreakerSwitchesOff();
-                        breakerBoxSwitchLogic(false);
-                        //breakerBox.thisAudioSource.Stop();
-                        noMoreBreakerBox = true;
-                        noMoreTerminal = false;
-                        isUsingBreakerBox = false;
-                        focusingPersonality = false;
-                        breakerBox.isPowerOn = false;
+                        breakerBoxSwitchLogic(breakerBoxDistance,false);
                     }
                     else
                     {
-                        /*breakerBox.thisAudioSource.PlayOneShot(breakerBox.switchPowerSFX); //switch 1
-                        breakerBox.thisAudioSource.PlayOneShot(breakerBox.switchPowerSFX); //switch 2
-                        breakerBox.thisAudioSource.PlayOneShot(breakerBox.switchPowerSFX); //switch 3
-                        breakerBox.thisAudioSource.PlayOneShot(breakerBox.switchPowerSFX); //switch 4
-                        breakerBox.thisAudioSource.PlayOneShot(breakerBox.switchPowerSFX); //switch 5*/
-                        RoundManager.Instance.PowerSwitchOnClientRpc();
-                        //breakerBox.thisAudioSource.Play();
-                        //breakerBoxSwitchLogic(true);
-                        noMoreBreakerBox = false; //so if breaker box is turned on.. masked should go back to the breaker box and turn it off again.
-                        noMoreTerminal = false;
-                        isUsingBreakerBox = false;
-                        focusingPersonality = false;
+                        breakerBoxSwitchLogic(breakerBoxDistance,true);
                         maskedEnemy.SetDestinationToPosition(terminal.transform.position);
-                        breakerBox.isPowerOn = true;
                     }
-                }
-                
+                }                
             }
             else if(!isUsingTerminal)
             {
@@ -2230,22 +2211,38 @@ namespace LethalIntelligence.Patches
             }
         }
 
-        private async void breakerBoxSwitchLogic(bool on)
+        private async void breakerBoxSwitchLogic(float distanceToBox,bool on)
         {
+
+            Plugin.Debugging(this.GetType().FullName, MethodBase.GetCurrentMethod().Name, "UsingBreakerBox On="+on);
+            isUsingBreakerBox = true;
+            __instance.inSpecialAnimation = true;
+            __instance.movingTowardsTargetPlayer = false;
+            __instance.targetPlayer = null;
+
             //on means you are turning it on, not on means you are turning it off
             if (!on)
             {
+                RoundManager.Instance.FlickerLights(false, false);
+                await Task.Delay(2000);
+                RoundManager.Instance.FlickerLights(false, false);
+                await Task.Delay(1000);
+                RoundManager.Instance.FlickerLights(false, false);
+                await Task.Delay(500);
                 //int switchesToChange = RoundManager.Instance.BreakerBoxRandom.Next(1, breakerBox.breakerSwitches.Length);
                 int switchesToChange = breakerBox.breakerSwitches.Length; //all switches for now
                 Plugin.Debugging(this.GetType().FullName, MethodBase.GetCurrentMethod().Name, "switchestochange = "+switchesToChange);
                 for (int i = 0; i < switchesToChange; i++)
                 {
-                //int pickedSwitch = RoundManager.Instance.BreakerBoxRandom.Next(0, breakerBox.breakerSwitches.Length);
-                //int i = 0;
+                    if (i != 0)
+                    {
+                        //Plugin.mls.LogDebug("waiting 1500ms");
+                        await Task.Delay(1500);
+                    }
+                    //int pickedSwitch = RoundManager.Instance.BreakerBoxRandom.Next(0, breakerBox.breakerSwitches.Length);
+                    //int i = 0;
                     //powerBox = breakerBox.breakerSwitches[pickedSwitch].gameObject.GetComponent<AnimatedObjectTrigger>();
                     powerBox = breakerBox.breakerSwitches[i].gameObject.GetComponent<AnimatedObjectTrigger>();
-
-                    //breakerBox.thisAudioSource.PlayOneShot(breakerBox.breakerSwitches.) //play audio of switch being flicked here)
                     if (!powerBox.boolValue)
                     {
                         Plugin.mls.LogDebug("switch already turned off");
@@ -2253,11 +2250,17 @@ namespace LethalIntelligence.Patches
                     }
                     breakerBox.breakerSwitches[i].SetBool("turnedLeft", value: false);
                     breakerBox.thisAudioSource.PlayOneShot(breakerBox.switchPowerSFX);
-                    await Task.Delay(1500);
                     powerBox.boolValue = false;
                     powerBox.setInitialState = false;
                     breakerBox.leversSwitchedOff++;
+                    if (breakerBox.leversSwitchedOff > 0 && breakerBox.isPowerOn==true)
+                    {
+                        RoundManager.Instance.PowerSwitchOffClientRpc();
+                        breakerBox.breakerBoxHum.Stop();
+                        breakerBox.isPowerOn = false;
+                    }
                 }
+                noMoreBreakerBox = true;
             }
             else
             {
@@ -2266,34 +2269,38 @@ namespace LethalIntelligence.Patches
                 Plugin.Debugging(this.GetType().FullName, MethodBase.GetCurrentMethod().Name, "switchestochange = " + switchesToChange);
                 for (int i = 0; i < switchesToChange; i++)
                 {
+                    if (i != 0)
+                    {
+                        //Plugin.mls.LogDebug("waiting 1500ms");
+                        await Task.Delay(1500);
+                    }
                     //int pickedSwitch = RoundManager.Instance.BreakerBoxRandom.Next(0, breakerBox.breakerSwitches.Length);
                     //int i = 0;
                     //powerBox = breakerBox.breakerSwitches[pickedSwitch].gameObject.GetComponent<AnimatedObjectTrigger>();
                     powerBox = breakerBox.breakerSwitches[i].gameObject.GetComponent<AnimatedObjectTrigger>();
-
-                    //breakerBox.thisAudioSource.PlayOneShot(breakerBox.breakerSwitches.) //play audio of switch being flicked here)
-                    if (!powerBox.boolValue)
+                    if (powerBox.boolValue)
                     {
-                        Plugin.mls.LogDebug("switch already turned off");
+                        Plugin.mls.LogDebug("switch already turned on");
                         continue;
                     }
-
                     breakerBox.breakerSwitches[i].SetBool("turnedLeft", value: true);
                     breakerBox.thisAudioSource.PlayOneShot(breakerBox.switchPowerSFX);
-                    await Task.Delay(1500);
                     powerBox.boolValue = true;
                     powerBox.setInitialState = false;
                     breakerBox.leversSwitchedOff--;
+                    if (breakerBox.leversSwitchedOff == 0)
+                    {
+                        RoundManager.Instance.PowerSwitchOnClientRpc(); //switch on after all are on.
+                        breakerBox.breakerBoxHum.Play();
+                        breakerBox.isPowerOn = true;
+                    }
                 }
+                noMoreBreakerBox = false;
             }
-            if(breakerBox.leversSwitchedOff==0)
-            {
-                breakerBox.breakerBoxHum.Play();
-            }
-            else
-            {
-                breakerBox.breakerBoxHum.Stop();
-            }
+            noMoreTerminal = false;
+            isUsingBreakerBox = false;
+            focusingPersonality = false;
+            __instance.inSpecialAnimation = false;
         }
 
         private void HandleShotgunHeldByPlayer()
