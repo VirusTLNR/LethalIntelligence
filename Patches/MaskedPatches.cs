@@ -12,6 +12,7 @@ using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 using System.Reflection;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LethalIntelligence.Patches
 {
@@ -291,6 +292,10 @@ namespace LethalIntelligence.Patches
 
         private BreakerBox breakerBox;
 
+        public bool isUsingBreakerBox; //needed?
+
+        public bool noMoreBreakerBox;
+
         private AnimatedObjectTrigger powerBox;
 
         private GameObject[] bushes;
@@ -348,6 +353,7 @@ namespace LethalIntelligence.Patches
                 }
             }
             terminal = Object.FindObjectOfType<Terminal>();
+            breakerBox = Object.FindObjectOfType<BreakerBox>();
             __instance = (EnemyAI)(object)((Component)this).GetComponent<MaskedPlayerEnemy>();
             maskedEnemy = ((Component)this).GetComponent<MaskedPlayerEnemy>();
             creatureAnimator = ((Component)((Component)this).transform.GetChild(0).GetChild(3)).GetComponent<Animator>();
@@ -795,6 +801,7 @@ namespace LethalIntelligence.Patches
                 }
                 if (__instance.isInsidePlayerShip && maskedPersonality != Personality.Aggressive && isHoldingObject)
                 {
+                    //for the deceiving update, should check if this is needed as it is part of "terminal use" code, where in every personality that uses the terminal, will do this anyway
                     float num2 = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position);
                     if (num2 < 6f)
                     {
@@ -2060,6 +2067,11 @@ namespace LethalIntelligence.Patches
         {
             //IL_0052: Unknown result type (might be due to invalid IL or missing references)
             //IL_005d: Unknown result type (might be due to invalid IL or missing references)
+            breakerBoxDistance = Vector3.Distance(((Component)this).transform.position, ((Component)breakerBox).transform.position);
+            if (breakerBox.isPowerOn)
+            {
+                noMoreBreakerBox = false;
+            }
             if (isHoldingObject)
             {
                 focusingPersonality = true;
@@ -2070,10 +2082,59 @@ namespace LethalIntelligence.Patches
                 Plugin.Debugging(this.GetType().FullName, MethodBase.GetCurrentMethod().Name, "GrabItem");
                 GrabItem();
             }
-            else if (!((EnemyAI)maskedEnemy).isOutside && breakerBoxDistance < 20f) //add logic for breaker box being turned off so if breaker box is turned OFF, then do nothing.
+            else if (!((EnemyAI)maskedEnemy).isOutside && !((EnemyAI)maskedEnemy).isInsidePlayerShip && (breakerBoxDistance < 40f || noMoreTerminal) && !noMoreBreakerBox) //add logic for breaker box being turned off so if breaker box is turned OFF, then do nothing.
             {
                 //turn off the breaker box.
-                focusingPersonality = false;
+                Plugin.Debugging(this.GetType().FullName, MethodBase.GetCurrentMethod().Name, "WalkingToBreakerBox:-"+ breakerBoxDistance.ToString());
+                noMoreTerminal = true;
+                focusingPersonality = true;
+                maskedEnemy.SetDestinationToPosition(breakerBox.transform.position);
+                if (breakerBoxDistance<3.3f)
+                {
+                    isUsingBreakerBox = true;
+                    Plugin.Debugging(this.GetType().FullName, MethodBase.GetCurrentMethod().Name, "UsingBreakerBox");
+                    //__instance.inSpecialAnimation = true;
+                    //__instance.movingTowardsTargetPlayer = false;
+                    //__instance.targetPlayer = null;
+                    //((Component)maskedEnemy.headTiltTarget).gameObject.SetActive(false);
+                    isCrouched.Value = false;
+                    agent.speed = 0f;
+                    creatureAnimator.ResetTrigger("IsMoving");
+                    ((Component)this).transform.LookAt(new Vector3(((Component)breakerBox).transform.position.x, ((Component)this).transform.position.y, ((Component)breakerBox).transform.position.z));
+                    //((Component)this).transform.localPosition = new Vector3(((Component)breakerBox).transform.localPosition.x + 0.25f, ((Component)breakerBox).transform.localPosition.y + 0.25f, ((Component)breakerBox).transform.localPosition.z + -0.25f);
+                    maskedEnemy.stopAndStareTimer = 8f;
+                    if (breakerBox.isPowerOn)
+                    {
+                        //works but we can do better
+                        RoundManager.Instance.PowerSwitchOffClientRpc();
+                        //RoundManager.Instance.TurnBreakerSwitchesOff();
+                        breakerBoxSwitchLogic(false);
+                        //breakerBox.thisAudioSource.Stop();
+                        noMoreBreakerBox = true;
+                        noMoreTerminal = false;
+                        isUsingBreakerBox = false;
+                        focusingPersonality = false;
+                        breakerBox.isPowerOn = false;
+                    }
+                    else
+                    {
+                        /*breakerBox.thisAudioSource.PlayOneShot(breakerBox.switchPowerSFX); //switch 1
+                        breakerBox.thisAudioSource.PlayOneShot(breakerBox.switchPowerSFX); //switch 2
+                        breakerBox.thisAudioSource.PlayOneShot(breakerBox.switchPowerSFX); //switch 3
+                        breakerBox.thisAudioSource.PlayOneShot(breakerBox.switchPowerSFX); //switch 4
+                        breakerBox.thisAudioSource.PlayOneShot(breakerBox.switchPowerSFX); //switch 5*/
+                        RoundManager.Instance.PowerSwitchOnClientRpc();
+                        //breakerBox.thisAudioSource.Play();
+                        //breakerBoxSwitchLogic(true);
+                        noMoreBreakerBox = false; //so if breaker box is turned on.. masked should go back to the breaker box and turn it off again.
+                        noMoreTerminal = false;
+                        isUsingBreakerBox = false;
+                        focusingPersonality = false;
+                        maskedEnemy.SetDestinationToPosition(terminal.transform.position);
+                        breakerBox.isPowerOn = true;
+                    }
+                }
+                
             }
             else if(!isUsingTerminal)
             {
@@ -2166,6 +2227,72 @@ namespace LethalIntelligence.Patches
                         maskedEnemy.running = true;
                     }
                 }
+            }
+        }
+
+        private async void breakerBoxSwitchLogic(bool on)
+        {
+            //on means you are turning it on, not on means you are turning it off
+            if (!on)
+            {
+                //int switchesToChange = RoundManager.Instance.BreakerBoxRandom.Next(1, breakerBox.breakerSwitches.Length);
+                int switchesToChange = breakerBox.breakerSwitches.Length; //all switches for now
+                Plugin.Debugging(this.GetType().FullName, MethodBase.GetCurrentMethod().Name, "switchestochange = "+switchesToChange);
+                for (int i = 0; i < switchesToChange; i++)
+                {
+                //int pickedSwitch = RoundManager.Instance.BreakerBoxRandom.Next(0, breakerBox.breakerSwitches.Length);
+                //int i = 0;
+                    //powerBox = breakerBox.breakerSwitches[pickedSwitch].gameObject.GetComponent<AnimatedObjectTrigger>();
+                    powerBox = breakerBox.breakerSwitches[i].gameObject.GetComponent<AnimatedObjectTrigger>();
+
+                    //breakerBox.thisAudioSource.PlayOneShot(breakerBox.breakerSwitches.) //play audio of switch being flicked here)
+                    if (!powerBox.boolValue)
+                    {
+                        Plugin.mls.LogDebug("switch already turned off");
+                        continue;
+                    }
+                    breakerBox.breakerSwitches[i].SetBool("turnedLeft", value: false);
+                    breakerBox.thisAudioSource.PlayOneShot(breakerBox.switchPowerSFX);
+                    await Task.Delay(1500);
+                    powerBox.boolValue = false;
+                    powerBox.setInitialState = false;
+                    breakerBox.leversSwitchedOff++;
+                }
+            }
+            else
+            {
+                //int switchesToChange = RoundManager.Instance.BreakerBoxRandom.Next(1, breakerBox.breakerSwitches.Length);
+                int switchesToChange = breakerBox.breakerSwitches.Length; //all switches for now
+                Plugin.Debugging(this.GetType().FullName, MethodBase.GetCurrentMethod().Name, "switchestochange = " + switchesToChange);
+                for (int i = 0; i < switchesToChange; i++)
+                {
+                    //int pickedSwitch = RoundManager.Instance.BreakerBoxRandom.Next(0, breakerBox.breakerSwitches.Length);
+                    //int i = 0;
+                    //powerBox = breakerBox.breakerSwitches[pickedSwitch].gameObject.GetComponent<AnimatedObjectTrigger>();
+                    powerBox = breakerBox.breakerSwitches[i].gameObject.GetComponent<AnimatedObjectTrigger>();
+
+                    //breakerBox.thisAudioSource.PlayOneShot(breakerBox.breakerSwitches.) //play audio of switch being flicked here)
+                    if (!powerBox.boolValue)
+                    {
+                        Plugin.mls.LogDebug("switch already turned off");
+                        continue;
+                    }
+
+                    breakerBox.breakerSwitches[i].SetBool("turnedLeft", value: true);
+                    breakerBox.thisAudioSource.PlayOneShot(breakerBox.switchPowerSFX);
+                    await Task.Delay(1500);
+                    powerBox.boolValue = true;
+                    powerBox.setInitialState = false;
+                    breakerBox.leversSwitchedOff--;
+                }
+            }
+            if(breakerBox.leversSwitchedOff==0)
+            {
+                breakerBox.breakerBoxHum.Play();
+            }
+            else
+            {
+                breakerBox.breakerBoxHum.Stop();
             }
         }
 
