@@ -596,7 +596,56 @@ namespace LethalIntelligence.Patches
                 }
                 if (!__instance.isEnemyDead)
                 {
-                    if (isCrouched.Value)
+                    if(isCrouched.Value)
+                    {
+                        //crouched
+                        isDancing.Value = false;
+                        creatureAnimator.ResetTrigger("Dancing");
+                        maskedEnemy.running = false;
+                        creatureAnimator.ResetTrigger("Running");
+                        creatureAnimator.SetTrigger("Crouching");
+                        agent.speed = 1.9f;
+                    }
+                    else if(maskedEnemy.running)
+                    {
+                        //running
+                        isCrouched.Value = false;
+                        creatureAnimator.ResetTrigger("Crouching");
+                        isDancing.Value = false;
+                        creatureAnimator.ResetTrigger("Dancing");
+                        creatureAnimator.SetTrigger("Running");
+                        maskedEnemy.staminaTimer -= Time.deltaTime * 0.05f;
+                        agent.speed = 7f;
+                    }
+                    else if(isDancing.Value)
+                    {
+                        //dancing
+                        isCrouched.Value = false;
+                        creatureAnimator.ResetTrigger("Crouching");
+                        maskedEnemy.running = false;
+                        creatureAnimator.ResetTrigger("Running");
+                        creatureAnimator.SetTrigger("Dancing");
+                        __instance.SetDestinationToPosition(((Component)__instance).transform.position, false);
+                        agent.speed = 0f;
+                        Plugin.mls.LogInfo((object)"Dancing");
+                    }
+                    else
+                    {
+                        //normal
+                        isCrouched.Value = false;
+                        creatureAnimator.ResetTrigger("Crouching");
+                        isDancing.Value = false;
+                        creatureAnimator.ResetTrigger("Dancing");
+                        maskedEnemy.running = false;
+                        creatureAnimator.ResetTrigger("Running");
+                        agent.speed = 3.8f;
+                    }
+                    //crouched
+                    //running
+                    //dancing
+                    //normal
+                    //old animation logic
+                    /*if (isCrouched.Value)
                     {
                         creatureAnimator.SetTrigger("Crouching");
                     }
@@ -630,7 +679,7 @@ namespace LethalIntelligence.Patches
                         agent.speed = 3.8f;
                         creatureAnimator.ResetTrigger("Dancing");
                         ((EnemyAI)maskedEnemy).creatureAnimator.ResetTrigger("Running"); //issue#3 fix?
-                    }
+                    }*/
                 }
                 if (!((EnemyAI)maskedEnemy).isEnemyDead && !isUsingTerminal && (maskedPersonality != Personality.Aggressive || !isHoldingObject || (!(closestGrabbable is Shovel) && !(closestGrabbable is ShotgunItem))))
                 {
