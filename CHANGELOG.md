@@ -6,6 +6,7 @@
 - Masked "Cunning" will tamper with the breaker box (turn it off), they may be able to turn it on if its already off.. then turn it off later.. but this doesnt 100% work yet.
 - added a check to fix an issue with Masked<->Player collision that caused incompatibility with DramaMask
 - Fixed the list of items which "Cunning" can use to take items from the ship
+- Modified some animation selection logic to hopefully stop the masked using incorrect animations.
 
 ### 0.0.6
 

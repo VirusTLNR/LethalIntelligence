@@ -41,10 +41,9 @@ The current version is a **very very early** version, no optimization work has b
 
 ## Known Issues
 - sometimes masked have issues with picking up items (possibly fixed)
-- masked sometimes seem a bit confused after leaving the terminal (they need to be given some direction, will fix later)
-- masked have aimbot (beleive fixed in 0.0.6)
-- slow running issue (beleive fixed in 0.0.6)
-- masked love to crouch to much.. lets make thier knees less bendy!
+- masked sometimes seem a bit confused after leaving the terminal (cunning should be fixed in 0.0.7)
+- masked love to crouch to much.. lets make thier knees less bendy! (partially fixed in 0.0.7)
+- if the breaker box is not reachable, the masked will struggle to route anywhere due to being focused on routing to the breaker box. once the box is reachable again, they will be fine.
 
 ## Mods
 Recommended to install with this mod:
