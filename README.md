@@ -17,7 +17,7 @@ The current version is a **very very early** version, no optimization work has b
 *Also... There may be tons of bugs.* (please do report them to me, either via github or the Lethal Company Modding Community on discord!)
 
 <details>
-  <summary>Behaviour (spoiler?):</summary>
+  <summary>Masked Behaviour (spoiler?):</summary>
 
 * Aggressive
     * If you have a dropped shotgun, pick it up and shoot people.

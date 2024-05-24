@@ -1,6 +1,6 @@
 {
     "name": "LethalIntelligenceExperimental",
-    "version_number": "0.0.6",
+    "version_number": "0.0.7",
     "website_url": "",
     "description": "[EXPERIMENTAL]Improved AI in Lethal Company (WIP)",
     "dependencies": [
