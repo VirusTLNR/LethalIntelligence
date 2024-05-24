@@ -508,7 +508,8 @@ namespace LethalIntelligence.Patches
             if (GameNetworkManager.Instance.isHostingGame)
             {
                 //for testing purposes only
-                SelectPersonalityInt.Value = 1; //for testing a specific personality
+                //maskedPersonality = Personality.Cunning; //for testing a specific personality
+                //SelectPersonalityInt.Value = 1; //for testing a specific personality
                 if (maskedPersonality == Personality.None)
                 {
                     SelectPersonalityInt.Value = Random.Range(0, Enum.GetNames(typeof(Personality)).Length);
