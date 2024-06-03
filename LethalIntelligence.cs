@@ -27,7 +27,7 @@ using LobbyCompatibility.Features;
 
 namespace LethalIntelligence
 {
-    [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
+    [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
     [BepInDependency("BMX.LobbyCompatibility", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -36,7 +36,7 @@ namespace LethalIntelligence
         internal static Harmony? harmony { get; set; }
 
         //debug config so potentially spammy logs can be contained and prevented.
-        public static bool DebugMode { get { return BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("giosuel.Imperium"); } }
+        public static bool DebugMode = false;
         public static string LastDebugModeMsg;
 
         //variables for mod
@@ -44,7 +44,7 @@ namespace LethalIntelligence
         public static string logPluginName = "Lethal Intelligence";
         public static AssetBundle Bundle;
         public static bool enableMaskedFeatures;
-        public static bool enableSkinWalkers;
+        public static bool enableSkinWalkers, enableWendigos;
         public static bool useTerminal;
         public static bool useTerminalCredit;
         public static bool maskedShipDeparture;
@@ -53,9 +53,16 @@ namespace LethalIntelligence
         public static RuntimeAnimatorController MaskedAnimController;
         public static RuntimeAnimatorController MapDotRework;
         public static string PluginDirectory;
-        public static bool skinWalkersIntergrated;
-        public static bool moreEmotesIntergrated;
+        public static bool skinWalkersIntegrated;
+        public static bool wendigosIntegrated;
+        public static bool moreEmotesIntegrated;
+
+        public static bool debugModeSetting;
+        public static int debugStatusDelay;
         //end of variables for mod
+
+        //variables so all mobs know these..
+        internal static bool isTerminalBeingUsed = false;
 
         private void Awake()
         {
@@ -65,17 +72,13 @@ namespace LethalIntelligence
             }
             mls = base.Logger;
 
-            
             if (LobbyCompatibilityChecker.Enabled)
             {
                 mls.LogInfo($"BMX.LobbyCompatibility has been found, Initiating Soft Dependency!");
                 LobbyCompatibilityChecker.Init();
             }
 
-            if(DebugMode)
-            {
-                mls.LogWarning($"Imperium has been found, All Hail TheEmperor!, Initiating Debug Mode (More Logs!)");
-            }
+            bool imperiumFound = BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("giosuel.Imperium");
 
             PluginDirectory = ((BaseUnityPlugin)this).Info.Location;
             LoadAssets();
@@ -85,12 +88,28 @@ namespace LethalIntelligence
             //general settings
             enableMaskedFeatures = ((BaseUnityPlugin)this).Config.Bind<bool>("General", "Masked AI Features", true, "Turn on masked AI features. If this feature is disabled, it will only change Masked's radar movement. *This option must be enabled to change Masked's AI.*").Value;
             enableSkinWalkers = ((BaseUnityPlugin)this).Config.Bind<bool>("General", "SkinWalkers mod Compatibility", true, "Enables compatibility with the SkinWalkers mod. (Requires SkinWalkers mod installed, automatically disables on launch if not installed)").Value;
-            
+            enableWendigos = ((BaseUnityPlugin)this).Config.Bind<bool>("General", "Wendigos mod Compatibility", true, "Enables compatibility with the Wendigos_Voice_Cloning mod. (Requires Wendigos_Voice_Cloning mod installed, automatically disables on launch if not installed)").Value;
+
             //masked settings
             useTerminal = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedAI", "Masked terminal access", true, "Allows Masked to use the terminal.").Value;
             useTerminalCredit = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedAI", "Masked uses credits", false, "(Not working rn) Allows Masked to use the terminal to spend credits.").Value;
             maskedShipDeparture = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedAI", "Masked pulls the brake lever", false, "(Not working rn) Allows Masked to pull the brake lever. Um... really...?").Value;
-            
+
+            //debug settings
+            debugModeSetting = ((BaseUnityPlugin)this).Config.Bind<bool>("DebugMode", "Debug Mode", false, "Enables more spammy logs for debugging, will be enabled automatically if imperium is installed. (all other DebugMode settings are ignored if Debug Mode is disabled)").Value;
+            debugStatusDelay = ((BaseUnityPlugin)this).Config.Bind<int>("DebugMode", "Status Report Delay", 100, "How often should status reports (only updates when information changes) be logged (higher number = less spam but also less accurate as not all information is gathered").Value;
+            if (imperiumFound || debugModeSetting)
+            {
+                if (imperiumFound)
+                {
+                    mls.LogWarning($"Imperium has been found, All Hail The Emperor!, Auto Initiating Debug Mode (More Logs!)");
+                }
+                else
+                {
+                    mls.LogWarning($"Debug Mode enabled in config (More Logs!)");
+                }
+                DebugMode = true;
+            }
             Patch();
             /*Logger = base.Logger;
             Instance = this;
@@ -127,10 +146,16 @@ namespace LethalIntelligence
             {
                 mls.LogInfo((object)"Experimental feature has been disabled! This does not change the behavior of the Masked AI.");
             }
-            if (Chainloader.PluginInfos.Keys.Any((string k) => k == "RugbugRedfern.SkinwalkerMod"))
+            if (Chainloader.PluginInfos.Keys.Any((string k) => k == "RugbugRedfern.SkinwalkerMod") && enableSkinWalkers)
             {
-                mls.LogInfo((object)logPluginName + " <-> SkinWalker Intergrated!");
-                skinWalkersIntergrated = true;
+                mls.LogInfo((object)logPluginName + " <-> SkinWalkers Integrated!");
+                skinWalkersIntegrated = true;
+            }
+            if (Chainloader.PluginInfos.Keys.Any((string w) => w == "Tim_Shaw.Wendigos_Voice_Cloning") && enableWendigos)
+            {
+                mls.LogInfo((object)logPluginName + " <-> Wendigos_Voice_Cloning Integrated!");
+                wendigosIntegrated = true;
+
             }
         }
 
@@ -155,20 +180,6 @@ namespace LethalIntelligence
             catch (Exception ex2)
             {
                 this.Logger.LogError((object)("Couldn't load assets: " + ex2.Message));
-            }
-        }
-
-        //for debug mode.
-        public static void Debugging(string classString, string methodString, string positionInMethod = "start")
-        {
-            if (Plugin.DebugMode)
-            {
-                string debugMsg = classString + "." + methodString + " @ " + positionInMethod;
-                if (debugMsg != LastDebugModeMsg)
-                {
-                    LastDebugModeMsg = debugMsg;
-                    mls.LogDebug(debugMsg);
-                }
             }
         }
     }

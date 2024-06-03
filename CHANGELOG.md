@@ -1,5 +1,15 @@
 ## Changelog
 
+### 0.0.8 - Masked AI Revamp Coding Re-Write patch
+
+- Rewritten a big chunk of the Masked AI Revamp original code, we have gone from "Personalities" only, to include "Focuses" and when there is no focus.. "Activities"
+- Potentially added integration with Wendigos_Voice_Cloning by Tim_Shaw (please do test and let me know how it goes :))
+- Removed some code branches which I could not fit into the new code logic branches of Personality/Focus/Activity.
+- Fixed masked loving to linger at the main entrance, they should now "reposition" themselves between the MainEntrance, The ShipLocker and the BreakerBox.. I plan to add the "Apparatus" and the "FireExits" as other options in the future.
+- Potentially fixed a bug where more than 1 masked will use the terminal.
+- Masked now have a random chance to change focus to a nearby detected player (depends on the personality what the chance is, from something like 20% to near 100%)
+- Fixed an issue where the mod would flag up as a virus on some Anti-Virus scanners due to having the word "Virus" in the AssemblyName.
+
 ### 0.0.7 - the Masked "Cunning" major fix patch
 
 - Masked "Cunning" will now successfully steal 1 item from the ship and will no longer bring items to the ship, the stolen item will be hidden in a 'bush' on moons that have 'bushes'. may steal more items as well.

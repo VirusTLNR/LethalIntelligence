@@ -2,10 +2,10 @@
 
     <!-- BepInEx Properties -->
     <PropertyGroup>
-        <AssemblyName>VirusTLNR.LethalIntelligence</AssemblyName>
+        <AssemblyName>LethalIntelligence</AssemblyName>
         <Product>LethalIntelligence</Product>
         <!-- Change to whatever version you're currently on. -->
-        <Version>0.0.7</Version>
+        <Version>0.0.8</Version>
     </PropertyGroup>
 
     <!-- Project Properties -->
@@ -38,6 +38,8 @@
         viewing Private Information in stack traces.
         -->
         <PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))=./</PathMap>
+        <Authors>VirusTLNR</Authors>
+        <PackageId>$(AssemblyName)</PackageId>
     </PropertyGroup>
   <ItemGroup>
     <Reference Include="SkinwalkerMod">
@@ -50,12 +52,22 @@
         <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       </ApplicationDefinition>
     </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Wendigos">
+      <HintPath>CompatibilityDLLs\Wendigos.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="CompatibilityDLLs\Wendigos.dll">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ApplicationDefinition>
+  </ItemGroup>
 
     <!-- Primary Package References -->
     <ItemGroup>
         <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
         <PackageReference Include="BepInEx.Core" Version="5.*" PrivateAssets="all" />
-        <PackageReference Include="BepInEx.PluginInfoProps" Version="2.*" PrivateAssets="all" />
         <PackageReference Include="LethalCompany.GameLibs.Steam" Version="*-*" PrivateAssets="all" />
         <PackageReference Include="UnityEngine.Modules" Version="2022.3.9" IncludeAssets="compile" PrivateAssets="all" />
         <PackageReference Include="TeamBMX.LobbyCompatibility" Version="1.*" PrivateAssets="all" />
@@ -65,4 +77,33 @@
     <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
         <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
     </ItemGroup>
+
+    <!-- Adding in my own PluginInfo config -->
+    <Target Name="AddGeneratedFile" BeforeTargets="BeforeCompile;CoreCompile" Inputs="$(MSBuildAllProjects)" Outputs="$(IntermediateOutputPath)GeneratedFile.cs">
+      <PropertyGroup>
+        <BepInExPluginGuid Condition="'$(BepInExPluginGuid)' == ''">$(AssemblyName)</BepInExPluginGuid>
+        <BepInExPluginName Condition="'$(BepInExPluginName)' == ''">$(Product)</BepInExPluginName>
+        <BepInExPluginVersion Condition="'$(BepInExPluginVersion)' == ''">$(Version)</BepInExPluginVersion>
+        <GeneratedText>
+          <![CDATA[
+namespace $(RootNamespace)
+{
+    internal static class PluginInfo
+    {
+        //built automatically in project file so dont waste time editing this "PluginInfo.cs", go edit the Project File! this doesnt use BepInEx.PluginInfoProps so dont re-install it!
+        public const string PLUGIN_GUID = "$(Authors).$(BepInExPluginGuid)"%3B
+        public const string PLUGIN_NAME = "$(BepInExPluginName)"%3B
+        public const string PLUGIN_VERSION = "$(BepInExPluginVersion)"%3B
+    }
+}
+      ]]>
+        </GeneratedText>
+        <GeneratedFilePath>$(IntermediateOutputPath)PluginInfo.cs</GeneratedFilePath>
+      </PropertyGroup>
+      <ItemGroup>
+        <Compile Include="$(GeneratedFilePath)" />
+        <FileWrites Include="$(GeneratedFilePath)" />
+      </ItemGroup>
+      <WriteLinesToFile Lines="$(GeneratedText)" File="$(GeneratedFilePath)" WriteOnlyWhenDifferent="true" Overwrite="true" />
+    </Target>
 </Project>
