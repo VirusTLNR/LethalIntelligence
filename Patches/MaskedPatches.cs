@@ -224,7 +224,7 @@ namespace LethalIntelligence.Patches
 
         public GrabbableObject closestGrabbable;
 
-        public GrabbableObject nearestGrabbable,heldGrabbable; //only for status report!
+        public GrabbableObject nearestGrabbable, heldGrabbable; //only for status report!
 
         private bool targetPlayerReachable;
 
@@ -395,7 +395,7 @@ namespace LethalIntelligence.Patches
         Vector3 destination;
         float distanceToDestination;
 
-        int delayNumber=0;
+        int delayNumber = 0;
         int delayMax = Plugin.debugStatusDelay;
 
         private bool delayUpdate()
@@ -458,7 +458,7 @@ namespace LethalIntelligence.Patches
                         "\nBreakerBoxReachable = " + breakerBoxReachable +
                         "\nbreakerBox.isPowerOn = " + breakerBox.isPowerOn;
                 }
-                else if(maskedFocus == Focus.Terminal)
+                else if (maskedFocus == Focus.Terminal)
                 {
                     focusDetails = focusStart +
                     "\nTerminalReachable = " + terminalReachable;
@@ -505,7 +505,7 @@ namespace LethalIntelligence.Patches
 
         public void Start()
         {
-            currentMoon = RoundManager.Instance.currentLevel.PlanetName.ToString();
+            currentMoon = RoundManager.Instance.currentLevel.PlanetName;
             currentInterior = RoundManager.Instance.dungeonGenerator.Generator.DungeonFlow.name.ToString();
             //IL_00ed: Unknown result type (might be due to invalid IL or missing references)
             //IL_00f7: Expected O, but got Unknown
