@@ -1,5 +1,11 @@
 ## Changelog
 
+### 0.0.9
+
+- Added some basic background coding to help debug issues quicker while using Imperium. (for my benefit really).
+- Potentially fixed an issue with item log spam due to errors with the list when a masked spawns (usually due to items being "removed" from the game completely i think))
+- Made it so personalities can be turned on/off, if you turn off all personalities, the who "Masked AI" functionality will automatically be disabled.
+
 ### 0.0.8 - Masked AI Revamp Coding Re-Write patch
 
 - Rewritten a big chunk of the Masked AI Revamp original code, we have gone from "Personalities" only, to include "Focuses" and when there is no focus.. "Activities"

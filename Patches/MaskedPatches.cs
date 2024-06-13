@@ -1261,24 +1261,24 @@ namespace LethalIntelligence.Patches
                 //null reference exception fix here
                 if ((Component)this == null)
                 {
-                    Plugin.mls.LogDebug("GrabItem() NullReferenceFix - Masked Entity was NULL");
+                    //Plugin.mls.LogDebug("SetNearestGrabbable() NullReferenceFix - Masked Entity was NULL");
                     return;
                 }
                 else if (((Component)this).transform.position == null)
                 {
-                    Plugin.mls.LogDebug("GrabItem() NullReferenceFix - Masked Entity position was NULL");
-                    Plugin.mls.LogDebug("this.name = " + ((Component)this).name.ToString());
+                    //Plugin.mls.LogDebug("SetNearestGrabbable() NullReferenceFix - Masked Entity position was NULL");
+                    //Plugin.mls.LogDebug("this.name = " + ((Component)this).name.ToString());
                     return;
                 }
                 if ((Component)allitem == null)
                 {
-                    Plugin.mls.LogDebug("GrabItem() NullReferenceFix - Item Entity was NULL");
+                    //Plugin.mls.LogDebug("SetNearestGrabbable() NullReferenceFix - Item Entity was NULL");
                     continue;
                 }
                 else if (((Component)allitem).transform.position == null)
                 {
-                    Plugin.mls.LogDebug("GrabItem() NullReferenceFix - Item Entity position was NULL");
-                    Plugin.mls.LogDebug("allitem.name = " + ((Component)allitem).name.ToString());
+                    //Plugin.mls.LogDebug("SetNearestGrabbable() NullReferenceFix - Item Entity position was NULL");
+                    //Plugin.mls.LogDebug("allitem.name = " + ((Component)allitem).name.ToString());
                     continue;
                 }
                 //null reference exception fix above
@@ -3182,7 +3182,7 @@ namespace LethalIntelligence.Patches
                     continue;
                 }
                 //null reference exception fix above
-                Plugin.mls.LogDebug("CurrentItemName = "+allitem.name.ToString());
+                //Plugin.mls.LogDebug("CurrentItemName = "+allitem.name.ToString()); //for debugging only.
                 //removing items from the list after checking if they are null.
                 if (allitem.name == "ClipboardManual" || allitem.name == "StickyNoteItem")
                 {

@@ -1,10 +1,10 @@
 {
-    "name": "LethalIntelligenceExperimental",
-    "version_number": "0.0.8",
-    "website_url": "",
-    "description": "[EXPERIMENTAL]Improved AI in Lethal Company (WIP)",
-    "dependencies": [
-        "BepInEx-BepInExPack-5.4.2100",
-	"xilophor-LethalNetworkAPI-2.1.7"
-    ]
+  "name": "LethalIntelligenceExperimental",
+  "version_number": "0.0.9",
+  "website_url": "https://github.com/VirusTLNR/LethalIntelligence",
+  "description": "[EXPERIMENTAL]Improved AI in Lethal Company (WIP)",
+  "dependencies": [
+    "BepInEx-BepInExPack-5.4.2100",
+    "xilophor-LethalNetworkAPI-2.2.0"
+  ]
 }

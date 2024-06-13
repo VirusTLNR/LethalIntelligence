@@ -51,9 +51,7 @@ if you turn this on.. OR Imperium is installed.. debug mode will be turned on, t
  </details>
 
 ## Known Issues
-- sometimes masked have issues with picking up items (possibly fixed)
-- masked sometimes seem a bit confused after leaving the terminal (cunning should be fixed in 0.0.7)
-- masked love to crouch to much.. lets make thier knees less bendy! (partially fixed in 0.0.7)
+- error spam relating to items when a masked spawns (potentially fixed in 0.0.9, lmk!)
 - if the breaker box is not reachable, the masked will struggle to route anywhere due to being focused on routing to the breaker box. once the box is reachable again, they will be fine.
 
 ## Mods
