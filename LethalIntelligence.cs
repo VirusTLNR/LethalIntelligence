@@ -43,11 +43,16 @@ namespace LethalIntelligence
         //====================
         public static string logPluginName = "Lethal Intelligence";
         public static AssetBundle Bundle;
-        public static bool enableMaskedFeatures;
-        public static bool enableSkinWalkers, enableWendigos;
-        public static bool useTerminal;
-        public static bool useTerminalCredit;
-        public static bool maskedShipDeparture;
+
+        //config settings
+            //gen
+        public static bool enableMaskedFeatures, enableSkinWalkers, enableWendigos;
+
+            //masked personalities
+        public static bool enableMaskedAggressive, enableMaskedStealthy, enableMaskedCunning, enableMaskedDeceiving, enableMaskedInsane;
+
+            //masked config
+        public static bool useTerminal, useTerminalCredit, maskedShipDeparture;
 
         public static GameObject MapDotPrefab;
         public static RuntimeAnimatorController MaskedAnimController;
@@ -86,9 +91,22 @@ namespace LethalIntelligence
 
             //loading config
             //general settings
-            enableMaskedFeatures = ((BaseUnityPlugin)this).Config.Bind<bool>("General", "Masked AI Features", true, "Turn on masked AI features. If this feature is disabled, it will only change Masked's radar movement. *This option must be enabled to change Masked's AI.*").Value;
+            enableMaskedFeatures = ((BaseUnityPlugin)this).Config.Bind<bool>("General", "Masked AI Features", true, "Turn on masked AI features. If this feature is disabled, it will only change Masked's radar movement. If all masked Personalities are disabled, this will be disabled by default. *This option must be enabled to change Masked's AI.*").Value;
             enableSkinWalkers = ((BaseUnityPlugin)this).Config.Bind<bool>("General", "SkinWalkers mod Compatibility", true, "Enables compatibility with the SkinWalkers mod. (Requires SkinWalkers mod installed, automatically disables on launch if not installed)").Value;
             enableWendigos = ((BaseUnityPlugin)this).Config.Bind<bool>("General", "Wendigos mod Compatibility", true, "Enables compatibility with the Wendigos_Voice_Cloning mod. (Requires Wendigos_Voice_Cloning mod installed, automatically disables on launch if not installed)").Value;
+
+            //maskedPersonality
+            enableMaskedAggressive = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedPersonalities", "MaskedAggressive", true, "Enables the 'Aggressive' personality for the Masked (at least 1 of these must be TRUE)").Value;
+            enableMaskedStealthy = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedPersonalities", "MaskedStealthy", true, "Enables the 'Stealthy' personality for the Masked (at least 1 of these must be TRUE)").Value;
+            enableMaskedCunning = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedPersonalities", "MaskedCunning", true, "Enables the Cunning personality for the Masked (at least 1 of these must be TRUE)").Value;
+            enableMaskedDeceiving = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedPersonalities", "MaskedDeceiving", true, "Enables the 'Deceiving' personality for the Masked (at least 1 of these must be TRUE)").Value;
+            enableMaskedInsane = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedPersonalities", "MaskedInsane", true, "Enables the 'Insane' personality for the Masked (at least 1 of these must be TRUE)").Value;
+
+            if(!enableMaskedAggressive && !enableMaskedStealthy && !enableMaskedCunning && !enableMaskedDeceiving && !enableMaskedInsane)
+            {
+                enableMaskedFeatures = false;
+                mls.LogWarning("Bad Config!, all Masked personalities are disabled, disabling entire MaskedAI Module.");
+            }
 
             //masked settings
             useTerminal = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedAI", "Masked terminal access", true, "Allows Masked to use the terminal.").Value;

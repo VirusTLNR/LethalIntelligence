@@ -502,9 +502,43 @@ namespace LethalIntelligence.Patches
 
         string currentMoon = null;
         string currentInterior = null;
+        List<Personality> useablePersonalities;
+
+        private void selectAvailablePersonalities()
+        {
+            useablePersonalities = new List<Personality>();
+            if (!Plugin.enableMaskedAggressive && !Plugin.enableMaskedCunning && !Plugin.enableMaskedDeceiving && !Plugin.enableMaskedInsane && !Plugin.enableMaskedStealthy)
+            {
+                Plugin.mls.LogWarning("Bad Config!! - All masked personalities are turned off so turning off whole Masked AI Module.");
+            }
+            else
+            {
+                if (Plugin.enableMaskedAggressive)
+                {
+                    useablePersonalities.Add(Personality.Aggressive);
+                }
+                if (Plugin.enableMaskedStealthy)
+                {
+                    useablePersonalities.Add(Personality.Stealthy);
+                }
+                if (Plugin.enableMaskedCunning)
+                {
+                    useablePersonalities.Add(Personality.Cunning);
+                }
+                if (Plugin.enableMaskedDeceiving)
+                {
+                    useablePersonalities.Add(Personality.Deceiving);
+                }
+                if (Plugin.enableMaskedInsane)
+                {
+                    useablePersonalities.Add(Personality.Insane);
+                }
+            }
+        }
 
         public void Start()
         {
+            selectAvailablePersonalities();
             currentMoon = RoundManager.Instance.currentLevel.PlanetName;
             currentInterior = RoundManager.Instance.dungeonGenerator.Generator.DungeonFlow.name.ToString();
             //IL_00ed: Unknown result type (might be due to invalid IL or missing references)
@@ -923,9 +957,12 @@ namespace LethalIntelligence.Patches
                 //TestConfig();
                 if (maskedPersonality == Personality.None)
                 {
-                    SelectPersonalityInt.Value = Random.Range(0, Enum.GetNames(typeof(Personality)).Length);
+                    //SelectPersonalityInt.Value = Random.Range(0, Enum.GetNames(typeof(Personality)).Length);
+                    SelectPersonalityInt.Value = Random.Range(0, useablePersonalities.Count);
+                    //Plugin.mls.LogError(useablePersonalities.Count);
                 }
-                if (SelectPersonalityInt.Value == 0)
+                maskedPersonality = useablePersonalities[SelectPersonalityInt.Value];
+                /*if (SelectPersonalityInt.Value == 0)
                 {
                     maskedPersonality = Personality.Aggressive;
                 }
@@ -944,7 +981,7 @@ namespace LethalIntelligence.Patches
                 else if (SelectPersonalityInt.Value == 4)
                 {
                     maskedPersonality = Personality.Insane;
-                }
+                }*/
                 if (lastMaskedPersonality != maskedPersonality)
                 {
                     maskedGoal = "selecting new personality";
