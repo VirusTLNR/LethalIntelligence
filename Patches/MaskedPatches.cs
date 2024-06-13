@@ -1212,23 +1212,23 @@ namespace LethalIntelligence.Patches
             NavMeshPath nmpNearGrabbable = new NavMeshPath();
             List<GrabbableObject> allItemsList;
             float num = float.PositiveInfinity;
-            if (maskedPersonality == Personality.Cunning)
+            /*if (maskedPersonality == Personality.Cunning)
             {
                 //cunning items
                 //filtering out only items cunning wants (in the ship, this doesnt work as "in the ship" only takes from items in the ship before the round starts.)
                 //allItemsList = GlobalItemList.Instance.allitems.FindAll(item => item.isInShipRoom == true).ToList();
                 //filtering out only items cunning wants (near the ship)
-                allItemsList = GlobalItemList.Instance.allitems.FindAll(item => (Vector3.Distance(item.transform.position, ((Component)terminal).transform.position) < 15f || item.name == "Walkie-talkie")).ToList();
+                allItemsList = GlobalItemList.Instance.allitems.Where(item => (Vector3.Distance(item.transform.position, ((Component)terminal).transform.position) < 15f || item.name == "Walkie-talkie")).ToList();
             }
             else if (maskedPersonality == Personality.Deceiving)
             {
-                allItemsList = GlobalItemList.Instance.allitems.FindAll(item => (Vector3.Distance(item.transform.position, ((Component)terminal).transform.position) > 30f || item.name=="Walkie-talkie")).ToList();
+                allItemsList = GlobalItemList.Instance.allitems.Where(item => (Vector3.Distance(item.transform.position, ((Component)terminal).transform.position) > 30f || item.name=="Walkie-talkie")).ToList();
             }
             else
-            {
+            {*/
                 //all items
                 allItemsList = GlobalItemList.Instance.allitems;
-            }
+            //}
 
             if (allItemsList.Count == 0)
             {
@@ -1238,9 +1238,9 @@ namespace LethalIntelligence.Patches
             }
 
             //items to ignore because they shouldent be touched.
-            allItemsList.Remove(allItemsList.Find(cbm => cbm.name == "ClipboardManual")); //removing clipboard from the list
+            /*allItemsList.Remove(allItemsList.Find(cbm => cbm.name == "ClipboardManual")); //removing clipboard from the list
             allItemsList.Remove(allItemsList.Find(sn => sn.name == "StickyNoteItem")); //removing sticky note on the wall from the list)
-            allItemsList.RemoveAll(rlh => rlh.name == "RedLocustHive"); //removing red locust bee hive as its held by an enemy by default and cunning just stands there looking at it
+            allItemsList.RemoveAll(rlh => rlh.name == "RedLocustHive");*/ //removing red locust bee hive as its held by an enemy by default and cunning just stands there looking at it
                                                                         //allItemsList.Remove(allItemsList.Find(rlh => rlh.name == "RedLocustHive")); 
                                                                         //closestGrabbable = null;
                                                                         //allItemsList.OrderBy(x => x.scrapValue); // dont use but this allows sorting by scrap value in future.
@@ -1273,15 +1273,41 @@ namespace LethalIntelligence.Patches
                 if ((Component)allitem == null)
                 {
                     Plugin.mls.LogDebug("GrabItem() NullReferenceFix - Item Entity was NULL");
-                    return;
+                    continue;
                 }
                 else if (((Component)allitem).transform.position == null)
                 {
                     Plugin.mls.LogDebug("GrabItem() NullReferenceFix - Item Entity position was NULL");
                     Plugin.mls.LogDebug("allitem.name = " + ((Component)allitem).name.ToString());
-                    return;
+                    continue;
                 }
                 //null reference exception fix above
+
+                //ignore items from the list after checking if they are null.
+                if(allitem.name== "ClipboardManual" || allitem.name == "StickyNoteItem")
+                {
+                    continue;
+                }
+                if (allitem.name == "RedLocustHive")
+                {
+                    continue;
+                }
+
+                //ignore non-"cunning" items if cunning
+                if(maskedPersonality == Personality.Cunning && Vector3.Distance(allitem.transform.position, ((Component)terminal).transform.position) >= 15f)
+                {
+                    continue;
+                }
+
+                //ignore non-deceiving items if deceiving
+                if (maskedPersonality == Personality.Deceiving && Vector3.Distance(allitem.transform.position, ((Component)terminal).transform.position) <= 30f)
+                {
+                    continue;
+                }
+
+
+                //end removing items
+
                 float num2 = Vector3.Distance(((Component)this).transform.position, ((Component)allitem).transform.position);
                 if (allitem.GetComponent<CheckItemCollision>() != null)
                 {
@@ -3086,7 +3112,7 @@ namespace LethalIntelligence.Patches
 
             float num = float.PositiveInfinity;
             List<GrabbableObject> allItemsList;
-            if (maskedPersonality == Personality.Cunning)
+            /*if (maskedPersonality == Personality.Cunning)
             {
                 //cunning items
                 //allItemsList = null;
@@ -3101,10 +3127,10 @@ namespace LethalIntelligence.Patches
                 allItemsList = GlobalItemList.Instance.allitems.FindAll(item => (Vector3.Distance(item.transform.position, ((Component)terminal).transform.position) > 30f || item.name == "Walkie-talkie")).ToList();
             }
             else
-            {
+            {*/
                 //all items
                 allItemsList = GlobalItemList.Instance.allitems;
-            }
+            //}
 
             if (allItemsList.Count == 0)
             {
@@ -3115,9 +3141,9 @@ namespace LethalIntelligence.Patches
             }
 
             //items to ignore because they shouldent be touched.
-            allItemsList.Remove(allItemsList.Find(cbm => cbm.name == "ClipboardManual")); //removing clipboard from the list
+            /*allItemsList.Remove(allItemsList.Find(cbm => cbm.name == "ClipboardManual")); //removing clipboard from the list
             allItemsList.Remove(allItemsList.Find(sn => sn.name == "StickyNoteItem")); //removing sticky note on the wall from the list)
-            allItemsList.RemoveAll(rlh => rlh.name == "RedLocustHive"); //removing red locust bee hive as its held by an enemy by default and cunning just stands there looking at it
+            allItemsList.RemoveAll(rlh => rlh.name == "RedLocustHive");*/ //removing red locust bee hive as its held by an enemy by default and cunning just stands there looking at it
                                                                         //allItemsList.OrderBy(x => x.scrapValue); // dont use but this allows sorting by scrap value in future.
 
             //wont work.. needs a lot of recoding to make work i think but should be better going forward
@@ -3135,27 +3161,53 @@ namespace LethalIntelligence.Patches
                 //null reference exception fix here
                 if ((Component)this == null)
                 {
-                    Plugin.mls.LogDebug("GrabItem() NullReferenceFix - Masked Entity was NULL");
+                    //Plugin.mls.LogDebug("GrabItem() NullReferenceFix - Masked Entity was NULL");
                     return;
                 }
                 else if (((Component)this).transform.position == null)
                 {
-                    Plugin.mls.LogDebug("GrabItem() NullReferenceFix - Masked Entity position was NULL");
-                    Plugin.mls.LogDebug("this.name = " + ((Component)this).name.ToString());
+                    //Plugin.mls.LogDebug("GrabItem() NullReferenceFix - Masked Entity position was NULL");
+                    //Plugin.mls.LogDebug("this.name = " + ((Component)this).name.ToString());
                     return;
                 }
                 if ((Component)allitem == null)
                 {
-                    Plugin.mls.LogDebug("GrabItem() NullReferenceFix - Item Entity was NULL");
-                    return;
+                    //Plugin.mls.LogDebug("GrabItem() NullReferenceFix - Item Entity was NULL");
+                    continue;
                 }
                 else if (((Component)allitem).transform.position == null)
                 {
-                    Plugin.mls.LogDebug("GrabItem() NullReferenceFix - Item Entity position was NULL");
-                    Plugin.mls.LogDebug("allitem.name = " + ((Component)allitem).name.ToString());
-                    return;
+                    //Plugin.mls.LogDebug("GrabItem() NullReferenceFix - Item Entity position was NULL");
+                    //Plugin.mls.LogDebug("allitem.name = " + ((Component)allitem).name.ToString());
+                    continue;
                 }
                 //null reference exception fix above
+                Plugin.mls.LogDebug("CurrentItemName = "+allitem.name.ToString());
+                //removing items from the list after checking if they are null.
+                if (allitem.name == "ClipboardManual" || allitem.name == "StickyNoteItem")
+                {
+                    continue;
+                }
+                if (allitem.name == "RedLocustHive")
+                {
+                    continue;
+                }
+
+                //ignore non-"cunning" items if cunning
+                if (maskedPersonality == Personality.Cunning && Vector3.Distance(allitem.transform.position, ((Component)terminal).transform.position) >= 15f)
+                {
+                    continue;
+                }
+
+                //ignore non-deceiving items if deceiving
+                if (maskedPersonality == Personality.Deceiving && Vector3.Distance(allitem.transform.position, ((Component)terminal).transform.position) <= 30f)
+                {
+                    continue;
+                }
+
+
+                //end removing items
+
                 float closestGrabbableDistance = Vector3.Distance(((Component)this).transform.position, ((Component)allitem).transform.position);
                 if (allitem.GetComponent<CheckItemCollision>() != null)
                 {
