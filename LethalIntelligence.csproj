@@ -52,17 +52,17 @@
         <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       </ApplicationDefinition>
     </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Wendigos">
-      <HintPath>CompatibilityDLLs\Wendigos.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <ApplicationDefinition Include="CompatibilityDLLs\Wendigos.dll">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </ApplicationDefinition>
-  </ItemGroup>
+	<ItemGroup>
+		<Reference Include="Wendigos">
+			<HintPath>CompatibilityDLLs\Wendigos.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+	</ItemGroup>
+	<ItemGroup>
+		<ApplicationDefinition Include="CompatibilityDLLs\Wendigos.dll">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</ApplicationDefinition>
+	</ItemGroup>
 	<ItemGroup>
 		<Reference Include="Imperium">
 			<HintPath>CompatibilityDLLs\giosuel.Imperium.dll</HintPath>
@@ -82,7 +82,7 @@
         <PackageReference Include="LethalCompany.GameLibs.Steam" Version="*-*" PrivateAssets="all" />
         <PackageReference Include="UnityEngine.Modules" Version="2022.3.9" IncludeAssets="compile" PrivateAssets="all" />
         <PackageReference Include="TeamBMX.LobbyCompatibility" Version="1.*" PrivateAssets="all" />
-        <PackageReference Include="Xilophor.LethalNetworkAPI" Version="2.1.7" />
+        <PackageReference Include="Xilophor.LethalNetworkAPI" Version="2.2.0" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
