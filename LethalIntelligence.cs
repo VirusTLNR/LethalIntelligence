@@ -68,6 +68,7 @@ namespace LethalIntelligence
 
         //variables so all mobs know these..
         internal static bool isTerminalBeingUsed = false;
+        internal static bool imperiumFound;
 
         private void Awake()
         {
@@ -83,7 +84,7 @@ namespace LethalIntelligence
                 LobbyCompatibilityChecker.Init();
             }
 
-            bool imperiumFound = BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("giosuel.Imperium");
+            imperiumFound = BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("giosuel.Imperium");
 
             PluginDirectory = ((BaseUnityPlugin)this).Info.Location;
             LoadAssets();

@@ -63,6 +63,17 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ApplicationDefinition>
   </ItemGroup>
+	<ItemGroup>
+		<Reference Include="Imperium">
+			<HintPath>CompatibilityDLLs\giosuel.Imperium.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+	</ItemGroup>
+	<ItemGroup>
+		<ApplicationDefinition Include="CompatibilityDLLs\giosuel.Imperium.dll">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</ApplicationDefinition>
+	</ItemGroup>
 
     <!-- Primary Package References -->
     <ItemGroup>
