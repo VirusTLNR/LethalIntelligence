@@ -2316,10 +2316,18 @@ namespace LethalIntelligence.Patches
             {
                 //find the nearest player and kill them as fast as you can i guess? should change focus once player is dead
                 PlayerControllerB pt = __instance.GetClosestPlayer();
+                if (pt == null) 
+                {
+                    mustChangeFocus = true;
+                    //maskedFocus = Focus.None;
+                    mustChangeActivity = true;
+                    return; 
+                }
                 __instance.SetMovingTowardsTargetPlayer(pt);
                 if(Vector3.Distance(__instance.transform.position, pt.transform.position)<5f)
                 {
-                    maskedFocus = Focus.None;
+                    mustChangeFocus = true;
+                    //maskedFocus = Focus.None;
                     mustChangeActivity = true;
                 }
             }
