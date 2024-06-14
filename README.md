@@ -28,7 +28,7 @@ if you turn this on.. OR Imperium is installed.. debug mode will be turned on, t
 * Aggressive
     * If you have a dropped shotgun, pick it up and shoot people.
     * If there is a player with a shotgun, attack with a shovel type item.
-    * will almost always target a detected player.
+    * will almost always target a detected player. (also has a player focus where they 100% focus on chasing you til you are dead)
 
 * Stealthy
     * Will mimic players

@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.1.0
+
+- fixed null reference exception regarding to MaskedAggressive Focus.Player when player escapes the masked.
+
 ### 0.0.9
 
 - Added some basic background coding to help debug issues quicker while using Imperium. (for my benefit really).
