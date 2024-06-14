@@ -885,10 +885,10 @@ namespace LethalIntelligence.Patches
 
         public void Update()
         {
-            if (Plugin.imperiumFound)
+            /*if (Plugin.imperiumFound)
             {
                 ImperiumPatches.maskedVisualization(maskedPersonality, maskedActivity, maskedFocus);
-            }
+            }*/
             MaskedStatusReport();
             if (((EnemyAI)maskedEnemy).isEnemyDead && isHoldingObject)
             {

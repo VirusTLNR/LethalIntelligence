@@ -1,4 +1,4 @@
-﻿using System;
+﻿/*using System;
 using System.Collections.Generic;
 using System.Text;
 using Imperium.API;
@@ -17,4 +17,4 @@ namespace LethalIntelligence.Patches
             .RegisterInsight("Activity", entity => $"{a}");
         }
     }
-}
+}*/
