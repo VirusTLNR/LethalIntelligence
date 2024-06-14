@@ -2324,7 +2324,7 @@ namespace LethalIntelligence.Patches
                     return; 
                 }
                 __instance.SetMovingTowardsTargetPlayer(pt);
-                if(Vector3.Distance(__instance.transform.position, pt.transform.position)<5f)
+                if(Vector3.Distance(__instance.transform.position, pt.transform.position)<1f || pt.isPlayerDead)
                 {
                     mustChangeFocus = true;
                     //maskedFocus = Focus.None;
