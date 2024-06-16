@@ -445,14 +445,14 @@ namespace LethalIntelligence.Patches
 
                 string focusStart = "\n------------ Focus Details ------------";
                 string focusDetails = "";
-                if (maskedFocus == Focus.Items)
+                if (maskedFocus == Focus.Items || (maskedFocus == Focus.None && maskedActivity == Activity.RandomItem))
                 {
                     focusDetails = focusStart +
                         "\nnearestGrabbableReachable = " + nearestGrabbableReachable +
                         "\nnearestGrabbable = " + ng +
                         "\nclosestGrabbable = " + cg;
                 }
-                else if (maskedFocus == Focus.BreakerBox)
+                else if (maskedFocus == Focus.BreakerBox || (maskedFocus == Focus.None && maskedActivity == Activity.BreakerBox))
                 {
                     focusDetails = focusStart +
                         "\nBreakerBoxReachable = " + breakerBoxReachable +
@@ -678,7 +678,7 @@ namespace LethalIntelligence.Patches
             NavMeshHit hitBreaker, hitTerminal, hitLocker;
             try
             {
-                if (NavMesh.SamplePosition(breakerBox.transform.position, out hitBreaker, 10, -1))
+                if (NavMesh.SamplePosition(breakerBox.transform.position, out hitBreaker, 3.0f, -1))
                 {
                     breakerBoxReachable = agent.CalculatePath(hitBreaker.position, nmpBreaker);
                     //breakerBoxDistance = Vector3.Distance(((Component)this).transform.position, hitBreaker.position);
@@ -2052,7 +2052,7 @@ namespace LethalIntelligence.Patches
                         maskedEnemy.SetDestinationToPosition(breakerBox.transform.position);
                         maskedEnemy.moveTowardsDestination = true;
 
-                        if (breakerBoxDistance < 4.0f && !isUsingBreakerBox)
+                        if (breakerBoxDistance < 3.5f && !isUsingBreakerBox)
                         {
                             maskedGoal = "using breaker box";
                             maskedEnemy.LookAtFocusedPosition();
