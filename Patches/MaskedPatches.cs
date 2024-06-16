@@ -173,12 +173,12 @@ namespace LethalIntelligence.Patches
             RandomPlayer
         }
 
-        private void TestConfig()
+        /*private void TestConfig()
         {
             maskedPersonality = Personality.Deceiving; //for testing a specific personality
             SelectPersonalityInt.Value = 2; //for testing a specific personality
             maskedFocus = Focus.Items;
-        }
+        }*/
 
         public Personality maskedPersonality;
 
