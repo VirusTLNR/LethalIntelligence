@@ -758,7 +758,7 @@ namespace LethalIntelligence.Patches
                 mustChangeActivity = true;
             }
             //new line
-            else if (nearestGrabbableDistance < 40f && lastMaskedFocus != Focus.Items && nearestGrabbableReachable && !noMoreItems)
+            else if (nearestGrabbableDistance < 40f && lastMaskedFocus != Focus.Items && nearestGrabbableReachable && !noMoreItems && maskedPersonality != Personality.Stealthy)
             //this was a cunning only line
             //else if (closestGrabbableDistance < breakerBoxDistance && closestGrabbableDistance < terminalDistance && lastMaskedFocus != Focus.Items && closestGrabbableReachable && !noMoreItems)
             {
