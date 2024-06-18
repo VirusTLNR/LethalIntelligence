@@ -671,10 +671,66 @@ namespace LethalIntelligence.Patches
 
         int itemsToHide = 5;
 
+        private void DetectObject(Object obj, ref bool reachable, ref bool noMore, ref float distance, ref float closestPoint, ref Vector3 position)
+        {
+            NavMeshPath nmp = new NavMeshPath();
+            NavMeshHit nmh;
+            GameObject go = obj as GameObject;
+            try
+            {
+                if (NavMesh.SamplePosition(go.transform.position, out nmh, 3.0f, -1))
+                {
+                    reachable = agent.CalculatePath(nmh.position, nmp);
+                    distance = Vector3.Distance(((Component)this).transform.position, go.transform.position);
+                    closestPoint = Vector3.Distance(nmh.position, go.transform.position);
+                    position = nmh.position;
+                }
+                else
+                {
+                    reachable = false;
+                }
+            }
+            catch (NullReferenceException nre)
+            {
+                reachable = false;
+                noMore = true;
+            }
+            if (!reachable)
+            {
+                distance = 1000f;
+            }
+
+        }
+
+        int calculationDelay = 0;
         private void CalculatingVariables()
         {
+            if (calculationDelay > 0)
+            {
+                calculationDelay--;
+            }
+            else
+            {
+                calculationDelay = 10;
+                if (mustChangeFocus || maskedFocus == Focus.BreakerBox || maskedActivity == Activity.BreakerBox)
+                {
+                    DetectObject(breakerBox, ref breakerBoxReachable, ref noMoreBreakerBox, ref breakerBoxDistance, ref breakerClosestPoint, ref breakerPosition);
+                }
+                if (mustChangeFocus || maskedFocus == Focus.Terminal)
+                {
+                    DetectObject(terminal, ref terminalReachable, ref noMoreTerminal, ref terminalDistance, ref terminalClosestPoint, ref terminalPosition);
+                }
+                if (mustChangeFocus || maskedActivity == Activity.ItemLocker)
+                {
+                    lockerPosition = GameObject.Find("LockerAudio").transform.position; // so use this for now
+                }
+                if (mustChangeFocus || maskedFocus == Focus.Items || maskedActivity == Activity.RandomItem)
+                {
+                    setNearestGrabbable();
+                }
+            }
             //update reachable variables
-            NavMeshPath nmpBreaker = new NavMeshPath(), nmpTerminal = new NavMeshPath(), nmpLocker = new NavMeshPath();
+            /*NavMeshPath nmpBreaker = new NavMeshPath(), nmpTerminal = new NavMeshPath(), nmpLocker = new NavMeshPath();
             NavMeshHit hitBreaker, hitTerminal, hitLocker;
             try
             {
@@ -717,7 +773,7 @@ namespace LethalIntelligence.Patches
                 lockerClosestPoint = Vector3.Distance(hitTerminal.position, terminal.transform.position);
                 lockerPosition = hitTerminal.position;
             }*/
-            setNearestGrabbable();
+            /*setNearestGrabbable();
             if (!breakerBoxReachable)
             {
                 breakerBoxDistance = 1000f;
