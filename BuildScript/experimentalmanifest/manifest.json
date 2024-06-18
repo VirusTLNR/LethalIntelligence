@@ -1,6 +1,6 @@
 {
   "name": "LethalIntelligenceExperimental",
-  "version_number": "0.1.0",
+  "version_number": "0.1.1",
   "website_url": "https://github.com/VirusTLNR/LethalIntelligence",
   "description": "[EXPERIMENTAL]Improved AI in Lethal Company (WIP)",
   "dependencies": [

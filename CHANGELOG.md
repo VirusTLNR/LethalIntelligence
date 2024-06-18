@@ -1,5 +1,11 @@
 ## Changelog
 
+### 0.1.1
+
+- attempted to improve the pathing to the breaker box
+- prevented "Stealthy" from focusing on items as they have no logic for items.
+- potentially fixed an issue with fps drops due to heavy calculations, hopefully this fix doesnt cause other issues :)
+
 ### 0.1.0
 
 - fixed null reference exception regarding to MaskedAggressive Focus.Player when player escapes the masked.

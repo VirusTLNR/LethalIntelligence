@@ -36,29 +36,29 @@ if you turn this on.. OR Imperium is installed.. debug mode will be turned on, t
     * very unlikely to target players
 
 * Cunning
-    * Stealing in the area around the ship and hiding them in bushes (currently 1 occurs 99% of the time, more is possible but not guaranteed!)
+    * Stealing items in the area around the ship and hiding them in bushes (max 5 items)
     * Call a fake dropship using the terminal
-    * Tampers with the breaker box to turn off the lights, will keep turning the lights off while they are alive.
+    * Tampers with the breaker box to turn off the lights, will keep turning the lights off while they are alive and the lights are turned on.
 
 * Deceiving
-    * Use terminal codes to make you think someone is in the ship and help/hinder you.
+    * Uses terminal codes to make you think someone is in the ship and help/hinder you.
     * will tend to ignore you in favour of making you beleive they are a player.
 
 * Insane
-    * Use signal translator to make you think someone is in the ship and help/hinder you.
-    * will tend to target players more than most ther personalities
+    * Uses signal translator to make you think someone is in the ship and help/hinder you.
+    * will tend to target players more than most other personalities
 
  </details>
 
 ## Known Issues
-- error spam relating to items when a masked spawns (potentially fixed in 0.0.9, lmk!)
+- fps drops due to heavy calculations (potentially fixed in v0.1.1)
 - if the breaker box is not reachable, the masked will struggle to route anywhere due to being focused on routing to the breaker box. once the box is reachable again, they will be fine.
 
 ## Mods
 Recommended to install with this mod:
 
 + 'MaskedEnemyOverhaulFork' mod by Coppertiel (the original by HomelessGinger is bugged at time of writing this).
-+ 'Skinwalkers' by RedbugRedfern. OR 'Mirage' by qwbarch OR 'Wendigos_Voice_Cloning' by Tim_Shaw (no integration for mirage/wendigos as of yet, but it is planned)
++ 'Skinwalkers' by RedbugRedfern. OR 'Mirage' by qwbarch OR 'Wendigos_Voice_Cloning' by Tim_Shaw (no integration for mirage as of yet, but it is planned when mirage v2 is out)
  
 
 ## Thanks to...
