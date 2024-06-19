@@ -120,7 +120,7 @@ namespace LethalIntelligence
             //bracken personality
             enableBrackenNormal = ((BaseUnityPlugin)this).Config.Bind<bool>("BrackenPersonalities", "BrackenNormal", true, "Enables the 'Normal' personality for the Bracken (if all other bracken personalities are disabled, this will be force enabled by default)").Value;
             enableBrackenAngry = ((BaseUnityPlugin)this).Config.Bind<bool>("BrackenPersonalities", "BrackenAngry", true, "Enables the 'Angry' personality for the Bracken").Value;
-            //enableBrackenCalm = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedPersonalities", "MaskedCunning", true, "Enables the Cunning personality for the Masked (at least 1 of these must be TRUE)").Value;
+            enableBrackenCalm = ((BaseUnityPlugin)this).Config.Bind<bool>("BrackenPersonalities", "BrackenCalm", true, "Enables the 'Calm' personality for the Bracken").Value;
             //enableBrackenStealthy = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedPersonalities", "MaskedDeceiving", true, "Enables the 'Deceiving' personality for the Masked (at least 1 of these must be TRUE)").Value;
             //enableBrackenFriendly = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedPersonalities", "MaskedInsane", true, "Enables the 'Insane' personality for the Masked (at least 1 of these must be TRUE)").Value;
 

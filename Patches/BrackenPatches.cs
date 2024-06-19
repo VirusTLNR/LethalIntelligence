@@ -29,7 +29,7 @@ namespace LethalIntelligence.Patches
         static List<Personality> useablePersonalities = new List<Personality>();
         static Personality brackenPersonality, lastBrackenPersonality;
         static FlowermanAI brackenEnemy;
-        static int angerModifier = 0;
+        static float angerModifier = 0f;
 
         static string lastDebugMsg, currentMoon, currentInterior;
 
@@ -48,7 +48,6 @@ namespace LethalIntelligence.Patches
         [HarmonyPatch("Start")]
         private static bool Start_Prefix(EnemyAI __instance)
         {
-            Plugin.mls.LogInfo("LI-BrackenSTART!");
             brackenEnemy = (FlowermanAI)__instance;
             selectAvailablePersonalities();
             return true; // dont skip original
@@ -59,7 +58,6 @@ namespace LethalIntelligence.Patches
         [HarmonyPatch("Update")]
         private static bool Update_Prefix()
         {
-            Plugin.mls.LogInfo("LI-BrackenUPDATE!");
             BrackenStatusReport();
             if (brackenPersonality == Personality.None)
             {
@@ -68,13 +66,14 @@ namespace LethalIntelligence.Patches
             brackenPersonality = useablePersonalities[BrackenPersonalityInt.Value];
             if (lastBrackenPersonality != brackenPersonality)
             {
-                if(brackenPersonality == Personality.Angry)
+                lastBrackenPersonality = brackenPersonality;
+                if (brackenPersonality == Personality.Angry)
                 {
-                    angerModifier = 2;
+                    angerModifier = 2f;
                 }
                 else if(brackenPersonality == Personality.Calm)
                 {
-                    angerModifier = -2;
+                    angerModifier = -0.015f;
                 }
                 Plugin.mls.LogInfo("Bracken '" + brackenEnemy.GetInstanceID() + "' personality changed to '" + brackenPersonality.ToString() + "'");
             }
@@ -83,10 +82,11 @@ namespace LethalIntelligence.Patches
 
         [HarmonyPrefix]
         [HarmonyPatch("AddToAngerMeter")]
-        private static bool AddToAngerMeter_Prefix(float amountToAdd)
+        private static bool AddToAngerMeter_Prefix(ref float amountToAdd)
         {
-            Plugin.mls.LogError("AngerToAdd = " + amountToAdd);
+            //Plugin.mls.LogError("AngerToAdd = " + amountToAdd);
             amountToAdd += angerModifier;
+            //Plugin.mls.LogError("ModifiedAngerToAdd = " + amountToAdd);
             return true; // dont skip original
         }
 
@@ -120,6 +120,17 @@ namespace LethalIntelligence.Patches
         {
             if (Plugin.DebugMode && !stopStatusReporting && Plugin.delayUpdate())
             {
+                string targetPlayer;
+
+                if (brackenEnemy.targetPlayer == null)
+                {
+                    targetPlayer = "null";
+                }
+                else
+                {
+                    targetPlayer = brackenEnemy.targetPlayer.ToString();
+                }
+
                 string debugMsg =
                 "\n===== BrackenStatusReport() Start =====" +
                 "\nBrackenID = " + brackenEnemy.GetInstanceID() +
@@ -129,7 +140,10 @@ namespace LethalIntelligence.Patches
                 "\nisDead = " + brackenEnemy.isEnemyDead +
                 "\n\nisOutside = " + brackenEnemy.isOutside +
                 "\nisInsidePlayerShip = " + brackenEnemy.isInsidePlayerShip +
-                "\n===== MaskedStatusReport() End =======";
+                "\n\nAngerLevel = " + brackenEnemy.angerMeter.ToString() +
+                "\nIsInAngerMode = " +brackenEnemy.isInAngerMode.ToString() +
+                "\nTargetPlayer = " + targetPlayer +
+                "\n===== BrackenStatusReport() End =======";
                 if (debugMsg != lastDebugMsg)
                 {
                     lastDebugMsg = debugMsg;
@@ -137,7 +151,7 @@ namespace LethalIntelligence.Patches
                 }
                 if (brackenEnemy.isEnemyDead)
                 {
-                    Plugin.mls.LogInfo("Masked " + brackenPersonality.ToString() + "(" + brackenEnemy.GetInstanceID() + ") is now dead, status reporting will cease for this bracken");
+                    Plugin.mls.LogInfo("Bracken " + brackenPersonality.ToString() + "(" + brackenEnemy.GetInstanceID() + ") is now dead, status reporting will cease for this bracken");
                     stopStatusReporting = true;
                 }
             }
