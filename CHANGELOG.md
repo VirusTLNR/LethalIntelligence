@@ -1,5 +1,11 @@
 ## Changelog
 
+### 0.1.2
+
+- switched from FPS based timing to a fixed update timing of 0.1s and fixed all relevent timing issues related to this change.
+- fixed some variables not updating since v0.1.1 leading to masked being unable to perform some tasks.
+- fixed masked "sight" parameters to correct the sight they have so they are not seeing through the back of their skulls (well almost..)
+
 ### 0.1.1
 
 - attempted to improve the pathing to the breaker box
