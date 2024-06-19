@@ -395,27 +395,9 @@ namespace LethalIntelligence.Patches
         Vector3 destination;
         float distanceToDestination;
 
-        int delayNumber = 0;
-        int delayMax = Plugin.debugStatusDelay;
-
-        private bool delayUpdate()
-        {
-            //return true;
-            delayNumber++;
-            if (delayNumber >= delayMax)
-            {
-                delayNumber = 0;
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
         public void MaskedStatusReport()
         {
-            if (Plugin.DebugMode && !stopStatusReporting && delayUpdate())
+            if (Plugin.DebugMode && !stopStatusReporting && Plugin.delayUpdate())
             {
                 string ng = "null";
                 string hg = "null";

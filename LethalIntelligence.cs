@@ -51,6 +51,9 @@ namespace LethalIntelligence
             //masked personalities
         public static bool enableMaskedAggressive, enableMaskedStealthy, enableMaskedCunning, enableMaskedDeceiving, enableMaskedInsane;
 
+        //bracken personalities
+        public static bool enableBrackenNormal, enableBrackenAngry, enableBrackenCalm, enableBrackenStealthy, enableBrackenFriendly;
+
             //masked config
         public static bool useTerminal, useTerminalCredit, maskedShipDeparture;
 
@@ -114,6 +117,14 @@ namespace LethalIntelligence
             useTerminalCredit = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedAI", "Masked uses credits", false, "(Not working rn) Allows Masked to use the terminal to spend credits.").Value;
             maskedShipDeparture = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedAI", "Masked pulls the brake lever", false, "(Not working rn) Allows Masked to pull the brake lever. Um... really...?").Value;
 
+            //bracken personality
+            enableBrackenNormal = ((BaseUnityPlugin)this).Config.Bind<bool>("BrackenPersonalities", "BrackenNormal", true, "Enables the 'Normal' personality for the Bracken (if all other bracken personalities are disabled, this will be force enabled by default)").Value;
+            enableBrackenAngry = ((BaseUnityPlugin)this).Config.Bind<bool>("BrackenPersonalities", "BrackenAngry", true, "Enables the 'Angry' personality for the Bracken").Value;
+            //enableBrackenCalm = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedPersonalities", "MaskedCunning", true, "Enables the Cunning personality for the Masked (at least 1 of these must be TRUE)").Value;
+            //enableBrackenStealthy = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedPersonalities", "MaskedDeceiving", true, "Enables the 'Deceiving' personality for the Masked (at least 1 of these must be TRUE)").Value;
+            //enableBrackenFriendly = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedPersonalities", "MaskedInsane", true, "Enables the 'Insane' personality for the Masked (at least 1 of these must be TRUE)").Value;
+
+
             //debug settings
             debugModeSetting = ((BaseUnityPlugin)this).Config.Bind<bool>("DebugMode", "Debug Mode", false, "Enables more spammy logs for debugging, will be enabled automatically if imperium is installed. (all other DebugMode settings are ignored if Debug Mode is disabled)").Value;
             debugStatusDelay = ((BaseUnityPlugin)this).Config.Bind<int>("DebugMode", "Status Report Delay", 100, "How often should status reports (only updates when information changes) be logged (higher number = less spam but also less accurate as not all information is gathered").Value;
@@ -145,6 +156,9 @@ namespace LethalIntelligence
             //harmony.PatchAll();
             harmony.PatchAll(typeof(Plugin));
 
+            //all bracken patches
+            harmony.PatchAll(typeof(BrackenPatches));
+
             //all masked patches
             harmony.PatchAll(typeof(MaskedPlayerEnemyPatch));
             harmony.PatchAll(typeof(ShotgunItemPatch));
@@ -175,6 +189,24 @@ namespace LethalIntelligence
                 mls.LogInfo((object)logPluginName + " <-> Wendigos_Voice_Cloning Integrated!");
                 wendigosIntegrated = true;
 
+            }
+        }
+
+        static int delayNumber = 0;
+        static int delayMax = debugStatusDelay;
+
+        public static bool delayUpdate()
+        {
+            //return true;
+            delayNumber++;
+            if (delayNumber >= delayMax)
+            {
+                delayNumber = 0;
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 
