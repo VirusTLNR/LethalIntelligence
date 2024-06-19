@@ -3865,7 +3865,8 @@ namespace LethalIntelligence.Patches
             PlayerControllerB randomPlayer = __instance.targetPlayer;
             maskedGoal = "finding "+randomPlayer.name.ToString();
             Vector3 pos = randomPlayer.transform.position;
-            bool canSeePos = __instance.CheckLineOfSightForPosition(pos, 160f, 40, -1, null);
+            //bool canSeePos = __instance.CheckLineOfSightForPosition(pos, 160f, 40, -1, null);
+            bool canSeePos = __instance.CheckLineOfSightForPosition(pos, 80f, 60, -1, null);
             if (canSeePos)
             {
                 followTime = 20f;
