@@ -595,6 +595,7 @@ namespace LethalIntelligence.Patches
             }
             dropship = Object.FindObjectOfType<ItemDropship>();
             terminalAccessibleObject = Object.FindObjectsOfType<TerminalAccessibleObject>();
+            InvokeRepeating("UpdatePointOne", 0, 0.1f);
         }
 
         private void Jump(bool enable)
@@ -723,7 +724,7 @@ namespace LethalIntelligence.Patches
             }
             else
             {
-                calculationDelay = 10;
+                calculationDelay = 50;
                 if (mustChangeFocus || maskedFocus == Focus.BreakerBox || maskedActivity == Activity.BreakerBox)
                 {
                     //not working for now use original code
@@ -948,7 +949,7 @@ namespace LethalIntelligence.Patches
             }*/
         }
 
-        public void Update()
+        public void UpdatePointOne()
         {
             /*if (Plugin.imperiumFound)
             {
