@@ -595,14 +595,17 @@ namespace LethalIntelligence.Patches
             }
             dropship = Object.FindObjectOfType<ItemDropship>();
             terminalAccessibleObject = Object.FindObjectsOfType<TerminalAccessibleObject>();
-            InvokeRepeating("UpdatePointOne", 0, 0.1f);
+            InvokeRepeating("UpdatePointOne", 0, updateFrequency);
         }
+
+        float updateFrequency = 0.1f;
 
         private void Jump(bool enable)
         {
             if (jumpTime > 0f && !isJumped.Value)
             {
-                jumpTime -= Time.deltaTime;
+                //jumpTime -= Time.deltaTime;
+                jumpTime -= updateFrequency; //fixing timing
             }
             if (!isCrouched.Value && !isJumped.Value && jumpTime < 1f && jumpTime > 0.9f)
             {
@@ -1574,7 +1577,8 @@ namespace LethalIntelligence.Patches
                 isDancing.Value = false;
                 creatureAnimator.ResetTrigger("Dancing");
                 creatureAnimator.SetTrigger("Running");
-                maskedEnemy.staminaTimer -= Time.deltaTime * 0.05f;
+                //maskedEnemy.staminaTimer -= Time.deltaTime * 0.05f;
+                maskedEnemy.staminaTimer -= updateFrequency * 0.05f; //fixing timing
                 agent.speed = 7f;
             }
             else if (isDancing.Value)
@@ -1621,7 +1625,8 @@ namespace LethalIntelligence.Patches
             }
             if (isStaminaDowned)
             {
-                maskedEnemy.staminaTimer += Time.deltaTime * 0.2f;
+                //maskedEnemy.staminaTimer += Time.deltaTime * 0.2f;
+                maskedEnemy.staminaTimer += updateFrequency * 0.2f; //fixing timing
                 if (maskedEnemy.staminaTimer < 3f)
                 {
                     isStaminaDowned = false;
@@ -1678,12 +1683,14 @@ namespace LethalIntelligence.Patches
         {
             if (isHoldingObject)
             {
-                upperBodyAnimationsWeight = Mathf.Lerp(upperBodyAnimationsWeight, 0.9f, 25f * Time.deltaTime);
+                //upperBodyAnimationsWeight = Mathf.Lerp(upperBodyAnimationsWeight, 0.9f, 25f * Time.deltaTime);
+                upperBodyAnimationsWeight = Mathf.Lerp(upperBodyAnimationsWeight, 0.9f, 25f * updateFrequency);
                 creatureAnimator.SetLayerWeight(creatureAnimator.GetLayerIndex("Item"), upperBodyAnimationsWeight);
             }
             else
             {
-                upperBodyAnimationsWeight = Mathf.Lerp(upperBodyAnimationsWeight, 0f, 25f * Time.deltaTime);
+                //upperBodyAnimationsWeight = Mathf.Lerp(upperBodyAnimationsWeight, 0f, 25f * Time.deltaTime);
+                upperBodyAnimationsWeight = Mathf.Lerp(upperBodyAnimationsWeight, 0f, 25f * updateFrequency);
                 creatureAnimator.SetLayerWeight(creatureAnimator.GetLayerIndex("Item"), upperBodyAnimationsWeight);
                 creatureAnimator.SetLayerWeight(creatureAnimator.GetLayerIndex("Item"), upperBodyAnimationsWeight);
             }
@@ -1789,7 +1796,8 @@ namespace LethalIntelligence.Patches
                 float num2 = Vector3.Angle(val2, val3);
                 if (num2 > 30f)
                 {
-                    rotationTimer += Time.deltaTime;
+                    //rotationTimer += Time.deltaTime;
+                    rotationTimer += updateFrequency;
                     if (rotationTimer > 0f && rotationTimer < 0.5f)
                     {
                         if (angle1 == 0f)
@@ -1834,7 +1842,8 @@ namespace LethalIntelligence.Patches
             if ((Plugin.wendigosIntegrated || Plugin.skinWalkersIntegrated) && isHoldingObject && closestGrabbable is WalkieTalkie)
             {
                 WalkieTalkie component = ((Component)closestGrabbable).GetComponent<WalkieTalkie>();
-                walkieCooldown += Time.deltaTime;
+                //walkieCooldown += Time.deltaTime;
+                walkieCooldown += updateFrequency;
                 if (walkieCooldown < 1f)
                 {
                     creatureAnimator.ResetTrigger("UseWalkie");
@@ -1886,7 +1895,8 @@ namespace LethalIntelligence.Patches
             {
                 return;
             }
-            walkieTimer += Time.deltaTime;
+            //walkieTimer += Time.deltaTime;
+            walkieTimer += updateFrequency;
             WalkieTalkie component = ((Component)closestGrabbable).GetComponent<WalkieTalkie>();
             if (walkieTimer > 1f && !walkieUsed)
             {
@@ -1997,7 +2007,8 @@ namespace LethalIntelligence.Patches
                     }
                     if (Vector3.Distance(originDestination, agent.destination) < 1.5f)
                     {
-                        originTimer += Time.deltaTime;
+                        //originTimer += Time.deltaTime;
+                        originTimer += updateFrequency;
                     }
                     if (originTimer > 3.5f)
                     {
@@ -2054,7 +2065,8 @@ namespace LethalIntelligence.Patches
                 }
                 if (Vector3.Distance(originDestination, agent.destination) < 1.5f)
                 {
-                    originTimer += Time.deltaTime;
+                    //originTimer += Time.deltaTime;
+                    originTimer += updateFrequency;
                 }
                 if (originTimer > 3.5f)
                 {
@@ -2439,7 +2451,8 @@ namespace LethalIntelligence.Patches
                 if ((Object)(object)__instance.targetPlayer != (Object)null && isHoldingObject && !(closestGrabbable is Shovel) && !(closestGrabbable is ShotgunItem) && maskedPersonality == Personality.Aggressive)
                 {
                     maskedGoal = "[Aggressive]targetting player while holding object(not shotgun/shovel)";
-                    dropTimer += Time.deltaTime;
+                    //dropTimer += Time.deltaTime;
+                    dropTimer += updateFrequency;
                     if (((NetworkBehaviour)this).IsHost)
                     {
                         if (!itemDroped)
@@ -2456,7 +2469,8 @@ namespace LethalIntelligence.Patches
                 else if ((Object)(object)__instance.targetPlayer != (Object)null && isHoldingObject && (maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane))
                 {
                     maskedGoal = "[Deceiving/Insane]targetting player while holding object";
-                    dropTimer += Time.deltaTime;
+                    //dropTimer += Time.deltaTime;
+                    dropTimer += updateFrequency;
                     if (((NetworkBehaviour)this).IsHost)
                     {
                         if (!itemDroped)
@@ -2630,7 +2644,8 @@ namespace LethalIntelligence.Patches
                 {
                     if (terminal.numberOfItemsInDropship <= 0 && !dropship.shipLanded && dropship.shipTimer <= 0f && !isDeliverEmptyDropship && !noMoreTerminal)
                     {
-                        dropShipTimer += Time.deltaTime;
+                        //dropShipTimer += Time.deltaTime;
+                        dropShipTimer += updateFrequency; //fixing timing
                         if (dropShipTimer > 10f)
                         {
                             /*if (dropship.IsSpawned == false)
@@ -2643,7 +2658,8 @@ namespace LethalIntelligence.Patches
                     }
                     else if (isDeliverEmptyDropship && dropShipTimer <= 12f && !noMoreTerminal)
                     {
-                        dropShipTimer += Time.deltaTime;
+                        //dropShipTimer += Time.deltaTime;
+                        dropShipTimer += updateFrequency; //fixing timing
 
                     }
                     if (dropShipTimer > 12f)
@@ -2685,7 +2701,8 @@ namespace LethalIntelligence.Patches
                         Plugin.isTerminalBeingUsed = false;
                         return;
                     }
-                    transmitMessageTimer += Time.deltaTime;
+                    //transmitMessageTimer += Time.deltaTime;
+                    transmitMessageTimer += updateFrequency; //fixing timing
 
                     if (GameNetworkManager.Instance.isHostingGame)
                     {
@@ -2704,7 +2721,8 @@ namespace LethalIntelligence.Patches
                     }
                     if (transmitMessageTimer <= delayMaxTime.Value)
                     {
-                        transmitPauseTimer += Time.deltaTime;
+                        //transmitPauseTimer += Time.deltaTime;
+                        transmitPauseTimer += updateFrequency; //fixing timing
                     }
                     if (enterTermianlSpecialCodeTime == 0)
                     {
@@ -2743,7 +2761,8 @@ namespace LethalIntelligence.Patches
                         return;
                     }
                     float num2 = Random.Range(0.2f, 1.5f);
-                    enterTermianlCodeTimer += Time.deltaTime;
+                    //enterTermianlCodeTimer += Time.deltaTime;
+                    enterTermianlCodeTimer += updateFrequency; //fixing timing
                     if (enterTermianlCodeTimer > terminalTimeFloat.Value && enterTermianlSpecialCodeTime > 0)
                     {
                         if (GameNetworkManager.Instance.isHostingGame)
@@ -2967,7 +2986,8 @@ namespace LethalIntelligence.Patches
             //IL_04f2: Unknown result type (might be due to invalid IL or missing references)
             //IL_0514: Unknown result type (might be due to invalid IL or missing references)
             //IL_0516: Unknown result type (might be due to invalid IL or missing references)
-            shovelTimer += Time.deltaTime;
+            //shovelTimer += Time.deltaTime;
+            shovelTimer += updateFrequency;
             if (isHoldingObject)
             {
                 if (closestGrabbable is FlashlightItem)
@@ -3039,7 +3059,8 @@ namespace LethalIntelligence.Patches
                         {
                             if (shootTimer > 0f)
                             {
-                                shootTimer -= Time.deltaTime;
+                                //shootTimer -= Time.deltaTime;
+                                shootTimer -= updateFrequency;
                             }
                             float num = Vector3.Distance(((Component)creatureAnimator).transform.position, ((Component)__instance.targetPlayer).transform.position);
                             if (component.safetyOn && num < 8f)
