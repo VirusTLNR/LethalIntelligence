@@ -968,6 +968,10 @@ namespace LethalIntelligence.Patches
             {
                 maskedGoal = "none, he died!";
                 ((Behaviour)agent).enabled = false;
+                if(isUsingTerminal==true)
+                {
+                    Plugin.isTerminalBeingUsed = false; //attempting to fix a killed/despawned mask locking out others from the terminal
+                }
                 return; //stops them doing anything if they are dead?
             }
             if (useWalkie.Value)
