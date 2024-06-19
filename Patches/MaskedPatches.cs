@@ -671,7 +671,9 @@ namespace LethalIntelligence.Patches
 
         int itemsToHide = 5;
 
-        private void DetectObject(Object obj, ref bool reachable, ref bool noMore, ref float distance, ref float closestPoint, ref Vector3 position)
+
+        //not working for now
+        /*private void DetectObject(Object obj, ref bool reachable, ref bool noMore, ref float distance, ref float closestPoint, ref Vector3 position)
         {
             NavMeshPath nmp = new NavMeshPath();
             NavMeshHit nmh;
@@ -695,16 +697,26 @@ namespace LethalIntelligence.Patches
                 reachable = false;
                 noMore = true;
             }
+            Plugin.mls.LogError("object=" + obj.name.ToString());
+            Plugin.mls.LogError("reachable=" + reachable);
+            Plugin.mls.LogError("distance=" + distance.ToString());
+            Plugin.mls.LogError("cp=" + closestPoint.ToString());
+            Plugin.mls.LogError("pos=" + position.ToString());
+            Plugin.mls.LogError("noMore=" + noMore.ToString());
             if (!reachable)
             {
                 distance = 1000f;
             }
 
-        }
+        }*/
 
         int calculationDelay = 0;
+
         private void CalculatingVariables()
         {
+            NavMeshPath nmpBreaker = new NavMeshPath(), nmpTerminal = new NavMeshPath(), nmpLocker = new NavMeshPath();
+            NavMeshHit hitBreaker, hitTerminal, hitLocker;
+
             if (calculationDelay > 0)
             {
                 calculationDelay--;
@@ -714,24 +726,8 @@ namespace LethalIntelligence.Patches
                 calculationDelay = 10;
                 if (mustChangeFocus || maskedFocus == Focus.BreakerBox || maskedActivity == Activity.BreakerBox)
                 {
-                    DetectObject(breakerBox, ref breakerBoxReachable, ref noMoreBreakerBox, ref breakerBoxDistance, ref breakerClosestPoint, ref breakerPosition);
-                }
-                if (mustChangeFocus || maskedFocus == Focus.Terminal)
-                {
-                    DetectObject(terminal, ref terminalReachable, ref noMoreTerminal, ref terminalDistance, ref terminalClosestPoint, ref terminalPosition);
-                }
-                if (mustChangeFocus || maskedActivity == Activity.ItemLocker)
-                {
-                    lockerPosition = GameObject.Find("LockerAudio").transform.position; // so use this for now
-                }
-                if (mustChangeFocus || maskedFocus == Focus.Items || maskedActivity == Activity.RandomItem)
-                {
-                    setNearestGrabbable();
-                }
-            }
-            //update reachable variables
-            /*NavMeshPath nmpBreaker = new NavMeshPath(), nmpTerminal = new NavMeshPath(), nmpLocker = new NavMeshPath();
-            NavMeshHit hitBreaker, hitTerminal, hitLocker;
+                    //not working for now use original code
+                    //DetectObject(breakerBox, ref breakerBoxReachable, ref noMoreBreakerBox, ref breakerBoxDistance, ref breakerClosestPoint, ref breakerPosition);
             try
             {
                 if (NavMesh.SamplePosition(breakerBox.transform.position, out hitBreaker, 3.0f, -1))
@@ -746,14 +742,23 @@ namespace LethalIntelligence.Patches
                 {
                     breakerBoxReachable = false;
                 }
+                        if (!breakerBoxReachable)
+                        {
+                            breakerBoxDistance = 1000f;
+                        }
             }
-            catch(NullReferenceException nre)
+                    catch (NullReferenceException nre)
             {
                 //Plugin.mls.LogDebug("BreakerBox NullReferenceException() Caught!\n" + nre.Message);
                 breakerBoxReachable = false;
                 noMoreBreakerBox = true;
             }
-            if (NavMesh.SamplePosition(terminal.transform.position, out hitTerminal, 10, -1))
+                }
+                if (mustChangeFocus || maskedFocus == Focus.Terminal)
+                {
+                    //not working for now use original code
+                    //DetectObject(terminal, ref terminalReachable, ref noMoreTerminal, ref terminalDistance, ref terminalClosestPoint, ref terminalPosition);
+                    if (NavMesh.SamplePosition(terminal.transform.position, out hitTerminal, 3.0f, -1))
             {
                 terminalReachable = agent.CalculatePath(hitTerminal.position, nmpTerminal);
                 terminalDistance = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position);
@@ -764,8 +769,15 @@ namespace LethalIntelligence.Patches
             {
                 terminalReachable = false;
             }
+                    if (!terminalReachable)
+                    {
+                        terminalDistance = 1000f;
+                    }
+                }
+                if (mustChangeFocus || maskedActivity == Activity.ItemLocker)
+                {
+                    lockerPosition = GameObject.Find("LockerAudio").transform.position; // so use this for now
             //this isnt working right now.. it routes the masked on to above the ship..
-            lockerPosition = GameObject.Find("LockerAudio").transform.position; // so use this for now
             /*if (NavMesh.SamplePosition(GameObject.Find("LockerAudio").transform.position,out hitLocker,10,-1))
             {
                 lockerReachable = agent.CalculatePath(hitTerminal.position, nmpLocker);
@@ -773,20 +785,17 @@ namespace LethalIntelligence.Patches
                 lockerClosestPoint = Vector3.Distance(hitTerminal.position, terminal.transform.position);
                 lockerPosition = hitTerminal.position;
             }*/
-            /*setNearestGrabbable();
-            if (!breakerBoxReachable)
-            {
-                breakerBoxDistance = 1000f;
             }
-            if (!terminalReachable)
+                if (mustChangeFocus || maskedFocus == Focus.Items || maskedActivity == Activity.RandomItem)
             {
-                terminalDistance = 1000f;
-            }
+                    setNearestGrabbable();
             //this is in setNearestGrabbable();
             /*if (!closestGrabbableReachable)
             {
                 nearestGrabbableDistance = 1000f;
             }*/
+        }
+        }
         }
 
         private void SetFocus()
@@ -1233,7 +1242,8 @@ namespace LethalIntelligence.Patches
             //IL_004c: Unknown result type (might be due to invalid IL or missing references)
             //IL_0057: Unknown result type (might be due to invalid IL or missing references)
             //IL_0068: Unknown result type (might be due to invalid IL or missing references)
-            bool canSeePos = __instance.CheckLineOfSightForPosition(pos, 160f, 40, -1, null);
+            //bool canSeePos = __instance.CheckLineOfSightForPosition(pos, 160f, 40, -1, null);
+            bool canSeePos = __instance.CheckLineOfSightForPosition(pos, 80f, 60, -1, null);
             if (canSeePos)
             {
                 maskedGoal = $"Look at position {pos} called! lookatpositiontimer setting to {lookAtTime}";
@@ -1405,8 +1415,9 @@ namespace LethalIntelligence.Patches
 
         private void DetectAndSelectRandomPlayer()
         {
-            PlayerControllerB[] players = maskedEnemy.GetAllPlayersInLineOfSight(160f, 60, null, -1, -1);
-            if(players==null)
+            //PlayerControllerB[] players = maskedEnemy.GetAllPlayersInLineOfSight(160f, 60, null, -1, -1);
+            PlayerControllerB[] players = maskedEnemy.GetAllPlayersInLineOfSight(80f, 60, null, -1, -1);
+            if (players==null)
             {
                 return;
             }
@@ -3107,7 +3118,8 @@ namespace LethalIntelligence.Patches
                 heldGrabbable = null;
                 isHoldingObject = false;
                 itemDroped = true;
-                PlayerControllerB targetPlayer = __instance.CheckLineOfSightForClosestPlayer(70f, 50, 1, 3f);
+                //PlayerControllerB targetPlayer = __instance.CheckLineOfSightForClosestPlayer(70f, 50, 1, 3f);
+                PlayerControllerB targetPlayer = __instance.CheckLineOfSightForClosestPlayer(80f, 60, 1, 3f);
                 __instance.movingTowardsTargetPlayer = true;
                 __instance.targetPlayer = targetPlayer;
                 __instance.SwitchToBehaviourState(2);
@@ -3142,7 +3154,8 @@ namespace LethalIntelligence.Patches
                 heldGrabbable.grabbable = true;
                 isHoldingObject = false;
                 itemDroped = true;
-                PlayerControllerB targetPlayer = __instance.CheckLineOfSightForClosestPlayer(70f, 50, 1, 3f);
+                //PlayerControllerB targetPlayer = __instance.CheckLineOfSightForClosestPlayer(70f, 50, 1, 3f);
+                PlayerControllerB targetPlayer = __instance.CheckLineOfSightForClosestPlayer(80f, 60, 1, 3f);
                 __instance.movingTowardsTargetPlayer = true;
                 __instance.targetPlayer = targetPlayer;
                 __instance.SwitchToBehaviourState(2);
