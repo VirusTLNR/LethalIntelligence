@@ -68,6 +68,7 @@ namespace LethalIntelligence
 
         //variables so all mobs know these..
         internal static bool isTerminalBeingUsed = false;
+        internal static bool isBreakerBoxBeingUsed = false;
         internal static bool imperiumFound;
 
         private void Awake()

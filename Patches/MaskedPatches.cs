@@ -2123,6 +2123,13 @@ namespace LethalIntelligence.Patches
             }
             else if (maskedFocus == Focus.BreakerBox)
             {
+                if (breakerBoxDistance < 15f && breakerBoxDistance > 3.5f && Plugin.isBreakerBoxBeingUsed)
+                {
+                    Plugin.mls.LogDebug("BreakerBox is being used by another entity");
+                    noMoreBreakerBox = true;
+                    mustChangeFocus = true;
+                    return;
+                }
                 if (!noMoreBreakerBox)
                 {
                     //breakerbox
@@ -2138,6 +2145,7 @@ namespace LethalIntelligence.Patches
 
                         if (breakerBoxDistance < 3.5f && !isUsingBreakerBox)
                         {
+                            Plugin.isBreakerBoxBeingUsed = true;
                             maskedGoal = "using breaker box";
                             maskedEnemy.LookAtFocusedPosition();
                             isUsingBreakerBox = true;
@@ -2156,6 +2164,7 @@ namespace LethalIntelligence.Patches
                                 breakerBoxSwitchLogic(breakerBoxDistance, true);
                                 maskedEnemy.SetDestinationToPosition(terminal.transform.position);
                             }
+                            Plugin.isBreakerBoxBeingUsed = false;
                         }
                     }
                 }
