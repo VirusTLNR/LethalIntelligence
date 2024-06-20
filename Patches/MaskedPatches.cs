@@ -2547,7 +2547,7 @@ namespace LethalIntelligence.Patches
                     distanceToPlayer = Vector3.Distance(((Component)creatureAnimator).transform.position, ((Component)__instance.targetPlayer).transform.position);
                     maskedEnemy.lookAtPositionTimer = 0f;
                 }
-                if (!((EnemyAI)maskedEnemy).isEnemyDead && !isUsingTerminal && (maskedPersonality != Personality.Aggressive || !isHoldingObject || (!(closestGrabbable is Shovel) && !(closestGrabbable is ShotgunItem))))
+                if (!((EnemyAI)maskedEnemy).isEnemyDead && !isUsingTerminal && !isUsingBreakerBox && (maskedPersonality != Personality.Aggressive || !isHoldingObject || (!(closestGrabbable is Shovel) && !(closestGrabbable is ShotgunItem))))
                 {
                     PlayerControllerB[] allPlayerScripts = StartOfRound.Instance.allPlayerScripts;
                     foreach (PlayerControllerB val in allPlayerScripts)
