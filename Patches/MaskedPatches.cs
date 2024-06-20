@@ -2573,6 +2573,8 @@ namespace LethalIntelligence.Patches
             else
             {
                 //do nothing
+                mustChangeFocus = true;
+                mustChangeActivity = true;
             }
         }
 
