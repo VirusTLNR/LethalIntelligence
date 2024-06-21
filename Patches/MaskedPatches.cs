@@ -827,7 +827,7 @@ namespace LethalIntelligence.Patches
                 mustChangeActivity = true;
             }
             //new line
-            else if (nearestGrabbableDistance < 40f && lastMaskedFocus != Focus.Items && nearestGrabbableReachable && !noMoreItems && maskedPersonality != Personality.Stealthy)
+            else if ((maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Aggressive) && nearestGrabbableDistance < 40f && lastMaskedFocus != Focus.Items && nearestGrabbableReachable && !noMoreItems)
             //this was a cunning only line
             //else if (closestGrabbableDistance < breakerBoxDistance && closestGrabbableDistance < terminalDistance && lastMaskedFocus != Focus.Items && closestGrabbableReachable && !noMoreItems)
             {
@@ -836,19 +836,19 @@ namespace LethalIntelligence.Patches
                 maskedActivity = Activity.None;
                 mustChangeActivity = true;
             }
-            else if (__instance.targetPlayer != null && lastMaskedFocus != Focus.Hiding && maskedPersonality == Personality.Stealthy)
+            else if (maskedPersonality == Personality.Stealthy && __instance.targetPlayer != null && lastMaskedFocus != Focus.Hiding)
             {
                 maskedFocus = Focus.Hiding;
                 maskedActivity = Activity.None;
                 mustChangeActivity = true;
             }
-            else if (__instance.targetPlayer != null && lastMaskedFocus != Focus.Mimicking && maskedPersonality == Personality.Stealthy)
+            else if (maskedPersonality == Personality.Stealthy && __instance.targetPlayer != null && lastMaskedFocus != Focus.Mimicking)
             {
                 maskedFocus = Focus.Mimicking;
                 maskedActivity = Activity.None;
                 mustChangeActivity = true;
             }
-            else if (__instance.targetPlayer != null && lastMaskedFocus != Focus.Player && (maskedPersonality == Personality.Aggressive || maskedPersonality == Personality.Deceiving))
+            else if ((maskedPersonality == Personality.Aggressive || maskedPersonality == Personality.Deceiving) && __instance.targetPlayer != null && lastMaskedFocus != Focus.Player)
             {
                 maskedFocus = Focus.Player;
                 maskedActivity = Activity.None;
@@ -971,7 +971,7 @@ namespace LethalIntelligence.Patches
             {
                 maskedGoal = "none, he died!";
                 ((Behaviour)agent).enabled = false;
-                if(isUsingTerminal==true)
+                if (isUsingTerminal == true)
                 {
                     Plugin.isTerminalBeingUsed = false; //attempting to fix a killed/despawned mask locking out others from the terminal
                 }
@@ -1035,7 +1035,7 @@ namespace LethalIntelligence.Patches
             {
                 agent = ((Component)this).GetComponent<NavMeshAgent>();
             }
-            if ((Plugin.wendigosIntegrated || Plugin.skinWalkersIntegrated) && ((NetworkBehaviour)this).IsHost && (maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane || maskedPersonality==Personality.Stealthy))
+            if ((Plugin.wendigosIntegrated || Plugin.skinWalkersIntegrated) && ((NetworkBehaviour)this).IsHost && (maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane || maskedPersonality == Personality.Stealthy))
             {
                 maskedGoal = "using walkietalkie! (skinwalkers/Wendigos integration)";
                 useWalkie.Value = true;
@@ -1096,7 +1096,7 @@ namespace LethalIntelligence.Patches
                     Plugin.mls.LogError("Personality = None???");
                 }
             }
-            else if(maskedFocus == Focus.None && maskedActivity!=Activity.None)
+            else if (maskedFocus == Focus.None && maskedActivity != Activity.None)
             {
                 if (maskedActivity == Activity.ItemLocker)
                 //if (maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Insane)
@@ -1358,7 +1358,7 @@ namespace LethalIntelligence.Patches
                 //null reference exception fix above
 
                 //ignore items from the list after checking if they are null.
-                if(allitem.name== "ClipboardManual" || allitem.name == "StickyNoteItem")
+                if (allitem.name == "ClipboardManual" || allitem.name == "StickyNoteItem")
                 {
                     continue;
                 }
@@ -1368,7 +1368,7 @@ namespace LethalIntelligence.Patches
                 }
 
                 //ignore non-"cunning" items if cunning
-                if(maskedPersonality == Personality.Cunning && Vector3.Distance(allitem.transform.position, ((Component)terminal).transform.position) >= 15f)
+                if (maskedPersonality == Personality.Cunning && Vector3.Distance(allitem.transform.position, ((Component)terminal).transform.position) >= 15f)
                 {
                     continue;
                 }
@@ -1425,7 +1425,7 @@ namespace LethalIntelligence.Patches
         {
             //PlayerControllerB[] players = maskedEnemy.GetAllPlayersInLineOfSight(160f, 60, null, -1, -1);
             PlayerControllerB[] players = maskedEnemy.GetAllPlayersInLineOfSight(80f, 60, null, -1, -1);
-            if (players==null)
+            if (players == null)
             {
                 return;
             }
@@ -1441,8 +1441,8 @@ namespace LethalIntelligence.Patches
             else if (maskedPersonality == Personality.Stealthy) { extras = players.Length * 4; }
             else if (maskedPersonality == Personality.Insane) { extras = 2; }
             else if (maskedPersonality == Personality.Aggressive) { extras = 1; }
-            int random = UnityEngine.Random.RandomRangeInt(0,players.Length+extras);
-            if(random >=players.Length)
+            int random = UnityEngine.Random.RandomRangeInt(0, players.Length + extras);
+            if (random >= players.Length)
             {
                 //target no one..
             }
@@ -1552,7 +1552,7 @@ namespace LethalIntelligence.Patches
 
         //pre-focus methods that should always run
 
-        public void MovementAnimationSelector(Animator creatureAnimator,MaskedPlayerEnemy maskedEnemy)
+        public void MovementAnimationSelector(Animator creatureAnimator, MaskedPlayerEnemy maskedEnemy)
         {
             /*if(Vector3.Distance(maskedEnemy.transform.position,maskedEnemy.destination)<2.5f)
             {
@@ -1633,7 +1633,7 @@ namespace LethalIntelligence.Patches
                     ((EnemyAI)maskedEnemy).creatureAnimator.ResetTrigger("Tired");
                 }
             }
-            if(__instance.targetPlayer!=null)
+            if (__instance.targetPlayer != null)
             {
                 LookAtPos(((Component)((EnemyAI)maskedEnemy).targetPlayer).transform.position, 0.5f);
             }
@@ -1925,7 +1925,7 @@ namespace LethalIntelligence.Patches
                         {
                             allWalkieTalky.target.PlayOneShot(SkinwalkerModPersistent.Instance.GetSample());
                         }
-                        else if(Plugin.wendigosIntegrated)
+                        else if (Plugin.wendigosIntegrated)
                         {
                             if (wendigosTimer()) //should play an audio clip at random once every 20 updates, maybe thats too quick..
                             {
@@ -2298,7 +2298,7 @@ namespace LethalIntelligence.Patches
                         if (maskedEnemy.isInsidePlayerShip)
                         {
                             float num2 = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position);
-                            if(num2>6f)
+                            if (num2 > 6f)
                             {
                                 maskedGoal = "heading to player ship to drop an item";
                                 maskedEnemy.SetDestinationToPosition(terminal.transform.position);
@@ -2321,7 +2321,7 @@ namespace LethalIntelligence.Patches
                     mustChangeFocus = true;
                 }
             }
-            else if(maskedFocus == Focus.Player)
+            else if (maskedFocus == Focus.Player)
             {
                 if (distanceToPlayer >= 17f)
                 {
@@ -2364,15 +2364,15 @@ namespace LethalIntelligence.Patches
 
         public void MaskedStealthy() //stealthys special ability
         {
-            if(maskedFocus == Focus.Hiding)
+            if (maskedFocus == Focus.Hiding)
             {
-                if(((NetworkBehaviour)this).IsHost)
+                if (((NetworkBehaviour)this).IsHost)
                 {
                     maskedGoal = "going AwayFromPlayer()";
                     AwayFromPlayer();
                 }
             }
-            else if(maskedFocus == Focus.Mimicking)
+            else if (maskedFocus == Focus.Mimicking)
             {
                 if (((NetworkBehaviour)this).IsHost)
                 {
@@ -2417,7 +2417,7 @@ namespace LethalIntelligence.Patches
                     return; 
                 }
                 __instance.SetMovingTowardsTargetPlayer(pt);
-                if(Vector3.Distance(__instance.transform.position, pt.transform.position)<1f || pt.isPlayerDead)
+                if (Vector3.Distance(__instance.transform.position, pt.transform.position) < 1f || pt.isPlayerDead)
                 {
                     mustChangeFocus = true;
                     //maskedFocus = Focus.None;
@@ -2888,7 +2888,7 @@ namespace LethalIntelligence.Patches
 
         //breakerbox
         #region breakerbox
-        private async void breakerBoxSwitchLogic(float distanceToBox,bool on)
+        private async void breakerBoxSwitchLogic(float distanceToBox, bool on)
         {
             isUsingBreakerBox = true;
             __instance.inSpecialAnimation = true;
@@ -2927,7 +2927,7 @@ namespace LethalIntelligence.Patches
                     powerBox.boolValue = false;
                     powerBox.setInitialState = false;
                     breakerBox.leversSwitchedOff++;
-                    if (breakerBox.leversSwitchedOff > 0 && breakerBox.isPowerOn==true)
+                    if (breakerBox.leversSwitchedOff > 0 && breakerBox.isPowerOn == true)
                     {
                         RoundManager.Instance.PowerSwitchOffClientRpc();
                         breakerBox.breakerBoxHum.Stop();
