@@ -5,6 +5,7 @@
 - switched from FPS based timing to a fixed update timing of 0.1s and fixed all relevent timing issues related to this change.
 - fixed some variables not updating since v0.1.1 leading to masked being unable to perform some tasks.
 - fixed masked "sight" parameters to correct the sight they have so they are not seeing through the back of their skulls (well almost..)
+- fixed a bug where a masked dying on the terminal prevented all other masked from using the terminal for the rest of the round
 
 ### 0.1.1
 
