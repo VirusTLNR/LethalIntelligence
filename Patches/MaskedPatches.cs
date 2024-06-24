@@ -690,8 +690,6 @@ namespace LethalIntelligence.Patches
 
         Vector3 terminalPosition, breakerPosition, lockerPosition, apparatusPosition, fireExitPosition, mainEntrancePosition; //positions to save
 
-        Vector3 lockedApparatusPostion; //for setting when the apparatus is taken so the masked can drop it when X distance away.
-
         float lockerDistance;
 
         float lockerClosestPoint;
@@ -2746,7 +2744,6 @@ namespace LethalIntelligence.Patches
                     __instance.targetPlayer = null;
                     ((Component)maskedEnemy.headTiltTarget).gameObject.SetActive(false);
                     agent.speed = 0f;
-                    lockedApparatusPostion = apparatusPosition;
                     //apparatus.GrabItemFromEnemy(__instance);
                     //SpawningUtils.SpawnScrapServerRpc("LungApparatus", itemHolder.transform.position, itemHolder.transform);
                     //SpawningUtils.SpawnInactiveItemServerRpc("LungApparatusTurnedOff", maskedEnemy.transform.position);
