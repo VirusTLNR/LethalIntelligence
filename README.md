@@ -69,3 +69,4 @@ Recommended to install with this mod:
 - Kite (on discord) for the Masked joining/leaving terminal fixes.
 - WhiteSpike (on discord) for help and suggestions regarding the breaker box.
 - Tim_Shaw for help on trying to make their mod compatible.
+- XuXiaolan for help/advice/tips with spawning items

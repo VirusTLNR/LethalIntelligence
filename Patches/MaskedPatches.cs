@@ -158,7 +158,9 @@ namespace LethalIntelligence.Patches
             Terminal,
             BreakerBox,
             Hiding,
-            Mimicking
+            Mimicking,
+            Apparatus,
+            Escape
         }
 
         public enum Activity
@@ -173,12 +175,15 @@ namespace LethalIntelligence.Patches
             RandomPlayer
         }
 
-        /*private void TestConfig()
+        private void TestConfig()
         {
-            maskedPersonality = Personality.Deceiving; //for testing a specific personality
-            SelectPersonalityInt.Value = 2; //for testing a specific personality
-            maskedFocus = Focus.Items;
-        }*/
+            maskedPersonality = Personality.Insane; //for testing a specific personality
+            SelectPersonalityInt.Value = 0; //for testing a specific personality
+            lastMaskedPersonality = Personality.Insane;
+            maskedFocus = Focus.Apparatus;
+            maskedActivity = Activity.None;
+            mustChangeFocus = false;
+        }
 
         public Personality maskedPersonality;
 
@@ -304,6 +309,8 @@ namespace LethalIntelligence.Patches
 
         public bool isUsingTerminal;
 
+        public bool isUsingApparatus, completedApparatusFocus;
+
         public bool noMoreItems = false;
 
         public bool noMoreTerminal = false;
@@ -326,9 +333,13 @@ namespace LethalIntelligence.Patches
 
         private float breakerBoxDistance = 1000f;
 
+        private float apparatusDistance = 1000f;
+
         private float closestGrabbableDistance = 1000f;
 
         private float nearestGrabbableDistance = 1000f;
+
+        private bool apparatusReachable;
 
         private bool breakerBoxReachable;
 
@@ -350,9 +361,14 @@ namespace LethalIntelligence.Patches
 
         private BreakerBox breakerBox;
 
+        private LungProp apparatus;
+        private GrabbableObject grabbableApparatus;
+
         public bool isUsingBreakerBox; //needed?
 
         public bool noMoreBreakerBox = false;
+
+        public bool noMoreApparatus = false;
 
         private AnimatedObjectTrigger powerBox;
 
@@ -390,7 +406,7 @@ namespace LethalIntelligence.Patches
 
         private bool stopStatusReporting = false;
 
-        float breakerClosestPoint, terminalClosestPoint, grabbableClosestPoint;
+        float breakerClosestPoint, terminalClosestPoint, grabbableClosestPoint, apparatusClosestPoint;
 
         Vector3 destination;
         float distanceToDestination;
@@ -463,6 +479,11 @@ namespace LethalIntelligence.Patches
                     focusDetails = focusStart +
                     "\nTerminalReachable = " + terminalReachable;
                 }
+                else if (maskedActivity == Activity.Apparatus || maskedFocus == Focus.Apparatus)
+                {
+                    focusDetails = focusStart +
+                    "\nApparatusReachable = " + apparatusReachable;
+                }
                 string debugMsg =
                 "\n===== MaskedStatusReport() Start =====" +
                 "\nMaskedID = " + maskedId +
@@ -483,6 +504,7 @@ namespace LethalIntelligence.Patches
                 "\nMaskedGoal = " + maskedGoal +
                 "\n\nnoMoreBreakerBox = " + noMoreBreakerBox +
                 "\nnoMoreTerminal = " + noMoreTerminal +
+                "\nnoMoreApparatus = " + noMoreApparatus +
                 "\nnoMoreItems = " + noMoreItems +
                 "\nnotGrabClosestItem = " + notGrabClosestItem +
                 focusDetails +
@@ -567,6 +589,7 @@ namespace LethalIntelligence.Patches
             }
             terminal = Object.FindObjectOfType<Terminal>();
             breakerBox = Object.FindObjectOfType<BreakerBox>();
+            apparatus = Object.FindObjectOfType<LungProp>();
             __instance = (EnemyAI)(object)((Component)this).GetComponent<MaskedPlayerEnemy>();
             maskedEnemy = ((Component)this).GetComponent<MaskedPlayerEnemy>();
             creatureAnimator = ((Component)((Component)this).transform.GetChild(0).GetChild(3)).GetComponent<Animator>();
@@ -667,6 +690,8 @@ namespace LethalIntelligence.Patches
 
         Vector3 terminalPosition, breakerPosition, lockerPosition, apparatusPosition, fireExitPosition, mainEntrancePosition; //positions to save
 
+        Vector3 lockedApparatusPostion; //for setting when the apparatus is taken so the masked can drop it when X distance away.
+
         float lockerDistance;
 
         float lockerClosestPoint;
@@ -718,8 +743,8 @@ namespace LethalIntelligence.Patches
 
         private void CalculatingVariables()
         {
-            NavMeshPath nmpBreaker = new NavMeshPath(), nmpTerminal = new NavMeshPath(), nmpLocker = new NavMeshPath();
-            NavMeshHit hitBreaker, hitTerminal, hitLocker;
+            NavMeshPath nmpBreaker = new NavMeshPath(), nmpTerminal = new NavMeshPath(), nmpLocker = new NavMeshPath(), nmpApparatus = new NavMeshPath();
+            NavMeshHit hitBreaker, hitTerminal, hitLocker, hitApparatus;
 
             if (calculationDelay > 0)
             {
@@ -728,51 +753,96 @@ namespace LethalIntelligence.Patches
             else
             {
                 calculationDelay = 50;
+                if (mustChangeFocus || maskedFocus == Focus.Items || maskedActivity == Activity.RandomItem)
+                {
+                    setNearestGrabbable();
+                    //this is in setNearestGrabbable();
+                    /*if (!closestGrabbableReachable)
+                    {
+                        nearestGrabbableDistance = 1000f;
+                    }*/
+                }
+                if (mustChangeFocus || maskedFocus == Focus.Apparatus || maskedActivity == Activity.Apparatus)
+                {
+                    //not working for now use original code
+                    //DetectObject(breakerBox, ref breakerBoxReachable, ref noMoreBreakerBox, ref breakerBoxDistance, ref breakerClosestPoint, ref breakerPosition);
+                    try
+                    {
+                        if (NavMesh.SamplePosition(apparatus.transform.position, out hitApparatus, 3.0f, -1))
+                        {
+                            apparatusReachable = agent.CalculatePath(hitApparatus.position, nmpApparatus);
+                            //Plugin.mls.LogError("Reachable=" + apparatusReachable);
+                            //breakerBoxDistance = Vector3.Distance(((Component)this).transform.position, hitBreaker.position);
+                            apparatusDistance = Vector3.Distance(((Component)this).transform.position, ((Component)apparatus).transform.position);
+                            //Plugin.mls.LogError("dis:- " + apparatusDistance);
+                            apparatusClosestPoint = Vector3.Distance(hitApparatus.position, apparatus.transform.position);
+                            apparatusPosition = apparatus.transform.position;
+                        }
+                        else
+                        {
+                            apparatusReachable = false;
+                        }
+                        if (!apparatusReachable)
+                        {
+                            apparatusDistance = 1000f;
+                        }
+                    }
+                    catch (NullReferenceException nre)
+                    {
+                        Plugin.mls.LogDebug("Apparatus NullReferenceException() Caught!\n" + nre.Message);
+                        apparatusReachable = false;
+                        noMoreApparatus = true;
+                    }
+                    catch (Exception e)
+                    {
+                        Plugin.mls.LogDebug("Apparatus Exception() Caught!\n" + e.Message);
+                    }
+                }
                 if (mustChangeFocus || maskedFocus == Focus.BreakerBox || maskedActivity == Activity.BreakerBox)
                 {
                     //not working for now use original code
                     //DetectObject(breakerBox, ref breakerBoxReachable, ref noMoreBreakerBox, ref breakerBoxDistance, ref breakerClosestPoint, ref breakerPosition);
-            try
-            {
-                if (NavMesh.SamplePosition(breakerBox.transform.position, out hitBreaker, 3.0f, -1))
-                {
-                    breakerBoxReachable = agent.CalculatePath(hitBreaker.position, nmpBreaker);
-                    //breakerBoxDistance = Vector3.Distance(((Component)this).transform.position, hitBreaker.position);
-                    breakerBoxDistance = Vector3.Distance(((Component)this).transform.position, ((Component)breakerBox).transform.position);
-                    breakerClosestPoint = Vector3.Distance(hitBreaker.position, breakerBox.transform.position);
-                    breakerPosition = hitBreaker.position;
-                }
-                else
-                {
-                    breakerBoxReachable = false;
-                }
+                    try
+                    {
+                        if (NavMesh.SamplePosition(breakerBox.transform.position, out hitBreaker, 3.0f, -1))
+                        {
+                            breakerBoxReachable = agent.CalculatePath(hitBreaker.position, nmpBreaker);
+                            //breakerBoxDistance = Vector3.Distance(((Component)this).transform.position, hitBreaker.position);
+                            breakerBoxDistance = Vector3.Distance(((Component)this).transform.position, ((Component)breakerBox).transform.position);
+                            breakerClosestPoint = Vector3.Distance(hitBreaker.position, breakerBox.transform.position);
+                            breakerPosition = hitBreaker.position;
+                        }
+                        else
+                        {
+                            breakerBoxReachable = false;
+                        }
                         if (!breakerBoxReachable)
                         {
                             breakerBoxDistance = 1000f;
                         }
-            }
+                    }
                     catch (NullReferenceException nre)
-            {
-                //Plugin.mls.LogDebug("BreakerBox NullReferenceException() Caught!\n" + nre.Message);
-                breakerBoxReachable = false;
-                noMoreBreakerBox = true;
-            }
+                    {
+                        //Plugin.mls.LogDebug("BreakerBox NullReferenceException() Caught!\n" + nre.Message);
+                        breakerBoxReachable = false;
+                        noMoreBreakerBox = true;
+                    }
                 }
                 if (mustChangeFocus || maskedFocus == Focus.Terminal)
                 {
                     //not working for now use original code
                     //DetectObject(terminal, ref terminalReachable, ref noMoreTerminal, ref terminalDistance, ref terminalClosestPoint, ref terminalPosition);
                     if (NavMesh.SamplePosition(terminal.transform.position, out hitTerminal, 3.0f, -1))
-            {
-                terminalReachable = agent.CalculatePath(hitTerminal.position, nmpTerminal);
-                terminalDistance = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position);
-                terminalClosestPoint = Vector3.Distance(hitTerminal.position, terminal.transform.position);
-                terminalPosition = hitTerminal.position;
-            }
-            else
-            {
-                terminalReachable = false;
-            }
+                    {
+                        terminalReachable = agent.CalculatePath(hitTerminal.position, nmpTerminal);
+                        terminalDistance = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position);
+                        terminalClosestPoint = Vector3.Distance(hitTerminal.position, terminal.transform.position);
+                        terminalPosition = hitTerminal.position;
+                    }
+                    else
+                    {
+                        terminalReachable = false;
+                    }
                     if (!terminalReachable)
                     {
                         terminalDistance = 1000f;
@@ -781,25 +851,16 @@ namespace LethalIntelligence.Patches
                 if (mustChangeFocus || maskedActivity == Activity.ItemLocker)
                 {
                     lockerPosition = GameObject.Find("LockerAudio").transform.position; // so use this for now
-            //this isnt working right now.. it routes the masked on to above the ship..
-            /*if (NavMesh.SamplePosition(GameObject.Find("LockerAudio").transform.position,out hitLocker,10,-1))
-            {
-                lockerReachable = agent.CalculatePath(hitTerminal.position, nmpLocker);
-                lockerDistance = Vector3.Distance(((Component)this).transform.position, GameObject.Find("LockerAudio").transform.position);
-                lockerClosestPoint = Vector3.Distance(hitTerminal.position, terminal.transform.position);
-                lockerPosition = hitTerminal.position;
-            }*/
+                                                                                        //this isnt working right now.. it routes the masked on to above the ship..
+                    /*if (NavMesh.SamplePosition(GameObject.Find("LockerAudio").transform.position,out hitLocker,10,-1))
+                    {
+                        lockerReachable = agent.CalculatePath(hitTerminal.position, nmpLocker);
+                        lockerDistance = Vector3.Distance(((Component)this).transform.position, GameObject.Find("LockerAudio").transform.position);
+                        lockerClosestPoint = Vector3.Distance(hitTerminal.position, terminal.transform.position);
+                        lockerPosition = hitTerminal.position;
+                    }*/
+                }
             }
-                if (mustChangeFocus || maskedFocus == Focus.Items || maskedActivity == Activity.RandomItem)
-            {
-                    setNearestGrabbable();
-            //this is in setNearestGrabbable();
-            /*if (!closestGrabbableReachable)
-            {
-                nearestGrabbableDistance = 1000f;
-            }*/
-        }
-        }
         }
 
         private void SetFocus()
@@ -854,6 +915,12 @@ namespace LethalIntelligence.Patches
                 maskedActivity = Activity.None;
                 mustChangeActivity = true;
             }
+            else if (maskedPersonality == Personality.Insane && lastMaskedFocus != Focus.Apparatus)
+            {
+                maskedFocus = Focus.Apparatus;
+                maskedActivity = Activity.None;
+                mustChangeActivity = true;
+            }
             else
             {
                 //all masked
@@ -871,15 +938,7 @@ namespace LethalIntelligence.Patches
         {
             //int start = 0;
             int random;
-            if(maskedEnemy.isOutside && maskedActivity!=Activity.ItemLocker)
-            {
-                maskedActivity = Activity.ItemLocker;
-            }
-            else if(!maskedEnemy.isOutside && maskedActivity!=Activity.BreakerBox)
-            {
-                maskedActivity = Activity.BreakerBox;
-            }
-            else if(maskedActivity!=Activity.MainEntrance && maskedActivity!=Activity.FireExit)
+            if (maskedActivity != Activity.MainEntrance && maskedActivity != Activity.FireExit)
             {
                 random = UnityEngine.Random.RandomRangeInt(0, 2);
                 switch (random)
@@ -890,6 +949,24 @@ namespace LethalIntelligence.Patches
                     case 1:
                         maskedActivity = Activity.FireExit;
                         break;
+                }
+            }
+            else if (maskedEnemy.isOutside)
+            {
+                if (maskedActivity != Activity.ItemLocker)
+                {
+                    maskedActivity = Activity.ItemLocker;
+                }
+            }
+            else if (!maskedEnemy.isOutside)
+            {
+                if (maskedActivity != Activity.BreakerBox)
+                {
+                    maskedActivity = Activity.BreakerBox;
+                }
+                else if (maskedActivity != Activity.Apparatus)
+                {
+                    maskedActivity = Activity.Apparatus;
                 }
             }
             else
@@ -986,7 +1063,6 @@ namespace LethalIntelligence.Patches
             if (GameNetworkManager.Instance.isHostingGame)
             {
                 //for testing purposes only
-                //TestConfig();
                 if (maskedPersonality == Personality.None)
                 {
                     //SelectPersonalityInt.Value = Random.Range(0, Enum.GetNames(typeof(Personality)).Length);
@@ -1030,6 +1106,7 @@ namespace LethalIntelligence.Patches
                     mustChangeFocus = true;
                     mustChangeActivity = true;
                 }
+                //TestConfig();
             }
             if (!((Component)this).TryGetComponent<NavMeshAgent>(out agent))
             {
@@ -1126,28 +1203,33 @@ namespace LethalIntelligence.Patches
                     maskedGoal = "finding random player";
                     findRandomPlayer();
                 }
+                else if (maskedActivity == Activity.Apparatus)
+                {
+                    maskedGoal = "finding Apparatus";
+                    findApparatus();
+                }
             }
-                /*if (Plugin.useTerminal && (maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane) && !noMoreTerminal)
-                {
-                //moved to fit under individual personalities
-                    maskedGoal = "useTerminal";
-                    //Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + "' so can use the terminal."); //too much spam!
-                    UsingTerminal();
-                }*/
-                /*if (((EnemyAI)maskedEnemy).isInsidePlayerShip && isHoldingObject && maskedPersonality == Personality.Cunning)
-                {
-                    dropItem.Value = true; //cunning shouldent be dropping items in the ship WTF
-                }*/
+            /*if (Plugin.useTerminal && (maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane) && !noMoreTerminal)
+            {
+            //moved to fit under individual personalities
+                maskedGoal = "useTerminal";
+                //Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + "' so can use the terminal."); //too much spam!
+                UsingTerminal();
+            }*/
+            /*if (((EnemyAI)maskedEnemy).isInsidePlayerShip && isHoldingObject && maskedPersonality == Personality.Cunning)
+            {
+                dropItem.Value = true; //cunning shouldent be dropping items in the ship WTF
+            }*/
 
-                /*          else if (!__instance.isInsidePlayerShip && !isHoldingObject)
+            /*          else if (!__instance.isInsidePlayerShip && !isHoldingObject)
+                      {
+                          if (maskedPersonality != Personality.Cunning)
                           {
-                              if (maskedPersonality != Personality.Cunning)
-                              {
-                                  maskedGoal = "(not cunning)grabbing an item";
-                                  GrabItem();
-                              }
+                              maskedGoal = "(not cunning)grabbing an item";
+                              GrabItem();
                           }
-                      }*/
+                      }
+                  }*/
             //when should they tbag? disabling as they tbag at random times rn..
             /*if (maskedEnemy.stopAndStareTimer >= 0f && stopAndTbagCooldown <= 0f && !__instance.isEnemyDead)
             {
@@ -1300,8 +1382,8 @@ namespace LethalIntelligence.Patches
             }
             else
             {*/
-                //all items
-                allItemsList = GlobalItemList.Instance.allitems;
+            //all items
+            allItemsList = GlobalItemList.Instance.allitems;
             //}
 
             if (allItemsList.Count == 0)
@@ -1315,9 +1397,9 @@ namespace LethalIntelligence.Patches
             /*allItemsList.Remove(allItemsList.Find(cbm => cbm.name == "ClipboardManual")); //removing clipboard from the list
             allItemsList.Remove(allItemsList.Find(sn => sn.name == "StickyNoteItem")); //removing sticky note on the wall from the list)
             allItemsList.RemoveAll(rlh => rlh.name == "RedLocustHive");*/ //removing red locust bee hive as its held by an enemy by default and cunning just stands there looking at it
-                                                                        //allItemsList.Remove(allItemsList.Find(rlh => rlh.name == "RedLocustHive")); 
-                                                                        //closestGrabbable = null;
-                                                                        //allItemsList.OrderBy(x => x.scrapValue); // dont use but this allows sorting by scrap value in future.
+                                                                          //allItemsList.Remove(allItemsList.Find(rlh => rlh.name == "RedLocustHive")); 
+                                                                          //closestGrabbable = null;
+                                                                          //allItemsList.OrderBy(x => x.scrapValue); // dont use but this allows sorting by scrap value in future.
 
 
             //wont work.. needs a lot of recoding to make work i think but should be better going forward
@@ -1356,6 +1438,9 @@ namespace LethalIntelligence.Patches
                     continue;
                 }
                 //null reference exception fix above
+
+
+                //Plugin.mls.LogError(allitem.ToString());
 
                 //ignore items from the list after checking if they are null.
                 if (allitem.name == "ClipboardManual" || allitem.name == "StickyNoteItem")
@@ -1409,7 +1494,7 @@ namespace LethalIntelligence.Patches
                 if (NavMesh.SamplePosition(nearestGrabbable.transform.position, out hitGrabbable, 10, -1))
                 {
                     //closestGrabbableReachable = agent.CalculatePath(hitGrabbable.position, nmpGrabbable);
-                    nearestGrabbableReachable = agent.CalculatePath(nearestGrabbable.transform.position, nmpNearGrabbable); 
+                    nearestGrabbableReachable = agent.CalculatePath(nearestGrabbable.transform.position, nmpNearGrabbable);
                     nearestGrabbableDistance = Vector3.Distance(((Component)this).transform.position, ((Component)nearestGrabbable).transform.position);
                     //grabbableClosestPoint = Vector3.Distance(hitGrabbable.position, nearestGrabbable.transform.position);
                 }
@@ -1818,7 +1903,7 @@ namespace LethalIntelligence.Patches
                     }
                     //original log message in korean
                     //LethalIntelligence.mls.LogWarning((object)"곧 30도이상 회전");
-                    Plugin.mls.LogWarning((object)"Soon to rotate more than 30 degrees");   
+                    Plugin.mls.LogWarning((object)"Soon to rotate more than 30 degrees");
                 }
                 else
                 {
@@ -2409,12 +2494,12 @@ namespace LethalIntelligence.Patches
             {
                 //find the nearest player and kill them as fast as you can i guess? should change focus once player is dead
                 PlayerControllerB pt = __instance.GetClosestPlayer();
-                if (pt == null) 
+                if (pt == null)
                 {
                     mustChangeFocus = true;
                     //maskedFocus = Focus.None;
                     mustChangeActivity = true;
-                    return; 
+                    return;
                 }
                 __instance.SetMovingTowardsTargetPlayer(pt);
                 if (Vector3.Distance(__instance.transform.position, pt.transform.position) < 1f || pt.isPlayerDead)
@@ -2440,6 +2525,31 @@ namespace LethalIntelligence.Patches
                     mustChangeFocus = true;
                 }
             }
+            else if (maskedFocus == Focus.Apparatus)
+            {
+                if (!noMoreApparatus)
+                {
+                    SabotageApparatus();
+                }
+                else
+                {
+                    mustChangeFocus = true;
+                }
+            }
+            else if(maskedFocus == Focus.Escape)
+            {
+                //only activates if apparatus is pulled
+                if(noMoreApparatus)
+                {
+                    //do escape code here
+                    //not implemented yet so change focus.
+                    mustChangeFocus = true;
+                }
+                else
+                {
+                    mustChangeFocus = true;
+                }
+            }
         }
 
         //Focused Activities
@@ -2453,7 +2563,7 @@ namespace LethalIntelligence.Patches
                 maskedGoal = "not targeting player, holding object";
                 dropTimer = 0f;
             }
-            if (__instance.targetPlayer!=null)
+            if (__instance.targetPlayer != null)
             {
                 maskedFocus = Focus.Player;
 
@@ -2578,7 +2688,110 @@ namespace LethalIntelligence.Patches
             }
         }
 
-            
+
+        //apparatus
+        private void SabotageApparatus()
+        {
+            if (!apparatus.isLungPowered)
+            {
+                if (completedApparatusFocus)
+                {
+                    maskedFocus = Focus.Escape;
+                    maskedActivity = Activity.None;
+                }
+                else
+                {
+                    mustChangeFocus = true;
+                    mustChangeActivity = true;
+                }
+                noMoreApparatus = true;
+                //mustChangeFocus = true;
+            }
+            if (apparatusDistance < 40f)
+            {
+                dropItem.Value = true;
+                if (!isUsingApparatus && !noMoreApparatus && !__instance.isEnemyDead)
+                {
+                    //apparatusReachable = __instance.SetDestinationToPosition(((Component)apparatus).transform.position, true);
+                    if (!apparatusReachable)
+                    {
+                        return; //cant reach apparatus
+                    }
+                    maskedGoal = "walking to apparatus";
+                    __instance.SetDestinationToPosition(apparatus.transform.position, false);
+                    Plugin.mls.LogDebug("ApparatusDistance = " + apparatusDistance);
+                    __instance.moveTowardsDestination = true;
+                }
+                if ((Object)(object)apparatus != (Object)null && !apparatus.isLungDocked)
+                {
+                    //noMoreApparatus = true;
+                    return; //apparatus has been taken
+                }
+                if (apparatusDistance < 10f && isHoldingObject)
+                {
+                    DropItem(); //drop item before taking the apparatus
+                }
+                if (!isUsingApparatus && !noMoreApparatus && apparatusDistance < 3.5f)
+                {
+                    //pull apparatus here, maybe insane masked should EAT the apparatus???
+                    isUsingApparatus = true;
+                }
+                //isCrouched.Value = false;
+                //creatureAnimator.ResetTrigger("Crouching"); //temp fix for crouching animation issue
+                if (isUsingApparatus)
+                {
+                    maskedGoal = "sabotaging apparatus";
+                    __instance.inSpecialAnimation = true;
+                    __instance.movingTowardsTargetPlayer = false;
+                    __instance.targetPlayer = null;
+                    ((Component)maskedEnemy.headTiltTarget).gameObject.SetActive(false);
+                    agent.speed = 0f;
+                    lockedApparatusPostion = apparatusPosition;
+                    //apparatus.GrabItemFromEnemy(__instance);
+                    //SpawningUtils.SpawnScrapServerRpc("LungApparatus", itemHolder.transform.position, itemHolder.transform);
+                    //SpawningUtils.SpawnInactiveItemServerRpc("LungApparatusTurnedOff", maskedEnemy.transform.position);
+                    apparatus.EquipItem();
+                    apparatus.isLungPowered = false;
+                    apparatus.lungDeviceLightIntensity = 0f;
+                    apparatus.GetComponent<GrabbableObject>().SetScrapValue(0); //tainted by the masked
+                    NetworkObject netObj = apparatus.GetComponent<NetworkObject>();
+                    if (netObj != null)
+                    {
+                        var scanNode = netObj.GetComponentInChildren<ScanNodeProperties>();
+                        scanNode.headerText = "SabotagedApparatus";
+                        scanNode.scrapValue = 0;
+                        scanNode.subText = $"Value: ${0}";
+                        var lights = netObj.GetComponentsInChildren<Light>().ToList();
+                        lights.Do(l => l.enabled = false);
+                    }
+                    apparatus.isLungDocked = false;
+                    apparatus.isLungDockedInElevator = false;
+                    apparatus.isLungPowered = false;
+                    apparatus.GetComponent<AudioSource>().Stop();
+                    apparatus.GetComponent<NetworkObject>().Despawn(false);
+                    completedApparatusFocus = true;
+                    /*foreach (GrabbableObject o in GlobalItemList.Instance.allitems)
+                    {
+                        if (o.name == "LungApparatusTurnedOff(Clone)" && Vector3.Distance(maskedEnemy.transform.position,o.transform.position)<5.0f)
+                        {
+                                o.name = "BrokenApparatus";
+                                o.itemProperties.itemSpawnsOnGround = true;
+                                //o.itemProperties.itemSpawnsOnGround = true;
+                                //ManuelGrabItem(o);
+                        }
+                    }*/
+                    //grabbableApparatus.ItemActivate(false);
+                    //grabbableApparatus.GrabItemFromEnemy(__instance);
+                    //GrabDockedApparatus(grabbableApparatus);
+                    //ForceGrabCustomItem(grabbableApparatus);
+                    //pull apparatus here..
+                    isUsingApparatus = false;
+                    __instance.inSpecialAnimation = false;
+                    ((Component)maskedEnemy.headTiltTarget).gameObject.SetActive(true);
+                }
+            }
+        }
+
 
         //terminal
         #region terminal
@@ -3242,8 +3455,8 @@ namespace LethalIntelligence.Patches
             }
             else
             {*/
-                //all items
-                allItemsList = GlobalItemList.Instance.allitems;
+            //all items
+            allItemsList = GlobalItemList.Instance.allitems;
             //}
 
             if (allItemsList.Count == 0)
@@ -3258,7 +3471,7 @@ namespace LethalIntelligence.Patches
             /*allItemsList.Remove(allItemsList.Find(cbm => cbm.name == "ClipboardManual")); //removing clipboard from the list
             allItemsList.Remove(allItemsList.Find(sn => sn.name == "StickyNoteItem")); //removing sticky note on the wall from the list)
             allItemsList.RemoveAll(rlh => rlh.name == "RedLocustHive");*/ //removing red locust bee hive as its held by an enemy by default and cunning just stands there looking at it
-                                                                        //allItemsList.OrderBy(x => x.scrapValue); // dont use but this allows sorting by scrap value in future.
+                                                                          //allItemsList.OrderBy(x => x.scrapValue); // dont use but this allows sorting by scrap value in future.
 
             //wont work.. needs a lot of recoding to make work i think but should be better going forward
             /*closestGrabbable = allItemsList.Aggregate((curMin, x) => (
@@ -3850,6 +4063,23 @@ namespace LethalIntelligence.Patches
             }
             //}
             if (breakerBoxDistance <= 5f)
+            {
+                mustChangeFocus = true;
+                mustChangeActivity = true;
+            }
+        }
+
+        private void findApparatus()
+        {
+            maskedGoal = "walking to apparatus";
+            maskedEnemy.lostLOSTimer = 0f;
+            maskedEnemy.stopAndStareTimer = 0f;
+            bool reachable = ((EnemyAI)maskedEnemy).SetDestinationToPosition(apparatusPosition, true);
+            if (!reachable)
+            {
+                mustChangeActivity = true;
+            }
+            if (apparatusDistance <= 5f)
             {
                 mustChangeFocus = true;
                 mustChangeActivity = true;
