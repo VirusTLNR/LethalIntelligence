@@ -2537,7 +2537,7 @@ namespace LethalIntelligence.Patches
             else if(maskedFocus == Focus.Escape)
             {
                 //only activates if apparatus is pulled
-                if(noMoreApparatus)
+                if(completedApparatusFocus)
                 {
                     //do escape code here
                     //not implemented yet so change focus.
