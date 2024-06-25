@@ -2681,9 +2681,12 @@ namespace LethalIntelligence.Patches
             else
             {
                 //do nothing
+                if (maskedFocus == Focus.Player || maskedActivity == Activity.RandomPlayer)
+                {
                 mustChangeFocus = true;
                 mustChangeActivity = true;
             }
+        }
         }
 
 
