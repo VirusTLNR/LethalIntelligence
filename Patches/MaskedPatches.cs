@@ -482,7 +482,8 @@ namespace LethalIntelligence.Patches
                 else if (maskedActivity == Activity.Apparatus || maskedFocus == Focus.Apparatus)
                 {
                     focusDetails = focusStart +
-                    "\nApparatusReachable = " + apparatusReachable;
+                    "\nApparatusReachable = " + apparatusReachable +
+                    "\nThisMaskedSabotagedApparatus? = " + completedApparatusFocus;
                 }
                 string debugMsg =
                 "\n===== MaskedStatusReport() Start =====" +
@@ -2546,8 +2547,7 @@ namespace LethalIntelligence.Patches
                 if(completedApparatusFocus)
                 {
                     //do escape code here
-                    //not implemented yet so change focus.
-                    mustChangeFocus = true;
+                    InsaneEscape();
                 }
                 else
                 {
@@ -2756,6 +2756,7 @@ namespace LethalIntelligence.Patches
                     //apparatus.GrabItemFromEnemy(__instance);
                     //SpawningUtils.SpawnScrapServerRpc("LungApparatus", itemHolder.transform.position, itemHolder.transform);
                     //SpawningUtils.SpawnInactiveItemServerRpc("LungApparatusTurnedOff", maskedEnemy.transform.position);
+                    completedApparatusFocus = true;
                     apparatus.EquipItem();
                     apparatus.isLungPowered = false;
                     apparatus.lungDeviceLightIntensity = 0f;
@@ -2775,7 +2776,6 @@ namespace LethalIntelligence.Patches
                     apparatus.isLungPowered = false;
                     apparatus.GetComponent<AudioSource>().Stop();
                     apparatus.GetComponent<NetworkObject>().Despawn(false);
-                    completedApparatusFocus = true;
                     /*foreach (GrabbableObject o in GlobalItemList.Instance.allitems)
                     {
                         if (o.name == "LungApparatusTurnedOff(Clone)" && Vector3.Distance(maskedEnemy.transform.position,o.transform.position)<5.0f)
@@ -2794,6 +2794,81 @@ namespace LethalIntelligence.Patches
                     isUsingApparatus = false;
                     __instance.inSpecialAnimation = false;
                     ((Component)maskedEnemy.headTiltTarget).gameObject.SetActive(true);
+                }
+            }
+        }
+
+        //escape
+        bool isTerminalEscaping,isLeverEscaping;
+        private void InsaneEscape()
+        {
+            //set running because wants to leave ASAP
+            //head to ship
+            if (!maskedEnemy.isOutside)
+            {
+                maskedGoal = "(escape) heading outside";
+                maskedEnemy.SetDestinationToPosition(maskedEnemy.mainEntrancePosition);
+            }
+            else
+            {
+                if (Vector3.Distance(maskedEnemy.transform.position, terminalPosition) > 5f)
+                {
+                    maskedGoal = "(escape) heading to player ship";
+                    maskedEnemy.SetDestinationToPosition(terminalPosition);
+                }
+                else
+                {
+                    if (!isTerminalEscaping)
+                    {
+                        enterTermianlSpecialCodeTime = 10;
+                        isTerminalEscaping = true;
+                    }
+                    if (enterTermianlSpecialCodeTime > 0)
+                    {
+                        if (Plugin.isTerminalBeingUsed || !Plugin.useTerminal || !TerminalPatches.Transmitter.IsSignalTranslatorUnlocked())
+                        {
+                            enterTermianlSpecialCodeTime = 0;
+                            isLeverEscaping = true;
+                            //maybe pull HORN here instead of just leaving without a warning?? or maybe teleport a player??
+                            return;
+                        }
+                        noMoreTerminal = false;
+                        maskedGoal = "(escape) sending warnings about leaving";
+                        UsingTerminal();
+
+                    }
+                    else
+                    {
+                        if (!Plugin.maskedShipDeparture)
+                        {
+                            maskedGoal = "(escape) walking to ships lever";
+                            //pull lever
+                            StartMatchLever startMatchLever = GameNetworkManager.FindObjectOfType<StartMatchLever>();
+                            if(Vector3.Distance(maskedEnemy.transform.position,startMatchLever.transform.position)>0.5f)
+                            {
+                                maskedEnemy.SetDestinationToPosition(startMatchLever.transform.position);
+                            }
+                            if (startMatchLever == null)
+                            {
+                                Plugin.mls.LogError("StartMatchLever cannot be found so cannot be used by InsaneMasked!");
+                                mustChangeFocus = true;
+                                mustChangeActivity = true;
+                                Plugin.maskedShipDeparture = false;
+                                return;
+                            }
+                            //creatureAnimator.SetTrigger("PushLever");
+                            //creatureAnimator.SetTrigger("PressStopButton");
+                            startMatchLever.LeverAnimation();
+                            startMatchLever.EndGame();
+                            //creatureAnimator.ResetTrigger("StartMatchLever");
+            }
+                        else
+                        {
+                            Plugin.mls.LogInfo("maskedShipDeparture = " + Plugin.maskedShipDeparture.ToString() + " so the escape finish is impossible!");
+                            mustChangeFocus = true;
+                            mustChangeActivity = true;
+        }
+                    }
                 }
             }
         }
@@ -2929,6 +3004,8 @@ namespace LethalIntelligence.Patches
                         isUsingTerminal = false;
                         noMoreTerminal = true;
                         Plugin.isTerminalBeingUsed = false;
+                        isTerminalEscaping = false;
+                        isLeverEscaping = true;
                         return;
                     }
                     //transmitMessageTimer += Time.deltaTime;
@@ -2967,6 +3044,8 @@ namespace LethalIntelligence.Patches
                         //__instance.SetDestinationToPosition(GameObject.Find("ItemShip").transform.position, false); //doesnt actually route to the item ship, just uses it as a hook to get off i guess.
                         isUsingTerminal = false;
                         noMoreTerminal = true;
+                        isTerminalEscaping = false;
+                        isLeverEscaping = true;
                         Plugin.isTerminalBeingUsed = false;
                     }
 
@@ -3041,6 +3120,44 @@ namespace LethalIntelligence.Patches
         public string InsaneTransmitMessageSelection()
         {
             string msg = null;
+            if (isTerminalEscaping)
+            {
+                switch (enterTermianlSpecialCodeTime)
+                {
+                    case 1:
+                        msg = "leaving!!!";
+                        break;
+                    case 2:
+                        msg = "sry!!!!!!!";
+                        break;
+                    case 3:
+                        msg = "hurry!!!!!";
+                        break;
+                    case 4:
+                        msg = "hurry!!!";
+                        break;
+                    case 5:
+                        msg = "where r u?";
+                        break;
+                    case 6:
+                        msg = "hurry!!";
+                        break;
+                    case 7:
+                         msg = "come ship!";
+                        break;
+                    case 8:
+                        msg = "evacuate!";
+                        break;
+                    case 9:
+                        msg = "hurry!";
+                        break;
+                    case 10:
+                        msg = "time to go";
+                        break;
+                }
+            }
+            else
+            {
             int m = Random.Range(0, 10);
             switch (m)
             {
@@ -3101,6 +3218,7 @@ namespace LethalIntelligence.Patches
                     break;
             }
             //msg.Substring(0, 10);
+            }
             return msg;
         }
         #endregion terminal
