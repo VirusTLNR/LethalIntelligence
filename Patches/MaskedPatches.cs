@@ -867,7 +867,7 @@ namespace LethalIntelligence.Patches
             }
         }
 
-        private void SetFocus()
+    private void SetFocus()
         {
             lastMaskedFocus = maskedFocus;
 
@@ -2689,10 +2689,10 @@ namespace LethalIntelligence.Patches
                 //do nothing
                 if (maskedFocus == Focus.Player || maskedActivity == Activity.RandomPlayer)
                 {
-                mustChangeFocus = true;
-                mustChangeActivity = true;
+                    mustChangeFocus = true;
+                    mustChangeActivity = true;
+                }
             }
-        }
         }
 
 
@@ -3113,7 +3113,23 @@ namespace LethalIntelligence.Patches
             __instance.inSpecialAnimation = true;
             __instance.movingTowardsTargetPlayer = false;
             __instance.targetPlayer = null;
-
+            //opening the powerboxdoor if it is closed.
+            foreach (AnimatedObjectTrigger m in breakerBox.GetComponentsInChildren<AnimatedObjectTrigger>())
+            {
+                if (m.name == "PowerBoxDoor")
+                {
+                    Plugin.mls.LogError(m.animationString);
+                    if (m.boolValue == false)
+                    {
+                        m.boolValue = true;
+                        m.triggerAnimator.SetBool("isOpen", value: true);
+                        m.SetParticleBasedOnBoolean();
+                        m.PlayAudio(true);
+                        m.localPlayerTriggered = true;
+                        m.UpdateAnimServerRpc(true, false, -1);
+                    }
+                }
+            }
             //on means you are turning it on, not on means you are turning it off
             if (!on)
             {
