@@ -492,6 +492,7 @@ namespace LethalIntelligence.Patches
                 "\nMustChangeFocus = " + mustChangeFocus.ToString() +
                 "\nMaskedActivity (Focus=None) = " + maskedActivity.ToString() +
                 "\nMustChangeActivity = " + mustChangeActivity.ToString() +
+                "\nLateGameChoices = " + lateGameChoices.ToString() +
                 //"\nDestination = " + destination.ToString() +
                 //"\nDistance to Destination = " + distanceToDestination.ToString() +
                 //"\nNavMeshPathStatus = " + nms +
@@ -738,6 +739,7 @@ namespace LethalIntelligence.Patches
         }*/
 
         int calculationDelay = 0;
+        bool lateGameChoices = false;
 
         private void CalculatingVariables()
         {
@@ -751,6 +753,10 @@ namespace LethalIntelligence.Patches
             else
             {
                 calculationDelay = 50;
+                if (TimeOfDay.Instance.hour >= 8)
+                {
+                    lateGameChoices = true;
+                }
                 if (mustChangeFocus || maskedFocus == Focus.Items || maskedActivity == Activity.RandomItem)
                 {
                     setNearestGrabbable();
@@ -913,7 +919,7 @@ namespace LethalIntelligence.Patches
                 maskedActivity = Activity.None;
                 mustChangeActivity = true;
             }
-            else if (maskedPersonality == Personality.Insane && lastMaskedFocus != Focus.Apparatus)
+            else if (maskedPersonality == Personality.Insane && lastMaskedFocus != Focus.Apparatus && lateGameChoices)
             {
                 maskedFocus = Focus.Apparatus;
                 maskedActivity = Activity.None;
