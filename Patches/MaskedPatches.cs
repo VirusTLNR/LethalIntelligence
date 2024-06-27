@@ -620,10 +620,9 @@ namespace LethalIntelligence.Patches
             }
             dropship = Object.FindObjectOfType<ItemDropship>();
             terminalAccessibleObject = Object.FindObjectsOfType<TerminalAccessibleObject>();
-            InvokeRepeating("UpdatePointOne", 0, updateFrequency);
         }
 
-        float updateFrequency = 0.1f;
+        float updateFrequency = 0.02f;
 
         private void Jump(bool enable)
         {
@@ -753,7 +752,7 @@ namespace LethalIntelligence.Patches
             }
             else
             {
-                calculationDelay = 50;
+                calculationDelay = 250; //update is 50 times a second, so this is once every 5 seconds... compared to the 10 updates a second making this 1 update per 5 seconds previously
                 if (TimeOfDay.Instance.hour >= 8)
                 {
                     lateGameChoices = true;
@@ -1034,9 +1033,8 @@ namespace LethalIntelligence.Patches
             }*/
         }
 
-        public void UpdatePointOne()
+        public void FixedUpdate()
         {
-            /*if (Plugin.imperiumFound)
             if (Plugin.imperiumFound)
             {
                 ImperiumPatches.maskedVisualization(maskedPersonality, maskedActivity, maskedFocus);
@@ -2542,10 +2540,10 @@ namespace LethalIntelligence.Patches
                     mustChangeFocus = true;
                 }
             }
-            else if(maskedFocus == Focus.Escape)
+            else if (maskedFocus == Focus.Escape)
             {
                 //only activates if apparatus is pulled
-                if(completedApparatusFocus)
+                if (completedApparatusFocus)
                 {
                     //do escape code here
                     InsaneEscape();
@@ -2800,7 +2798,7 @@ namespace LethalIntelligence.Patches
         }
 
         //escape
-        bool isTerminalEscaping,isLeverEscaping;
+        bool isTerminalEscaping, isLeverEscaping;
         private void InsaneEscape()
         {
             //set running because wants to leave ASAP
@@ -2845,7 +2843,7 @@ namespace LethalIntelligence.Patches
                             maskedGoal = "(escape) walking to ships lever";
                             //pull lever
                             StartMatchLever startMatchLever = GameNetworkManager.FindObjectOfType<StartMatchLever>();
-                            if(Vector3.Distance(maskedEnemy.transform.position,startMatchLever.transform.position)>0.5f)
+                            if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) > 0.5f)
                             {
                                 maskedEnemy.SetDestinationToPosition(startMatchLever.transform.position);
                             }
@@ -4198,7 +4196,7 @@ namespace LethalIntelligence.Patches
                 maskedEnemy.stopAndStareTimer = 0f;
             bool reachable = ((EnemyAI)maskedEnemy).SetDestinationToPosition(breakerPosition, true);
             //__instance.moveTowardsDestination = true;
-            if(!reachable)
+            if (!reachable)
             {
                 mustChangeActivity = true;
             }
@@ -4266,7 +4264,7 @@ namespace LethalIntelligence.Patches
                 return;
             }
             PlayerControllerB randomPlayer = __instance.targetPlayer;
-            maskedGoal = "finding "+randomPlayer.name.ToString();
+            maskedGoal = "finding " + randomPlayer.name.ToString();
             Vector3 pos = randomPlayer.transform.position;
             //bool canSeePos = __instance.CheckLineOfSightForPosition(pos, 160f, 40, -1, null);
             bool canSeePos = __instance.CheckLineOfSightForPosition(pos, 80f, 60, -1, null);
@@ -4278,7 +4276,7 @@ namespace LethalIntelligence.Patches
             {
                 followTime -= 0.1f;
             }
-            if(followTime==0f)
+            if (followTime == 0f)
             {
                 mustChangeFocus = true;
                 mustChangeActivity = true;
