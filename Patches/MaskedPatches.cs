@@ -1037,9 +1037,10 @@ namespace LethalIntelligence.Patches
         public void UpdatePointOne()
         {
             /*if (Plugin.imperiumFound)
+            if (Plugin.imperiumFound)
             {
                 ImperiumPatches.maskedVisualization(maskedPersonality, maskedActivity, maskedFocus);
-            }*/
+            }
             MaskedStatusReport();
             if (((EnemyAI)maskedEnemy).isEnemyDead && isHoldingObject)
             {
