@@ -10,11 +10,18 @@ namespace LethalIntelligence.Patches
     {
         public static void maskedVisualization(MaskedAIRevamp.Personality p,MaskedAIRevamp.Activity a,MaskedAIRevamp.Focus f)
         {
-            Visualization.InsightFor<MaskedPlayerEnemy>()
-            // Registers a new insight generator
-            .RegisterInsight("Personality", entity => $"{p}")
-            .RegisterInsight("Focus", entity => $"{f}")
-            .RegisterInsight("Activity", entity => $"{a}");
+            try
+            {
+                Visualization.InsightFor<MaskedPlayerEnemy>()
+                // Registers a new insight generator
+                .RegisterInsight("Personality", entity => $"{p}")
+                .RegisterInsight("Focus", entity => $"{f}")
+                .RegisterInsight("Activity", entity => $"{a}");
+            }
+            catch(NullReferenceException nre)
+            {
+                //masked was deleted/despawned.
+            }
         }
     }
 }
