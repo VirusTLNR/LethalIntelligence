@@ -1175,6 +1175,14 @@ namespace LethalIntelligence.Patches
                 else
                 {
                     Plugin.mls.LogError("Personality = None???");
+                    Plugin.mls.LogWarning("maskedPersonality = " + maskedPersonality);
+                    Plugin.mls.LogWarning("SelectPersonalityInt.Value" + SelectPersonalityInt.Value);
+                    Plugin.mls.LogWarning("No Personality Found => changing personality!");
+                    foreach(Personality p in useablePersonalities)
+                    {
+                        Plugin.mls.LogWarning(p.ToString() + " is available");
+                    }
+                    SelectPersonalityInt.Value = Random.Range(0, useablePersonalities.Count);
                 }
             }
             else if (maskedFocus == Focus.None && maskedActivity != Activity.None)
