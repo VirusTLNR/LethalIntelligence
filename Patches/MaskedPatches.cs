@@ -257,6 +257,9 @@ namespace LethalIntelligence.Patches
 
         public LethalNetworkVariable<bool> isDancing = new LethalNetworkVariable<bool>("isDancing");
 
+        public LethalNetworkVariable<bool> isJumping = new LethalNetworkVariable<bool>("isJumping");
+        public LethalNetworkVariable<bool> isPreppingToJump = new LethalNetworkVariable<bool>("isPreppingToJump");
+
         public LethalNetworkVariable<bool> useWalkie = new LethalNetworkVariable<bool>("useWalkie");
 
         public LethalNetworkVariable<bool> isJumped = new LethalNetworkVariable<bool>("isJumped");
@@ -623,34 +626,6 @@ namespace LethalIntelligence.Patches
         }
 
         float updateFrequency = 0.02f;
-
-        private void Jump(bool enable)
-        {
-            if (jumpTime > 0f && !isJumped.Value)
-            {
-                //jumpTime -= Time.deltaTime;
-                jumpTime -= updateFrequency; //fixing timing
-            }
-            if (!isCrouched.Value && !isJumped.Value && jumpTime < 1f && jumpTime > 0.9f)
-            {
-                isJumped.Value = true;
-                creatureAnimator.SetTrigger("FakeJump");
-            }
-        }
-
-        private void Dance(bool enabled)
-        {
-            if (enabled)
-            {
-                isDancing.Value = true;
-                __instance.movingTowardsTargetPlayer = false;
-                agent.speed = 0f;
-            }
-            else
-            {
-                isDancing.Value = false;
-            }
-        }
 
         private void InvokeAllClientsSynced()
         {
@@ -1690,6 +1665,42 @@ namespace LethalIntelligence.Patches
                 agent.speed = 0f;
                 Plugin.mls.LogInfo((object)"Dancing");
             }
+            else if(isJumping.Value)
+            {
+                isCrouched.Value = false;
+                creatureAnimator.ResetTrigger("Crouching");
+                isDancing.Value = false;
+                creatureAnimator.ResetTrigger("Dancing");
+                maskedEnemy.running = false;
+                creatureAnimator.ResetTrigger("Running");
+                //jumping
+                //if jump timer is set between 0.9 and 1f, JUMP
+                /*if (!isCrouched.Value && !isJumped.Value && jumpTime <= 1.0f && jumpTime > 0.9f)
+                {
+                    isJumped.Value = true;
+                    Plugin.mls.LogError("started jumping!");
+                    creatureAnimator.SetTrigger("FakeJump"); // start jumping
+                    //creatureAnimator.Play("FakeJump");
+                    isJumping.Value = true;
+                }
+                //once you have jumped, reduce jump time
+                if (jumpTime > 0f && isJumped.Value)
+                {
+                    Plugin.mls.LogWarning("Reducing jumpTime (" + jumpTime + ") by " + updateFrequency);
+                    //jumpTime -= Time.deltaTime;
+                    jumpTime -= updateFrequency; //fixing timing
+                    isJumping.Value = true;
+                }
+                //once jump time is over.. stop jumping.
+                if (jumpTime <= 0)
+                {
+                    isJumping.Value = false;
+                    isJumped.Value = false;
+                    Plugin.mls.LogError("finished jumping!");
+                    creatureAnimator.ResetTrigger("FakeJump"); // cancelling jumping
+                    //creatureAnimator.StopPlayback();
+                }*/
+            }
             else
             {
                 //normal
@@ -1701,17 +1712,38 @@ namespace LethalIntelligence.Patches
                 creatureAnimator.ResetTrigger("Running");
                 agent.speed = 3.8f;
             }
-            if (maskedEnemy.staminaTimer >= 5f && !isStaminaDowned) //is this jumping???
-            {
-                if (!isJumped.Value)
-                {
+            //jumping version 1
+            //detect if a jump is needed
+            /*int jumpMask = 1 << NavMesh.GetAreaFromName("Jump");
+            int nwMask = 1 << NavMesh.GetAreaFromName("Not Walkable");
 
-                    isJumped.Value = true;
-                }
-                else
-                {
-                    creatureAnimator.ResetTrigger("FakeJump");
-                }
+            bool nextPosition = agent.SamplePathPosition(NavMesh.AllAreas, Vector3.Distance(maskedEnemy.transform.position, agent.nextPosition)+0.5f, out needsJumpHit);
+
+            //bool one = agent.SamplePathPosition(NavMesh.AllAreas, 1.0F, out needsJumpHit); //single jump
+            bool two = agent.SamplePathPosition(NavMesh.AllAreas, 1.0F, out pauseBeforeJumpHit); //double jump
+            //bool three = agent.SamplePathPosition(NavMesh.AllAreas, 1.5F, out runningJumpHit); //treble length or running jump.
+
+            Plugin.mls.LogError("JumpCheck");
+            Plugin.mls.LogError("needsJumpHit.mask = " + needsJumpHit.mask.ToString());
+            Plugin.mls.LogError("pauseBeforeJumpHit.mask = " + pauseBeforeJumpHit.mask.ToString());
+            //Plugin.mls.LogError("runningJumpHit.mask = " + runningJumpHit.mask.ToString());
+            int lastHitMask = -1;
+            if (needsJumpHit.mask == 4 || needsJumpHit.mask == 0)
+            {
+                fakeJump(true);
+            }*/
+
+            //jumping version 2
+            Plugin.mls.LogError(agent.nextPosition + " | " + agent.nextOffMeshLinkData.startPos + " = " + Vector3.Distance(agent.nextPosition, agent.nextOffMeshLinkData.startPos));
+            
+            if(Vector3.Distance(agent.nextPosition, agent.nextOffMeshLinkData.startPos) <3.0f) //less than 3.0 is not reliable.. or doesnt seem to be.
+            //if(agent.nextPosition == agent.nextOffMeshLinkData.startPos)
+            {
+                fakeJump(true);
+            }
+
+            if (maskedEnemy.staminaTimer >= 5f && !isStaminaDowned && !isJumping.Value)
+            { 
                 maskedEnemy.running = true;
             }
             if (maskedEnemy.staminaTimer < 0f)
@@ -1774,6 +1806,69 @@ namespace LethalIntelligence.Patches
                 creatureAnimator.ResetTrigger("Dancing");
                 ((EnemyAI)maskedEnemy).creatureAnimator.ResetTrigger("Running"); //issue#3 fix?
             }*/
+        }
+
+        NavMeshHit jumpHit, needsJumpHit, pauseBeforeJumpHit, runningJumpHit;
+        private void Jump(bool enable)
+        {
+            if (jumpTime > 0f && !isJumped.Value)
+            {
+                //jumpTime -= Time.deltaTime;
+                jumpTime -= updateFrequency; //fixing timing
+            }
+            if (!isCrouched.Value && !isJumped.Value && jumpTime < 1f && jumpTime > 0.9f)
+            {
+                isJumped.Value = true;
+                creatureAnimator.SetTrigger("FakeJump");
+            }
+        }
+
+        private void fakeJump(bool enabled)
+        {
+            if(enabled)
+            {
+                isJumping.Value = true;
+                isCrouched.Value = false;
+                creatureAnimator.ResetTrigger("Crouching");
+                isDancing.Value = false;
+                creatureAnimator.ResetTrigger("Dancing");
+                maskedEnemy.running = false;
+                creatureAnimator.ResetTrigger("Running");
+                LookAtPos(agent.nextPosition, 2.0f);
+                if (jumpTime > 0f && isJumped.Value)
+                {
+                    //jumpTime -= Time.deltaTime;
+                    jumpTime -= updateFrequency; //fixing timing
+                }
+                if (!isJumped.Value)
+                {
+                    jumpTime = 0.95f;
+                    isJumped.Value = true;
+                    Plugin.mls.LogError("Starting Jump @ " + maskedEnemy.transform.position.ToString());
+                    creatureAnimator.SetTrigger("FakeJump");
+                }
+                if (isJumped.Value && jumpTime<=0)
+                {
+                    Plugin.mls.LogError("Ending Jump @ " + maskedEnemy.transform.position.ToString());
+                    creatureAnimator.ResetTrigger("FakeJump");
+                    isJumped.Value = false;
+                    isJumping.Value = false;
+                }
+            }
+        }
+
+        private void Dance(bool enabled)
+        {
+            if (enabled)
+            {
+                isDancing.Value = true;
+                __instance.movingTowardsTargetPlayer = false;
+                agent.speed = 0f;
+            }
+            else
+            {
+                isDancing.Value = false;
+            }
         }
 
         public void ItemAnimationSelector(Animator creatureAnimator, EnemyAI __instance)
