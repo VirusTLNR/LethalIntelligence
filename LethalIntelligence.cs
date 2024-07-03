@@ -113,7 +113,7 @@ namespace LethalIntelligence
             //masked settings
             useTerminal = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedAI", "Masked terminal access", true, "Allows Masked to use the terminal.").Value;
             useTerminalCredit = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedAI", "Masked uses credits", false, "(Not working rn) Allows Masked to use the terminal to spend credits.").Value;
-            maskedShipDeparture = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedAI", "Masked pulls the brake lever", false, "(Not working rn) Allows Masked to pull the brake lever. Um... really...?").Value;
+            maskedShipDeparture = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedAI", "Masked pulls the brake lever", true, "Allows Masked to pull the brake lever.").Value;
 
             //debug settings
             debugModeSetting = ((BaseUnityPlugin)this).Config.Bind<bool>("DebugMode", "Debug Mode", false, "Enables more spammy logs for debugging, will be enabled automatically if imperium is installed. (all other DebugMode settings are ignored if Debug Mode is disabled)").Value;
