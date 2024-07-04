@@ -1044,7 +1044,14 @@ namespace LethalIntelligence.Patches
         {
             if (Plugin.imperiumFound)
             {
+                try
+                {
                 ImperiumPatches.maskedVisualization(maskedPersonality, maskedActivity, maskedFocus);
+            }
+                catch(MissingMethodException mme)
+                {
+                    //v50 error.. just ignore. (imperium 0.1.9 and before only)
+                }
             }
             MaskedStatusReport();
             if (((EnemyAI)maskedEnemy).isEnemyDead && isHoldingObject)

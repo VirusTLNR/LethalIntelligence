@@ -12,7 +12,7 @@ namespace LethalIntelligence.Patches
         {
             try
             {
-                Visualization.InsightFor<MaskedPlayerEnemy>()
+                Visualization.InsightsFor<MaskedPlayerEnemy>()
                 // Registers a new insight generator
                 .RegisterInsight("Personality", entity => $"{p}")
                 .RegisterInsight("Focus", entity => $"{f}")
