@@ -9,5 +9,6 @@ powershell Compress-Archive^
           "./experimentalmanifest/manifest.json",^
           "./icon.png",^
           "../README.md",^
-          "../CHANGELOG.md"^
+          "../CHANGELOG.md",^
+          "../LICENSE.txt"^
     -DestinationPath "../bin/LethalIntelligenceExperimental.zip"

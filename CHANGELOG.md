@@ -1,5 +1,14 @@
 ## Changelog
 
+### 0.1.3 - the Masked "Insane" Escape Patch
+
+- added MIT License (same as MaskedAIRevamp used)
+- added the breakerbox powerboxdoor is now opened before it is used by a masked.
+- added "sabotaging the apparatus" to Insane's focuses which then leads to another Focus (Escape), Apparatus focus can only happen after 2pm ingame time as it is the start of a "day ending" event.
+- added "escape" focus to insane's focuses, this can only occur if the masked has completed the "Apparatus" focus.
+- added variables to Imperium (v0.2.0) visualisers for the masked
+- changed ai "update" timing from invoke (heavy reqs, 1 update per 0.1s) to "FixedUpdate" (light, but 1 update per 0.02s) in a bid to reduce fps losses even more.
+
 ### 0.1.2
 
 - switched from FPS based timing to a fixed update timing of 0.1s and fixed all relevent timing issues related to this change.

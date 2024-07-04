@@ -46,13 +46,14 @@ if you turn this on.. OR Imperium is installed.. debug mode will be turned on, t
 
 * Insane
     * Uses signal translator to make you think someone is in the ship and help/hinder you.
+    * can "sabotage" the apparatus (after 2pm only)
+    * will make the ship take off after it has completed sabotaging the apparatus.. fair warning will occur as long as you own a signal translator.
     * will tend to target players more than most other personalities
 
  </details>
 
 ## Known Issues
-- fps drops due to heavy calculations (potentially fixed in v0.1.1)
-- if the breaker box is not reachable, the masked will struggle to route anywhere due to being focused on routing to the breaker box. once the box is reachable again, they will be fine.
+- Personality selection sometimes bugs out in 0.1.2, potentially fixed in 0.1.3
 
 ## Mods
 Recommended to install with this mod:
@@ -69,4 +70,4 @@ Recommended to install with this mod:
 - Kite (on discord) for the Masked joining/leaving terminal fixes.
 - WhiteSpike (on discord) for help and suggestions regarding the breaker box.
 - Tim_Shaw for help on trying to make their mod compatible.
-- XuXiaolan for help/advice/tips with spawning items
+- XuXiaolan for help/advice/tips with spawning items as well as many other things (soon to be too many things to mention).
