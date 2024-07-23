@@ -1048,7 +1048,7 @@ namespace LethalIntelligence.Patches
                 {
                 ImperiumPatches.maskedVisualization(maskedPersonality, maskedActivity, maskedFocus);
             }
-                catch(MissingMethodException mme)
+                catch (MissingMethodException mme)
                 {
                     //v50 error.. just ignore. (imperium 0.1.9 and before only)
                 }
