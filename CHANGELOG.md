@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.1.4
+
+- Fixed the bug where clients get an error saying the masked has no personality.
+
 ### 0.1.3 - the Masked "Insane" Escape Patch
 
 - added MIT License (same as MaskedAIRevamp used)

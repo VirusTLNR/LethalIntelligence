@@ -4,7 +4,7 @@
 
 A mod aiming to tweak all AI in the game to have improved flavour and perhaps be more intelligent
 
-This mod is built upon Piggy's "MaskedAiRevamp v0.2.1" (https://thunderstore.io/c/lethal-company/p/Piggy/MaskedAIRevamp/).
+This mod is built upon Piggy's "MaskedAiRevamp v0.2.1" (https://thunderstore.io/c/lethal-company/p/Piggy/MaskedAIRevamp/). (github located here.. https://github.com/Piggy3590/MaskedAIRevamp)
 
 As piggy wrote in the readme for v0.2.1 - this mod maybe very buggy, i hope to make it more stable over time!
 
@@ -53,7 +53,7 @@ if you turn this on.. OR Imperium is installed.. debug mode will be turned on, t
  </details>
 
 ## Known Issues
-- Personality selection sometimes bugs out in 0.1.2, potentially fixed in 0.1.3
+- potential differences in focus/activities for masked between host/clients leading to masked acting weird, will fix this when im able to.
 
 ## Mods
 Recommended to install with this mod:
