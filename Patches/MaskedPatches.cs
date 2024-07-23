@@ -1087,6 +1087,7 @@ namespace LethalIntelligence.Patches
                     SelectPersonalityInt.Value = Random.Range(0, useablePersonalities.Count);
                     //Plugin.mls.LogError(useablePersonalities.Count);
                 }
+            }
                 maskedPersonality = useablePersonalities[SelectPersonalityInt.Value];
                 /*if (SelectPersonalityInt.Value == 0)
                 {
@@ -1124,8 +1125,6 @@ namespace LethalIntelligence.Patches
                     mustChangeFocus = true;
                     mustChangeActivity = true;
                 }
-                //TestConfig();
-            }
             if (!((Component)this).TryGetComponent<NavMeshAgent>(out agent))
             {
                 agent = ((Component)this).GetComponent<NavMeshAgent>();
