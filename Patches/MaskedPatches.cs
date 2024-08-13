@@ -263,6 +263,8 @@ namespace LethalIntelligence.Patches
 
         public LethalNetworkVariable<int> SelectPersonalityInt = new LethalNetworkVariable<int>("SelectPersonalityInt");
 
+        //public LNetworkVariable<int> SelectPersonalityInt = LNetworkVariable<int>.Create("SelectPersonalityInt");
+
         public LethalNetworkVariable<int> maxDanceCount = new LethalNetworkVariable<int>("maxDanceCount");
 
         public LethalNetworkVariable<float> terminalTimeFloat = new LethalNetworkVariable<float>("terminalTimeFloat");
@@ -433,100 +435,107 @@ namespace LethalIntelligence.Patches
         {
             if (Plugin.DebugMode && !stopStatusReporting && delayUpdate())
             {
-                string ng = "null";
-                string hg = "null";
-                string ngd = "null";
-                string cg = "null";
-                if (nearestGrabbable != null)
+                try
                 {
-                    ng = nearestGrabbable.name.ToString();
-                    ngd = nearestGrabbableDistance.ToString();
+                    string ng = "null";
+                    string hg = "null";
+                    string ngd = "null";
+                    string cg = "null";
+                    if (nearestGrabbable != null)
+                    {
+                        ng = nearestGrabbable.name.ToString();
+                        ngd = nearestGrabbableDistance.ToString();
 
-                }
-                if (heldGrabbable != null)
-                {
-                    hg = heldGrabbable.name.ToString();
-                }
-                if (closestGrabbable != null)
-                {
-                    cg = closestGrabbable.name.ToString();
-                }
-                string bbcp = breakerClosestPoint.ToString();
-                string tcp = terminalClosestPoint.ToString();
-                string bbd = breakerBoxDistance.ToString();
-                string td = terminalDistance.ToString();
+                    }
+                    if (heldGrabbable != null)
+                    {
+                        hg = heldGrabbable.name.ToString();
+                    }
+                    if (closestGrabbable != null)
+                    {
+                        cg = closestGrabbable.name.ToString();
+                    }
+                    string bbcp = breakerClosestPoint.ToString();
+                    string tcp = terminalClosestPoint.ToString();
+                    string bbd = breakerBoxDistance.ToString();
+                    string td = terminalDistance.ToString();
 
-                destination = maskedEnemy.destination;
-                distanceToDestination = Vector3.Distance(maskedEnemy.transform.position, destination);
+                    destination = maskedEnemy.destination;
+                    distanceToDestination = Vector3.Distance(maskedEnemy.transform.position, destination);
 
-                string focusStart = "\n------------ Focus Details ------------";
-                string focusDetails = "";
-                if (maskedFocus == Focus.Items || (maskedFocus == Focus.None && maskedActivity == Activity.RandomItem))
-                {
-                    focusDetails = focusStart +
-                        "\nnearestGrabbableReachable = " + nearestGrabbableReachable +
-                        "\nnearestGrabbable = " + ng +
-                        "\nclosestGrabbable = " + cg;
+                    string focusStart = "\n------------ Focus Details ------------";
+                    string focusDetails = "";
+                    if (maskedFocus == Focus.Items || (maskedFocus == Focus.None && maskedActivity == Activity.RandomItem))
+                    {
+                        focusDetails = focusStart +
+                            "\nnearestGrabbableReachable = " + nearestGrabbableReachable +
+                            "\nnearestGrabbable = " + ng +
+                            "\nclosestGrabbable = " + cg;
+                    }
+                    else if (maskedFocus == Focus.BreakerBox || (maskedFocus == Focus.None && maskedActivity == Activity.BreakerBox))
+                    {
+                        focusDetails = focusStart +
+                            "\nBreakerBoxReachable = " + breakerBoxReachable +
+                            "\nbreakerBox.isPowerOn = " + breakerBox.isPowerOn;
+                    }
+                    else if (maskedFocus == Focus.Terminal)
+                    {
+                        focusDetails = focusStart +
+                        "\nTerminalReachable = " + terminalReachable;
+                    }
+                    else if (maskedActivity == Activity.Apparatus || maskedFocus == Focus.Apparatus)
+                    {
+                        focusDetails = focusStart +
+                        "\nApparatusReachable = " + apparatusReachable +
+                        "\nThisMaskedSabotagedApparatus? = " + completedApparatusFocus;
+                    }
+                    else if (maskedFocus == Focus.Escape)
+                    {
+                        focusDetails = focusStart +
+                        "\nisTerminalEscaping = " + isTerminalEscaping +
+                        "\ntermianlSpecialCodeTime = " + enterTermianlSpecialCodeTime +
+                        "\nisLeverEscaping = " + isLeverEscaping;
+                    }
+                    string debugMsg =
+                    "\n===== MaskedStatusReport() Start =====" +
+                    "\nMaskedID = " + maskedId +
+                    "\nMaskedPersonality = " + maskedPersonality.ToString() +
+                    "\nMaskedFocus = " + maskedFocus.ToString() +
+                    "\nMustChangeFocus = " + mustChangeFocus.ToString() +
+                    "\nMaskedActivity (Focus=None) = " + maskedActivity.ToString() +
+                    "\nMustChangeActivity = " + mustChangeActivity.ToString() +
+                    "\nLateGameChoices = " + lateGameChoices.ToString() +
+                    //"\nDestination = " + destination.ToString() +
+                    //"\nDistance to Destination = " + distanceToDestination.ToString() +
+                    //"\nNavMeshPathStatus = " + nms +
+                    "\nMoon = " + currentMoon +
+                    "\nInterior = " + currentInterior +
+                    "\nisDead = " + maskedEnemy.isEnemyDead +
+                    "\n\nisOutside = " + maskedEnemy.isOutside +
+                    "\nisInsidePlayerShip = " + maskedEnemy.isInsidePlayerShip +
+                    "\nheldGrabbable = " + hg +
+                    "\nMaskedGoal = " + maskedGoal +
+                    "\n\nnoMoreBreakerBox = " + noMoreBreakerBox +
+                    "\nnoMoreTerminal = " + noMoreTerminal +
+                    "\nnoMoreApparatus = " + noMoreApparatus +
+                    "\nnoMoreItems = " + noMoreItems +
+                    "\nnotGrabClosestItem = " + notGrabClosestItem +
+                    focusDetails +
+                    "\n===== MaskedStatusReport() End =======";
+                    if (debugMsg != lastDebugModeStatus)
+                    {
+                        lastDebugModeStatus = debugMsg;
+                        Plugin.mls.LogInfo(debugMsg);
+                    }
+                    if (maskedEnemy.isEnemyDead)
+                    {
+                        Plugin.mls.LogInfo("Masked " + maskedPersonality.ToString() + "(" + maskedId + ") is now dead, status reporting will cease for this masked");
+                        stopStatusReporting = true;
+                    }
                 }
-                else if (maskedFocus == Focus.BreakerBox || (maskedFocus == Focus.None && maskedActivity == Activity.BreakerBox))
+                catch(Exception ex)
                 {
-                    focusDetails = focusStart +
-                        "\nBreakerBoxReachable = " + breakerBoxReachable +
-                        "\nbreakerBox.isPowerOn = " + breakerBox.isPowerOn;
-                }
-                else if (maskedFocus == Focus.Terminal)
-                {
-                    focusDetails = focusStart +
-                    "\nTerminalReachable = " + terminalReachable;
-                }
-                else if (maskedActivity == Activity.Apparatus || maskedFocus == Focus.Apparatus)
-                {
-                    focusDetails = focusStart +
-                    "\nApparatusReachable = " + apparatusReachable +
-                    "\nThisMaskedSabotagedApparatus? = " + completedApparatusFocus;
-                }
-                else if( maskedFocus == Focus.Escape)
-                {
-                    focusDetails = focusStart +
-                    "\nisTerminalEscaping = " + isTerminalEscaping +
-                    "\ntermianlSpecialCodeTime = " + enterTermianlSpecialCodeTime +
-                    "\nisLeverEscaping = " + isLeverEscaping;
-                }
-                string debugMsg =
-                "\n===== MaskedStatusReport() Start =====" +
-                "\nMaskedID = " + maskedId +
-                "\nMaskedPersonality = " + maskedPersonality.ToString() +
-                "\nMaskedFocus = " + maskedFocus.ToString() +
-                "\nMustChangeFocus = " + mustChangeFocus.ToString() +
-                "\nMaskedActivity (Focus=None) = " + maskedActivity.ToString() +
-                "\nMustChangeActivity = " + mustChangeActivity.ToString() +
-                "\nLateGameChoices = " + lateGameChoices.ToString() +
-                //"\nDestination = " + destination.ToString() +
-                //"\nDistance to Destination = " + distanceToDestination.ToString() +
-                //"\nNavMeshPathStatus = " + nms +
-                "\nMoon = " + currentMoon +
-                "\nInterior = " + currentInterior +
-                "\nisDead = " + maskedEnemy.isEnemyDead +
-                "\n\nisOutside = " + maskedEnemy.isOutside +
-                "\nisInsidePlayerShip = " + maskedEnemy.isInsidePlayerShip +
-                "\nheldGrabbable = " + hg +
-                "\nMaskedGoal = " + maskedGoal +
-                "\n\nnoMoreBreakerBox = " + noMoreBreakerBox +
-                "\nnoMoreTerminal = " + noMoreTerminal +
-                "\nnoMoreApparatus = " + noMoreApparatus +
-                "\nnoMoreItems = " + noMoreItems +
-                "\nnotGrabClosestItem = " + notGrabClosestItem +
-                focusDetails +
-                "\n===== MaskedStatusReport() End =======";
-                if (debugMsg != lastDebugModeStatus)
-                {
-                    lastDebugModeStatus = debugMsg;
-                    Plugin.mls.LogInfo(debugMsg);
-                }
-                if (maskedEnemy.isEnemyDead)
-                {
-                    Plugin.mls.LogInfo("Masked " + maskedPersonality.ToString() + "(" + maskedId + ") is now dead, status reporting will cease for this masked");
-                    stopStatusReporting = true;
+                    Plugin.mls.LogWarning("MaskedStatusReport has failed to write...\n\t" + ex.ToString());
                 }
             }
         }
@@ -807,6 +816,8 @@ namespace LethalIntelligence.Patches
                     catch (Exception e)
                     {
                         Plugin.mls.LogDebug("Apparatus Exception() Caught!\n" + e.Message);
+                        apparatusReachable = false;
+                        noMoreApparatus = true;
                     }
                 }
                 if (mustChangeFocus || maskedFocus == Focus.BreakerBox || maskedActivity == Activity.BreakerBox)
@@ -834,7 +845,13 @@ namespace LethalIntelligence.Patches
                     }
                     catch (NullReferenceException nre)
                     {
-                        //Plugin.mls.LogDebug("BreakerBox NullReferenceException() Caught!\n" + nre.Message);
+                        Plugin.mls.LogDebug("BreakerBox NullReferenceException() Caught!\n" + nre.Message);
+                        breakerBoxReachable = false;
+                        noMoreBreakerBox = true;
+                    }
+                    catch (Exception e)
+                    {
+                        Plugin.mls.LogDebug("BreakerBox Exception() Caught!\n" + e.Message);
                         breakerBoxReachable = false;
                         noMoreBreakerBox = true;
                     }
@@ -843,33 +860,63 @@ namespace LethalIntelligence.Patches
                 {
                     //not working for now use original code
                     //DetectObject(terminal, ref terminalReachable, ref noMoreTerminal, ref terminalDistance, ref terminalClosestPoint, ref terminalPosition);
-                    if (NavMesh.SamplePosition(terminal.transform.position, out hitTerminal, 3.0f, -1))
+                    try
                     {
-                        terminalReachable = agent.CalculatePath(hitTerminal.position, nmpTerminal);
-                        terminalDistance = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position);
-                        terminalClosestPoint = Vector3.Distance(hitTerminal.position, terminal.transform.position);
-                        terminalPosition = hitTerminal.position;
+                        if (NavMesh.SamplePosition(terminal.transform.position, out hitTerminal, 3.0f, -1))
+                        {
+                            terminalReachable = agent.CalculatePath(hitTerminal.position, nmpTerminal);
+                            terminalDistance = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position);
+                            terminalClosestPoint = Vector3.Distance(hitTerminal.position, terminal.transform.position);
+                            terminalPosition = hitTerminal.position;
+                        }
+                        else
+                        {
+                            terminalReachable = false;
+                        }
+                        if (!terminalReachable)
+                        {
+                            terminalDistance = 1000f;
+                        }
                     }
-                    else
+                    catch (NullReferenceException nre)
                     {
+                        Plugin.mls.LogDebug("Terminal NullReferenceException() Caught!\n" + nre.Message);
                         terminalReachable = false;
+                        noMoreTerminal = true;
                     }
-                    if (!terminalReachable)
+                    catch (Exception e)
                     {
-                        terminalDistance = 1000f;
+                        Plugin.mls.LogDebug("Terminal Exception() Caught!\n" + e.Message);
+                        terminalReachable = false;
+                        noMoreTerminal = true;
                     }
                 }
                 if (mustChangeFocus || maskedActivity == Activity.ItemLocker)
                 {
-                    lockerPosition = GameObject.Find("LockerAudio").transform.position; // so use this for now
-                                                                                        //this isnt working right now.. it routes the masked on to above the ship..
-                    /*if (NavMesh.SamplePosition(GameObject.Find("LockerAudio").transform.position,out hitLocker,10,-1))
+                    try
                     {
-                        lockerReachable = agent.CalculatePath(hitTerminal.position, nmpLocker);
-                        lockerDistance = Vector3.Distance(((Component)this).transform.position, GameObject.Find("LockerAudio").transform.position);
-                        lockerClosestPoint = Vector3.Distance(hitTerminal.position, terminal.transform.position);
-                        lockerPosition = hitTerminal.position;
-                    }*/
+                        lockerPosition = GameObject.Find("LockerAudio").transform.position; // so use this for now
+                                                                                            //this isnt working right now.. it routes the masked on to above the ship..
+                        /*if (NavMesh.SamplePosition(GameObject.Find("LockerAudio").transform.position,out hitLocker,10,-1))
+                        {
+                            lockerReachable = agent.CalculatePath(hitTerminal.position, nmpLocker);
+                            lockerDistance = Vector3.Distance(((Component)this).transform.position, GameObject.Find("LockerAudio").transform.position);
+                            lockerClosestPoint = Vector3.Distance(hitTerminal.position, terminal.transform.position);
+                            lockerPosition = hitTerminal.position;
+                        }*/
+                    }
+                    catch (NullReferenceException nre)
+                    {
+                        Plugin.mls.LogDebug("Locker NullReferenceException() Caught!\n" + nre.Message);
+                        lockerReachable = false;
+                        //noMoreLocker = true; //not currently a variable
+                    }
+                    catch (Exception e)
+                    {
+                        Plugin.mls.LogDebug("Locker Exception() Caught!\n" + e.Message);
+                        lockerReachable = false;
+                        //noMorelocker = true; //not currently a variable
+                    }
                 }
             }
         }
