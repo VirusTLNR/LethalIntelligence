@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.1.5 - Hotfix
+
+- Potentially fixes the masked getting stuck at the main entrance on modded moons (i beleive due to a null reference exception, we shall see.)
+
 ### 0.1.4
 
 - Fixed the bug where clients get an error saying the masked has no personality.
