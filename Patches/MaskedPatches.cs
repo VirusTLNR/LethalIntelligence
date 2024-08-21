@@ -3431,7 +3431,7 @@ namespace LethalIntelligence.Patches
             {
                 if (m.name == "PowerBoxDoor")
                 {
-                    Plugin.mls.LogError(m.animationString);
+                    //Plugin.mls.LogError(m.animationString);
                     if (m.boolValue == false)
                     {
                         m.boolValue = true;
