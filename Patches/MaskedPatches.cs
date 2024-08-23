@@ -2559,6 +2559,8 @@ namespace LethalIntelligence.Patches
                     else
                     {
                         noMoreItems = true;
+                        mustChangeFocus = true;
+                        mustChangeActivity = true;
                     }
                 }
             }
