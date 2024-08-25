@@ -17,9 +17,9 @@ The current version is a **very very early** version, no optimization work has b
 *Also... There may be tons of bugs.* (please do report them to me, either via github or the Lethal Company Modding Community on discord!)
 
 ## Note re:DebugMode
-There is now a setting in config for debug mode, for normal play, please leave this turned off.
+There is now a setting in config for debug mode, while this is experimental, this will be turned on by default, if you are getting performance issues (low fps i mean) then feel free to turn it off, but it shouldent be causing an issue, but does give me vital information for fixing your issues. (if you were using this mod before v0.1.5 this will not be on by default)
 
-if you turn this on.. OR Imperium is installed.. debug mode will be turned on, this will provide more logs (potentially more spammy), if debug mode is on, regular "status" reports will be logged for every masked. If you are having issues, feel free to turn this mode on, replicate the issue, then send me the log.
+if this is on.. OR Imperium is installed.. debug mode will be turned on, this will provide more logs (potentially more spammy), if debug mode is on, regular "status" reports will be logged for every masked. If you are having issues, feel free to turn this mode on, replicate the issue, then send me the log.
 
 ## Mod Features
 <details>

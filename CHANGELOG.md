@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.1.6 - Fixing Entrances/Exits + Implementing FireExit usage
+- Masked can now use fire exits, 
+- Masked getting stuck at the entrances/exits should now be fixed. If a masked has recently used an entrance/exit, they will now either.. do something else, or wait a short period and do some idle actions while they wait.
+
 ### 0.1.5 - Hotfix
 
 - Potentially fixes the masked getting stuck at the main entrance on modded moons (i beleive due to a null reference exception, we shall see.)
