@@ -404,7 +404,7 @@ namespace LethalIntelligence.Patches
 
         private string lastDebugModeStatus;
 
-        private string maskedGoal = "";
+        public string maskedGoal = "";
 
         private bool stopStatusReporting = false;
 
@@ -1098,7 +1098,12 @@ namespace LethalIntelligence.Patches
                 catch (MissingMethodException mme)
                 {
                     //v50 error.. just ignore. (imperium 0.1.9 and before only)
+                    Plugin.mls.LogWarning("Imperium Visualisers Integeration has an (MME)xception...\n\r" + mme.Message);
                 }
+                catch (Exception e)
+                {
+                    Plugin.mls.LogWarning("Imperium Visualisers Integeration has an (E)xception...\n\r" + e.Message);
+            }
             }
             MaskedStatusReport();
             if (((EnemyAI)maskedEnemy).isEnemyDead && isHoldingObject)
