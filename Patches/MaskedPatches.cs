@@ -636,6 +636,14 @@ namespace LethalIntelligence.Patches
             }
             dropship = Object.FindObjectOfType<ItemDropship>();
             terminalAccessibleObject = Object.FindObjectsOfType<TerminalAccessibleObject>();
+            // Entrances
+            entrancesTeleportArray = Object.FindObjectsOfType<EntranceTeleport>(includeInactive: false);
+            TimeSinceTeleporting = MaxTimeBeforeTeleporting;
+            /*Plugin.mls.LogError("Name|entranceId|entrancePointPosition|transformPosition|isEntranceToBuilding|isActiveAndEnabled");
+            for (int i = 0; i < entrancesTeleportArray.Length; i++)
+            {
+                Plugin.mls.LogError(entrancesTeleportArray[i].name + "|" + entrancesTeleportArray[i].entranceId + "|" + entrancesTeleportArray[i].entrancePoint.position.ToString() + "|" + entrancesTeleportArray[i].transform.position.ToString() + "|" + entrancesTeleportArray[i].isEntranceToBuilding + "|" + entrancesTeleportArray[i].isActiveAndEnabled);
+            }*/
         }
 
         float updateFrequency = 0.02f;
@@ -769,6 +777,13 @@ namespace LethalIntelligence.Patches
             else
             {
                 calculationDelay = 250; //update is 50 times a second, so this is once every 5 seconds... compared to the 10 updates a second making this 1 update per 5 seconds previously
+
+                TimeSinceTeleporting++;
+                /*if (TimeSinceTeleporting < MaxTimeBeforeTeleporting)
+                {
+                    Plugin.mls.LogError("TimeToTp = " + TimeSinceTeleporting);
+                }*/
+
                 if (TimeOfDay.Instance.hour >= 8)
                 {
                     lateGameChoices = true;
@@ -1103,7 +1118,7 @@ namespace LethalIntelligence.Patches
                 catch (Exception e)
                 {
                     Plugin.mls.LogWarning("Imperium Visualisers Integeration has an (E)xception...\n\r" + e.Message);
-            }
+                }
             }
             MaskedStatusReport();
             if (((EnemyAI)maskedEnemy).isEnemyDead && isHoldingObject)
@@ -1265,10 +1280,10 @@ namespace LethalIntelligence.Patches
                 }
                 else if (maskedActivity == Activity.FireExit)
                 {
-                    maskedGoal = "pathing to main entrance (because fire exits arent implemented yet :D)";
+                    maskedGoal = "pathing to closest fire exit";
                     //not done this yet
-                    maskedActivity = Activity.MainEntrance;
-                    //findFireExit();
+                    maskedActivity = Activity.FireExit;
+                    findFireExit();
                 }
                 else if (maskedActivity == Activity.BreakerBox)
                 {
@@ -2882,6 +2897,17 @@ namespace LethalIntelligence.Patches
             {
                 maskedGoal = "(escape) heading outside";
                 maskedEnemy.SetDestinationToPosition(maskedEnemy.mainEntrancePosition);
+                selectedEntrance = null;
+                selectedEntrance = selectClosestEntrance(maskedEnemy.isOutside,true, true);
+                if (selectedEntrance == null)
+                {
+                    maskedGoal = "No Entrance Found, Changing Focus";
+                    Plugin.mls.LogError("selectedEntrance was Null, if all entrances are null, this may lead to masked stopping from moving completely.");
+                    selectedEntrance = null;
+                    mustChangeFocus = true;
+                    mustChangeActivity = true;
+                }
+                useEntranceTeleport(selectedEntrance);
             }
             else
             {
@@ -4428,8 +4454,127 @@ namespace LethalIntelligence.Patches
             }
         }
 
+        private float TimeSinceTeleporting { get; set; }
+        private float MaxTimeBeforeTeleporting = 5;
+        private EntranceTeleport[] entrancesTeleportArray = null!;
+        EntranceTeleport? selectedEntrance = null;
+
+
+        //bool loggedID;
+
+        private EntranceTeleport? selectClosestEntrance(bool isOutside, bool MainEntranceAllowed = true, bool FireExitsAllowed = true)
+        {
+            EntranceTeleport et = null;
+            if (!MainEntranceAllowed && !FireExitsAllowed)
+            {
+                return null; //this should never be occuring!
+            }
+            float dist = 1000;
+            for (int i = 0; i < entrancesTeleportArray.Length; i++)
+            {
+                if ((entrancesTeleportArray[i].entranceId == 0 && MainEntranceAllowed) || (entrancesTeleportArray[i].entranceId > 0 && FireExitsAllowed))
+                {
+                    //if (!loggedID)
+                    //{
+                    //    Plugin.mls.LogError("TP#" + entrancesTeleportArray[i].entranceId + " -> " + entrancesTeleportArray[i].transform.position + "|" + Vector3.Distance(maskedEnemy.transform.position, entrancesTeleportArray[i].transform.position));
+                    //}
+                    float tempDist = Vector3.Distance(maskedEnemy.transform.position, entrancesTeleportArray[i].entrancePoint.position);
+                    if (tempDist < dist && isOutside == entrancesTeleportArray[i].isEntranceToBuilding)
+                    {
+                        dist = tempDist;
+                        et = entrancesTeleportArray[i];
+                    }
+                }
+            }
+            //loggedID = true;
+            return et; //may be null;
+            
+        }
+
+        private void useEntranceTeleport(EntranceTeleport entrance)
+        {
+            if(entrance == null)
+            {
+                //mustChangeFocus = true;
+                //mustChangeActivity = true;
+                return; //no entrance selected
+            }
+            Vector3 tPos = entrance.transform.position;
+            float distanceToEntrance = Vector3.Distance(maskedEnemy.transform.position, tPos);
+            if (distanceToEntrance > 2f)
+            {
+                maskedGoal = "Walking to entrance (" + entrance.entranceId + "/" + tPos.ToString() + ")";
+                maskedEnemy.SetDestinationToPosition(tPos,true);
+            }
+            if(distanceToEntrance <2f)
+            {
+                maskedGoal = "reached entrance (" + entrance.entranceId + "/" + tPos.ToString() + ")";
+                maskedEnemy.running = false;
+                //do teleport, then set destination AWAY from the teleport, maybe look and run randomly?
+                //System.Diagnostics.Debugger.Break();
+                //Vector3? entryPoint = entrance.entrancePoint.position;
+                Vector3? opposingTeleportPosition = getTeleportDestination(entrance);
+                if (TimeSinceTeleporting > MaxTimeBeforeTeleporting)
+                {
+                    maskedGoal = "using entrance (" + entrance.entranceId + "/" + entrance.entrancePoint.position.ToString() + ")";
+                    TimeSinceTeleporting = 0;
+                    maskedEnemy.TeleportMaskedEnemyAndSync((Vector3)opposingTeleportPosition, !maskedEnemy.isOutside);
+                    if (maskedFocus != Focus.Escape)
+                    {
+                        mustChangeFocus = true;
+                        mustChangeActivity = true;
+                    }
+                }
+                else if (TimeSinceTeleporting > (MaxTimeBeforeTeleporting*0.75) && TimeSinceTeleporting <=MaxTimeBeforeTeleporting)
+                {
+                    maskedGoal = "being idle waiting to use entrance (" + entrance.entranceId + ")";
+                    maskedEnemy.LookAndRunRandomly();
+                }
+                else
+                {
+                    maskedGoal = "entrance used recently, doing something else instead. (" + entrance.entranceId + ")";
+                    mustChangeFocus = true;
+                    mustChangeActivity = true;
+                }
+                //maskedGoal = "looking and running randomly near entranceTeleport (" + entrance.entranceId + ")";
+                
+
+            }
+        }
+
+        private Vector3? getTeleportDestination(EntranceTeleport entrance)
+        {
+            if(entrance==null)
+            {
+                return null;
+            }
+            //return entrance.exitPoint.position;
+            for (int i = 0; i < entrancesTeleportArray.Length; i++)
+            {
+                EntranceTeleport otherEntrance = entrancesTeleportArray[i];
+                if (otherEntrance.entranceId == entrance.entranceId
+                    && otherEntrance.isEntranceToBuilding != entrance.isEntranceToBuilding)
+                {
+                    return otherEntrance.entrancePoint.position;
+                }
+            }
+            return null;
+        }
+
         private void findMainEntrance()
         {
+            selectedEntrance = null;
+            selectedEntrance = selectClosestEntrance(maskedEnemy.isOutside, true, false);
+            if(selectedEntrance == null)
+            {
+                maskedGoal = "No Entrance Found, Changing Focus";
+                Plugin.mls.LogError("selectedEntrance was Null, if all entrances are null, this may lead to masked stopping from moving completely.");
+                selectedEntrance = null;
+                mustChangeFocus = true;
+                mustChangeActivity = true;
+            }
+            useEntranceTeleport(selectedEntrance);
+            /*
             maskedGoal = "going to main entrance";
             //maskedEnemy.LookAndRunRandomly(true, true);
             ((EnemyAI)maskedEnemy).SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
@@ -4439,12 +4584,23 @@ namespace LethalIntelligence.Patches
                 maskedEnemy.running = false; //to stop them running.
                 mustChangeFocus = true;
                 mustChangeActivity = true;
-            }
+            }*/
         }
 
         private void findFireExit()
         {
-            maskedGoal = "going to a random fire exit";
+            selectedEntrance = null;
+            selectedEntrance = selectClosestEntrance(maskedEnemy.isOutside,false,true);
+            if (selectedEntrance == null)
+            {
+                maskedGoal = "No Entrance Found, Changing Focus";
+                Plugin.mls.LogError("selectedEntrance was Null, if all entrances are null, this may lead to masked stopping from moving completely.");
+                selectedEntrance = null;
+                mustChangeFocus = true;
+                mustChangeActivity = true;
+            }
+            useEntranceTeleport(selectedEntrance);
+            /*maskedGoal = "going to a random fire exit";
             //maskedEnemy.LookAndRunRandomly(true, true);
             ((EnemyAI)maskedEnemy).SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true); // for now this still heads to the main entrance, need to set variable to find fire exits!
             //__instance.moveTowardsDestination = true;
@@ -4453,7 +4609,7 @@ namespace LethalIntelligence.Patches
                 maskedEnemy.running = false; //to stop them running.
                 mustChangeFocus = true;
                 mustChangeActivity = true;
-            }
+            }*/
         }
 
         float followTime = 0f;
