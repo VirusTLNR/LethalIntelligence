@@ -71,3 +71,4 @@ Recommended to install with this mod:
 - WhiteSpike (on discord) for help and suggestions regarding the breaker box.
 - Tim_Shaw for help on trying to make their mod compatible.
 - XuXiaolan for help/advice/tips with spawning items as well as many other things (soon to be too many things to mention).
+- Szumi57 for inspiration on how to fix EntranceTeleports.
