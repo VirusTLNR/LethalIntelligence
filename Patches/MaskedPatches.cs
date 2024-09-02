@@ -801,137 +801,177 @@ namespace LethalIntelligence.Patches
                 {
                     //not working for now use original code
                     //DetectObject(breakerBox, ref breakerBoxReachable, ref noMoreBreakerBox, ref breakerBoxDistance, ref breakerClosestPoint, ref breakerPosition);
-                    try
+                    if (apparatus == null)
                     {
-                        if (NavMesh.SamplePosition(apparatus.transform.position, out hitApparatus, 3.0f, -1))
+                        Plugin.mls.LogDebug("Apparatus is Null");
+                        apparatusReachable = false;
+                        apparatusDistance = 1000f;
+                        noMoreApparatus = true;
+                    }
+                    else
+                    {
+                        try
                         {
-                            apparatusReachable = agent.CalculatePath(hitApparatus.position, nmpApparatus);
-                            //Plugin.mls.LogError("Reachable=" + apparatusReachable);
-                            //breakerBoxDistance = Vector3.Distance(((Component)this).transform.position, hitBreaker.position);
-                            apparatusDistance = Vector3.Distance(((Component)this).transform.position, ((Component)apparatus).transform.position);
-                            //Plugin.mls.LogError("dis:- " + apparatusDistance);
-                            apparatusClosestPoint = Vector3.Distance(hitApparatus.position, apparatus.transform.position);
-                            apparatusPosition = apparatus.transform.position;
+                            if (NavMesh.SamplePosition(apparatus.transform.position, out hitApparatus, 3.0f, -1))
+                            {
+                                apparatusReachable = agent.CalculatePath(hitApparatus.position, nmpApparatus);
+                                //Plugin.mls.LogError("Reachable=" + apparatusReachable);
+                                //breakerBoxDistance = Vector3.Distance(((Component)this).transform.position, hitBreaker.position);
+                                apparatusDistance = Vector3.Distance(((Component)this).transform.position, ((Component)apparatus).transform.position);
+                                //Plugin.mls.LogError("dis:- " + apparatusDistance);
+                                apparatusClosestPoint = Vector3.Distance(hitApparatus.position, apparatus.transform.position);
+                                apparatusPosition = apparatus.transform.position;
+                            }
+                            else
+                            {
+                                apparatusReachable = false;
+                            }
+                            if (!apparatusReachable)
+                            {
+                                apparatusDistance = 1000f;
+                            }
                         }
-                        else
+                        catch (NullReferenceException nre)
                         {
+                            Plugin.mls.LogDebug("Apparatus NullReferenceException() Caught!\n" + nre.Message);
                             apparatusReachable = false;
+                            noMoreApparatus = true;
                         }
-                        if (!apparatusReachable)
+                        catch (Exception e)
                         {
-                            apparatusDistance = 1000f;
+                            Plugin.mls.LogDebug("Apparatus Exception() Caught!\n" + e.Message);
+                            apparatusReachable = false;
+                            noMoreApparatus = true;
                         }
-                    }
-                    catch (NullReferenceException nre)
-                    {
-                        Plugin.mls.LogDebug("Apparatus NullReferenceException() Caught!\n" + nre.Message);
-                        apparatusReachable = false;
-                        noMoreApparatus = true;
-                    }
-                    catch (Exception e)
-                    {
-                        Plugin.mls.LogDebug("Apparatus Exception() Caught!\n" + e.Message);
-                        apparatusReachable = false;
-                        noMoreApparatus = true;
                     }
                 }
                 if (mustChangeFocus || maskedFocus == Focus.BreakerBox || maskedActivity == Activity.BreakerBox)
                 {
                     //not working for now use original code
                     //DetectObject(breakerBox, ref breakerBoxReachable, ref noMoreBreakerBox, ref breakerBoxDistance, ref breakerClosestPoint, ref breakerPosition);
-                    try
+                    if (breakerBox == null)
                     {
-                        if (NavMesh.SamplePosition(breakerBox.transform.position, out hitBreaker, 3.0f, -1))
+                        Plugin.mls.LogDebug("BreakerBox is Null");
+                        breakerBoxReachable = false;
+                        breakerBoxDistance = 1000f;
+                        noMoreBreakerBox = true;
+                    }
+                    else
+                    {
+                        try
                         {
-                            breakerBoxReachable = agent.CalculatePath(hitBreaker.position, nmpBreaker);
-                            //breakerBoxDistance = Vector3.Distance(((Component)this).transform.position, hitBreaker.position);
-                            breakerBoxDistance = Vector3.Distance(((Component)this).transform.position, ((Component)breakerBox).transform.position);
-                            breakerClosestPoint = Vector3.Distance(hitBreaker.position, breakerBox.transform.position);
-                            breakerPosition = hitBreaker.position;
+                            if (NavMesh.SamplePosition(breakerBox.transform.position, out hitBreaker, 3.0f, -1))
+                            {
+                                breakerBoxReachable = agent.CalculatePath(hitBreaker.position, nmpBreaker);
+                                //breakerBoxDistance = Vector3.Distance(((Component)this).transform.position, hitBreaker.position);
+                                breakerBoxDistance = Vector3.Distance(((Component)this).transform.position, ((Component)breakerBox).transform.position);
+                                breakerClosestPoint = Vector3.Distance(hitBreaker.position, breakerBox.transform.position);
+                                breakerPosition = hitBreaker.position;
+                            }
+                            else
+                            {
+                                breakerBoxReachable = false;
+                            }
+                            if (!breakerBoxReachable)
+                            {
+                                breakerBoxDistance = 1000f;
+                            }
                         }
-                        else
+                        catch (NullReferenceException nre)
                         {
+                            Plugin.mls.LogDebug("BreakerBox NullReferenceException() Caught!\n" + nre.Message);
                             breakerBoxReachable = false;
+                            noMoreBreakerBox = true;
                         }
-                        if (!breakerBoxReachable)
+                        catch (Exception e)
                         {
-                            breakerBoxDistance = 1000f;
+                            Plugin.mls.LogDebug("BreakerBox Exception() Caught!\n" + e.Message);
+                            breakerBoxReachable = false;
+                            noMoreBreakerBox = true;
                         }
-                    }
-                    catch (NullReferenceException nre)
-                    {
-                        Plugin.mls.LogDebug("BreakerBox NullReferenceException() Caught!\n" + nre.Message);
-                        breakerBoxReachable = false;
-                        noMoreBreakerBox = true;
-                    }
-                    catch (Exception e)
-                    {
-                        Plugin.mls.LogDebug("BreakerBox Exception() Caught!\n" + e.Message);
-                        breakerBoxReachable = false;
-                        noMoreBreakerBox = true;
                     }
                 }
                 if (mustChangeFocus || maskedFocus == Focus.Terminal || maskedFocus == Focus.Escape)
                 {
                     //not working for now use original code
                     //DetectObject(terminal, ref terminalReachable, ref noMoreTerminal, ref terminalDistance, ref terminalClosestPoint, ref terminalPosition);
-                    try
+                    if (terminal == null)
                     {
-                        if (NavMesh.SamplePosition(terminal.transform.position, out hitTerminal, 3.0f, -1))
+                        Plugin.mls.LogDebug("Terminal is Null");
+                        terminalReachable = false;
+                        terminalDistance = 1000f;
+                        noMoreTerminal = true;
+                    }
+                    else
+                    {
+                        try
                         {
-                            terminalReachable = agent.CalculatePath(hitTerminal.position, nmpTerminal);
-                            terminalDistance = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position);
-                            terminalClosestPoint = Vector3.Distance(hitTerminal.position, terminal.transform.position);
-                            terminalPosition = hitTerminal.position;
+                            if (NavMesh.SamplePosition(terminal.transform.position, out hitTerminal, 3.0f, -1))
+                            {
+                                terminalReachable = agent.CalculatePath(hitTerminal.position, nmpTerminal);
+                                terminalDistance = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position);
+                                terminalClosestPoint = Vector3.Distance(hitTerminal.position, terminal.transform.position);
+                                terminalPosition = hitTerminal.position;
+                            }
+                            else
+                            {
+                                terminalReachable = false;
+                            }
+                            if (!terminalReachable)
+                            {
+                                terminalDistance = 1000f;
+                            }
                         }
-                        else
+                        catch (NullReferenceException nre)
                         {
+                            Plugin.mls.LogDebug("Terminal NullReferenceException() Caught!\n" + nre.Message);
                             terminalReachable = false;
+                            noMoreTerminal = true;
                         }
-                        if (!terminalReachable)
+                        catch (Exception e)
                         {
-                            terminalDistance = 1000f;
+                            Plugin.mls.LogDebug("Terminal Exception() Caught!\n" + e.Message);
+                            terminalReachable = false;
+                            noMoreTerminal = true;
                         }
-                    }
-                    catch (NullReferenceException nre)
-                    {
-                        Plugin.mls.LogDebug("Terminal NullReferenceException() Caught!\n" + nre.Message);
-                        terminalReachable = false;
-                        noMoreTerminal = true;
-                    }
-                    catch (Exception e)
-                    {
-                        Plugin.mls.LogDebug("Terminal Exception() Caught!\n" + e.Message);
-                        terminalReachable = false;
-                        noMoreTerminal = true;
                     }
                 }
                 if (mustChangeFocus || maskedActivity == Activity.ItemLocker)
                 {
-                    try
-                    {
-                        lockerPosition = GameObject.Find("LockerAudio").transform.position; // so use this for now
-                                                                                            //this isnt working right now.. it routes the masked on to above the ship..
-                        /*if (NavMesh.SamplePosition(GameObject.Find("LockerAudio").transform.position,out hitLocker,10,-1))
+                        if (GameObject.Find("LockerAudio") == null)
                         {
-                            lockerReachable = agent.CalculatePath(hitTerminal.position, nmpLocker);
-                            lockerDistance = Vector3.Distance(((Component)this).transform.position, GameObject.Find("LockerAudio").transform.position);
-                            lockerClosestPoint = Vector3.Distance(hitTerminal.position, terminal.transform.position);
-                            lockerPosition = hitTerminal.position;
-                        }*/
-                    }
-                    catch (NullReferenceException nre)
-                    {
-                        Plugin.mls.LogDebug("Locker NullReferenceException() Caught!\n" + nre.Message);
-                        lockerReachable = false;
-                        //noMoreLocker = true; //not currently a variable
-                    }
-                    catch (Exception e)
-                    {
-                        Plugin.mls.LogDebug("Locker Exception() Caught!\n" + e.Message);
-                        lockerReachable = false;
-                        //noMorelocker = true; //not currently a variable
-                    }
+                            Plugin.mls.LogDebug("LockerAudio is Null");
+                            lockerReachable = false;
+                            lockerDistance = 1000f;
+                            //noMoreLocker = true; //not currently a variable
+                        }
+                        else
+                        {
+                            try
+                            {
+                                lockerPosition = GameObject.Find("LockerAudio").transform.position; // so use this for now
+                                                                                                    //this isnt working right now.. it routes the masked on to above the ship..
+                                /*if (NavMesh.SamplePosition(GameObject.Find("LockerAudio").transform.position,out hitLocker,10,-1))
+                                {
+                                    lockerReachable = agent.CalculatePath(hitTerminal.position, nmpLocker);
+                                    lockerDistance = Vector3.Distance(((Component)this).transform.position, GameObject.Find("LockerAudio").transform.position);
+                                    lockerClosestPoint = Vector3.Distance(hitTerminal.position, terminal.transform.position);
+                                    lockerPosition = hitTerminal.position;
+                                }*/
+                            }
+                            catch (NullReferenceException nre)
+                            {
+                                Plugin.mls.LogDebug("Locker NullReferenceException() Caught!\n" + nre.Message);
+                                lockerReachable = false;
+                                //noMoreLocker = true; //not currently a variable
+                            }
+                            catch (Exception e)
+                            {
+                                Plugin.mls.LogDebug("Locker Exception() Caught!\n" + e.Message);
+                                lockerReachable = false;
+                                //noMorelocker = true; //not currently a variable
+                            }
+                        }
                 }
             }
         }
