@@ -2317,9 +2317,12 @@ namespace LethalIntelligence.Patches
             terminalReachable = maskedEnemy.SetDestinationToPosition(terminal.transform.position, true);*/
             //if (breakerBoxReachable)
             //{
-            if (breakerBox.isPowerOn)
+            if (breakerBox != null)
             {
-                noMoreBreakerBox = false;
+                if (breakerBox.isPowerOn)
+                {
+                    noMoreBreakerBox = false;
+                }
             }
             //}
             //else
