@@ -190,10 +190,12 @@ namespace LethalIntelligence.Patches
         public Personality lastMaskedPersonality;
 
         public Focus maskedFocus;
+        public LethalNetworkVariable<int> maskedFocusInt = new LethalNetworkVariable<int>("maskedFocusInt");
 
         public Focus lastMaskedFocus;
 
         public Activity maskedActivity;
+        public LethalNetworkVariable<int> maskedActivityInt = new LethalNetworkVariable<int>("maskedActivityInt");
 
         public bool mustChangeFocus, mustChangeActivity;
 
@@ -256,6 +258,8 @@ namespace LethalIntelligence.Patches
         public LethalNetworkVariable<bool> dropItem = new LethalNetworkVariable<bool>("dropItem");
 
         public LethalNetworkVariable<bool> isDancing = new LethalNetworkVariable<bool>("isDancing");
+
+        public LethalNetworkVariable<bool> isRunning = new LethalNetworkVariable<bool>("isRunning");
 
         public LethalNetworkVariable<bool> useWalkie = new LethalNetworkVariable<bool>("useWalkie");
 
@@ -978,73 +982,95 @@ namespace LethalIntelligence.Patches
 
         private void SetFocus()
         {
-            lastMaskedFocus = maskedFocus;
-
-            //new line
-            if (maskedPersonality == Personality.Cunning && breakerBoxDistance < 40f && lastMaskedFocus != Focus.BreakerBox && breakerBoxReachable && !noMoreBreakerBox)
-            //this was a cunning only line
-            //if (breakerBoxDistance < terminalDistance && breakerBoxDistance < closestGrabbableDistance && lastMaskedFocus != Focus.BreakerBox && breakerBoxReachable && !noMoreBreakerBox && maskedPersonality==Personality.Cunning)
+            if (GameNetworkManager.Instance.isHostingGame)
             {
-                //cunning only
-                maskedFocus = Focus.BreakerBox;
-                maskedActivity = Activity.None;
-                mustChangeActivity = true;
-            }
-            //new line
-            else if ((maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane) && terminalDistance < 40f && lastMaskedFocus != Focus.Terminal && terminalReachable && !noMoreTerminal)
-            //this was a cunning only line
-            //else if (terminalDistance < breakerBoxDistance && terminalDistance < closestGrabbableDistance && lastMaskedFocus != Focus.Terminal && terminalReachable && !noMoreTerminal && (maskedPersonality==Personality.Cunning || maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane))
-            {
-                //cunning, deceiving, insane
-                maskedFocus = Focus.Terminal;
-                maskedActivity = Activity.None;
-                mustChangeActivity = true;
-            }
-            //new line
-            else if ((maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Aggressive) && nearestGrabbableDistance < 40f && lastMaskedFocus != Focus.Items && nearestGrabbableReachable && !noMoreItems)
-            //this was a cunning only line
-            //else if (closestGrabbableDistance < breakerBoxDistance && closestGrabbableDistance < terminalDistance && lastMaskedFocus != Focus.Items && closestGrabbableReachable && !noMoreItems)
-            {
-                //all masked
-                maskedFocus = Focus.Items;
-                maskedActivity = Activity.None;
-                mustChangeActivity = true;
-            }
-            else if (maskedPersonality == Personality.Stealthy && __instance.targetPlayer != null && lastMaskedFocus != Focus.Hiding)
-            {
-                maskedFocus = Focus.Hiding;
-                maskedActivity = Activity.None;
-                mustChangeActivity = true;
-            }
-            else if (maskedPersonality == Personality.Stealthy && __instance.targetPlayer != null && lastMaskedFocus != Focus.Mimicking)
-            {
-                maskedFocus = Focus.Mimicking;
-                maskedActivity = Activity.None;
-                mustChangeActivity = true;
-            }
-            else if ((maskedPersonality == Personality.Aggressive || maskedPersonality == Personality.Deceiving) && __instance.targetPlayer != null && lastMaskedFocus != Focus.Player)
-            {
-                maskedFocus = Focus.Player;
-                maskedActivity = Activity.None;
-                mustChangeActivity = true;
-            }
-            else if (maskedPersonality == Personality.Insane && lastMaskedFocus != Focus.Apparatus && lateGameChoices)
-            {
-                maskedFocus = Focus.Apparatus;
-                maskedActivity = Activity.None;
-                mustChangeActivity = true;
-            }
-            else
-            {
-                //all masked
-                maskedFocus = Focus.None;
-                if (mustChangeActivity == true)
+                if (mustChangeFocus)
                 {
-                    SetActivity();
-                    mustChangeActivity = false;
+                    lastMaskedFocus = maskedFocus;
+
+                    //new line
+                    if (maskedPersonality == Personality.Cunning && breakerBoxDistance < 40f && lastMaskedFocus != Focus.BreakerBox && breakerBoxReachable && !noMoreBreakerBox)
+                    //this was a cunning only line
+                    //if (breakerBoxDistance < terminalDistance && breakerBoxDistance < closestGrabbableDistance && lastMaskedFocus != Focus.BreakerBox && breakerBoxReachable && !noMoreBreakerBox && maskedPersonality==Personality.Cunning)
+                    {
+                        //cunning only
+                        maskedFocusInt.Value = (int)Focus.BreakerBox; //syncing variables
+                                                                      //maskedFocus = Focus.BreakerBox;
+                        maskedActivityInt.Value = (int)Activity.None; //syncing variables
+                                                                      //maskedActivity = Activity.None;
+                        mustChangeActivity = true;
+                    }
+                    //new line
+                    else if ((maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane) && terminalDistance < 40f && lastMaskedFocus != Focus.Terminal && terminalReachable && !noMoreTerminal)
+                    //this was a cunning only line
+                    //else if (terminalDistance < breakerBoxDistance && terminalDistance < closestGrabbableDistance && lastMaskedFocus != Focus.Terminal && terminalReachable && !noMoreTerminal && (maskedPersonality==Personality.Cunning || maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane))
+                    {
+                        //cunning, deceiving, insane
+                        maskedFocusInt.Value = (int)Focus.Terminal; //syncing variables
+                                                                    //maskedFocus = Focus.Terminal;
+                        maskedActivityInt.Value = (int)Activity.None; //syncing variables
+                                                                      //maskedActivity = Activity.None;
+                        mustChangeActivity = true;
+                    }
+                    //new line
+                    else if ((maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Aggressive) && nearestGrabbableDistance < 40f && lastMaskedFocus != Focus.Items && nearestGrabbableReachable && !noMoreItems)
+                    //this was a cunning only line
+                    //else if (closestGrabbableDistance < breakerBoxDistance && closestGrabbableDistance < terminalDistance && lastMaskedFocus != Focus.Items && closestGrabbableReachable && !noMoreItems)
+                    {
+                        //all masked
+                        maskedFocusInt.Value = (int)Focus.Items; //syncing variables
+                                                                 //maskedFocus = Focus.Items;
+                        maskedActivityInt.Value = (int)Activity.None; //syncing variables
+                                                                      //maskedActivity = Activity.None;
+                        mustChangeActivity = true;
+                    }
+                    else if (maskedPersonality == Personality.Stealthy && __instance.targetPlayer != null && lastMaskedFocus != Focus.Hiding)
+                    {
+                        maskedFocusInt.Value = (int)Focus.Hiding; //syncing variables
+                                                                  //maskedFocus = Focus.Hiding;
+                        maskedActivityInt.Value = (int)Activity.None; //syncing variables
+                                                                      //maskedActivity = Activity.None;
+                        mustChangeActivity = true;
+                    }
+                    else if (maskedPersonality == Personality.Stealthy && __instance.targetPlayer != null && lastMaskedFocus != Focus.Mimicking)
+                    {
+                        maskedFocusInt.Value = (int)Focus.Mimicking; //syncing variables
+                                                                     //maskedFocus = Focus.Mimicking;
+                        maskedActivityInt.Value = (int)Activity.None; //syncing variables
+                                                                      //maskedActivity = Activity.None;
+                        mustChangeActivity = true;
+                    }
+                    else if ((maskedPersonality == Personality.Aggressive || maskedPersonality == Personality.Deceiving) && __instance.targetPlayer != null && lastMaskedFocus != Focus.Player)
+                    {
+                        maskedFocusInt.Value = (int)Focus.Player; //syncing variables
+                                                                  //maskedFocus = Focus.Player;
+                        maskedActivityInt.Value = (int)Activity.None; //syncing variables
+                                                                      //maskedActivity = Activity.None;
+                        mustChangeActivity = true;
+                    }
+                    else if (maskedPersonality == Personality.Insane && lastMaskedFocus != Focus.Apparatus && lateGameChoices)
+                    {
+                        maskedFocusInt.Value = (int)Focus.Apparatus; //syncing variables
+                                                                     //maskedFocus = Focus.Apparatus;
+                        maskedActivityInt.Value = (int)Activity.None; //syncing variables
+                                                                      //maskedActivity = Activity.None;
+                        mustChangeActivity = true;
+                    }
+                    else
+                    {
+                        //all masked
+                        maskedFocusInt.Value = (int)Focus.None; //syncing variables
+                                                                //maskedFocus = Focus.None;
+                        if (mustChangeActivity == true)
+                        {
+                            SetActivity();
+                            mustChangeActivity = false;
+                        }
+                    }
+                    mustChangeFocus = false;
+                    //maskedFocus = (Focus)maskedFocusInt.Value;
                 }
             }
-            mustChangeFocus = false;
         }
 
         private void SetActivity()
@@ -1057,10 +1083,12 @@ namespace LethalIntelligence.Patches
                 switch (random)
                 {
                     case 0:
-                        maskedActivity = Activity.MainEntrance;
+                        //maskedActivity = Activity.MainEntrance;
+                        maskedActivityInt.Value = (int)Activity.MainEntrance;
                         break;
                     case 1:
-                        maskedActivity = Activity.FireExit;
+                        //maskedActivity = Activity.FireExit;
+                        maskedActivityInt.Value = (int)Activity.FireExit;
                         break;
                 }
             }
@@ -1068,18 +1096,21 @@ namespace LethalIntelligence.Patches
             {
                 if (maskedActivity != Activity.ItemLocker)
                 {
-                    maskedActivity = Activity.ItemLocker;
+                    //maskedActivity = Activity.ItemLocker;
+                    maskedActivityInt.Value = (int)Activity.ItemLocker;
                 }
             }
             else if (!maskedEnemy.isOutside)
             {
                 if (maskedActivity != Activity.BreakerBox)
                 {
-                    maskedActivity = Activity.BreakerBox;
+                    //maskedActivity = Activity.BreakerBox;
+                    maskedActivityInt.Value = (int)Activity.BreakerBox;
                 }
                 else if (maskedActivity != Activity.Apparatus)
                 {
-                    maskedActivity = Activity.Apparatus;
+                    //maskedActivity = Activity.Apparatus;
+                    maskedActivityInt.Value = (int)Activity.Apparatus;
                 }
             }
             else
@@ -1087,6 +1118,7 @@ namespace LethalIntelligence.Patches
                 //do idle stuff i guess.
                 //maskedEnemy.LookAndRunRandomly();
             }
+            maskedActivity = (Activity)maskedActivityInt.Value;
             /*if(Vector3.Distance(maskedEnemy.transform.position, maskedEnemy.mainEntrancePosition) < 10f)
             {
                 start = 2;
@@ -1261,10 +1293,13 @@ namespace LethalIntelligence.Patches
             CalculatingVariables();
             DetectAndSelectRandomPlayer();
             TargetAndKillPlayer(); //potentially, this should change the focus to NONE and "Activity" to killing the player..depending on the personality, this should cancel current activity as well.
-            if (mustChangeFocus)
-            {
-                SetFocus();
-            }
+
+            //host only (set in function) - setting variables of masked choices
+            SetFocus();
+            //all clients (including host) - receiving variables
+            maskedFocus = (Focus)maskedFocusInt.Value;
+            maskedActivity = (Activity)maskedActivityInt.Value;
+
             if (maskedFocus != Focus.None)
             {
                 if (maskedPersonality == Personality.Cunning)
@@ -1781,12 +1816,14 @@ namespace LethalIntelligence.Patches
                 //crouched
                 isDancing.Value = false;
                 creatureAnimator.ResetTrigger("Dancing");
-                maskedEnemy.running = false;
+                isRunning.Value = false;
+                //maskedEnemy.running = false; //not needed once isRunning.Value is added?
                 creatureAnimator.ResetTrigger("Running");
                 creatureAnimator.SetTrigger("Crouching");
                 agent.speed = 1.9f;
             }
-            else if (maskedEnemy.running)
+            //else if (maskedEnemy.running)
+            else if(isRunning.Value)
             {
                 //running
                 isCrouched.Value = false;
@@ -1803,7 +1840,8 @@ namespace LethalIntelligence.Patches
                 //dancing
                 isCrouched.Value = false;
                 creatureAnimator.ResetTrigger("Crouching");
-                maskedEnemy.running = false;
+                //maskedEnemy.running = false; //not needed once isRunning.Value is added?
+                isRunning.Value = false;
                 creatureAnimator.ResetTrigger("Running");
                 creatureAnimator.SetTrigger("Dancing");
                 __instance.SetDestinationToPosition(((Component)__instance).transform.position, false);
@@ -1817,7 +1855,8 @@ namespace LethalIntelligence.Patches
                 creatureAnimator.ResetTrigger("Crouching");
                 isDancing.Value = false;
                 creatureAnimator.ResetTrigger("Dancing");
-                maskedEnemy.running = false;
+                //maskedEnemy.running = false; //not needed once isRunning.Value is added?
+                isRunning.Value = false;
                 creatureAnimator.ResetTrigger("Running");
                 agent.speed = 3.8f;
             }
@@ -1832,12 +1871,14 @@ namespace LethalIntelligence.Patches
                 {
                     creatureAnimator.ResetTrigger("FakeJump");
                 }
-                maskedEnemy.running = true;
+                //maskedEnemy.running = true; //not needed once isRunning.Value is added?
+                isRunning.Value = true;
             }
             if (maskedEnemy.staminaTimer < 0f)
             {
                 isStaminaDowned = true;
-                maskedEnemy.running = false;
+                //maskedEnemy.running = false; //not needed once isRunning.Value is added?
+                isRunning.Value = false;
                 ((EnemyAI)maskedEnemy).creatureAnimator.SetTrigger("Tired");
             }
             if (isStaminaDowned)
@@ -3725,7 +3766,8 @@ namespace LethalIntelligence.Patches
                             }
                             if ((Object)(object)__instance.targetPlayer != (Object)null && num > 10f && shootTimer <= 0f)
                             {
-                                maskedEnemy.running = true;
+                                //maskedEnemy.running = true; //not needed once isRunning.Value is added?
+                                isRunning.Value = true;
                             }
                         }
                         else if (!component.safetyOn && component.shellsLoaded > 0 && (Object)(object)__instance.targetPlayer == (Object)null)
@@ -4262,7 +4304,8 @@ namespace LethalIntelligence.Patches
                     }
                     else
                     {
-                        maskedEnemy.running = true;
+                        //maskedEnemy.running = true; //not needed once isRunning.Value is added?
+                        isRunning.Value = true;
                     }
                 }
             }
@@ -4624,7 +4667,8 @@ namespace LethalIntelligence.Patches
             //__instance.moveTowardsDestination = true;
             if (Vector3.Distance(maskedEnemy.transform.position, maskedEnemy.mainEntrancePosition) < 1f)
             {
-                maskedEnemy.running = false; //to stop them running.
+                //maskedEnemy.running = false; //to stop them running. //not needed once isRunning.Value is added?
+                isRunning.Value = false;
                 mustChangeFocus = true;
                 mustChangeActivity = true;
             }*/
@@ -4649,7 +4693,8 @@ namespace LethalIntelligence.Patches
             //__instance.moveTowardsDestination = true;
             if (Vector3.Distance(maskedEnemy.transform.position, maskedEnemy.mainEntrancePosition) < 1f)
             {
-                maskedEnemy.running = false; //to stop them running.
+                //maskedEnemy.running = false; //to stop them running. //not needed once isRunning.Value is added?
+                isRunning.Value = false;
                 mustChangeFocus = true;
                 mustChangeActivity = true;
             }*/
