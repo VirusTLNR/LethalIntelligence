@@ -5,6 +5,6 @@
   "description": "[V62][EXPERIMENTAL]Improved AI in Lethal Company (WIP)",
   "dependencies": [
     "BepInEx-BepInExPack-5.4.2100",
-    "xilophor-LethalNetworkAPI-3.1.1"
+    "xilophor-LethalNetworkAPI-3.2.1"
   ]
 }
