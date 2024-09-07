@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.1.7
+- Focus, Activity, and whether the masked is Running or not should now be synced from host to client, if you see different things from host to client, do let me know.
+- Fixed a null reference exception relating to the breakerbox that was previously missed.
+
 ### 0.1.6 - Fixing Entrances/Exits + Implementing FireExit usage
 - Masked can now use fire exits, 
 - Masked getting stuck at the entrances/exits should now be fixed. If a masked has recently used an entrance/exit, they will now either.. do something else, or wait a short period and do some idle actions while they wait.
