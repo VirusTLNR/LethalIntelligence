@@ -17,7 +17,7 @@ namespace LethalIntelligence.Patches
                 .RegisterInsight("Personality", entity => $"{p}")
                 .RegisterInsight("Focus", entity => $"{f}")
                 .RegisterInsight("Activity", entity => $"{a}")
-                .RegisterInsight("D->", entity => $"{MaskedPlayerEnemyPatch.vd.agent.destination.ToString()}");
+                //.RegisterInsight("D->", entity => $"{MaskedPlayerEnemyPatch.vd.agent.destination.ToString()}");
                 //.RegisterInsight("Goal", entity => $"{MaskedPlayerEnemyPatch.vd.maskedGoal}");
             }
             catch(NullReferenceException nre)
