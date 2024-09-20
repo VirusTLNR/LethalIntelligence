@@ -4604,7 +4604,8 @@ namespace LethalIntelligence.Patches
                 {
                     maskedGoal = "using entrance (" + entrance.entranceId + "/" + entrance.entrancePoint.position.ToString() + ")";
                     TimeSinceTeleporting = 0;
-                    maskedEnemy.TeleportMaskedEnemyAndSync((Vector3)opposingTeleportPosition, !maskedEnemy.isOutside);
+                    //maskedEnemy.TeleportMaskedEnemyAndSync((Vector3)opposingTeleportPosition, !maskedEnemy.isOutside);
+                    TeleportMaskedEnemyAndSync((Vector3)opposingTeleportPosition, !maskedEnemy.isOutside);
                     if (maskedFocus != Focus.Escape)
                     {
                         mustChangeFocus = true;
@@ -4627,6 +4628,27 @@ namespace LethalIntelligence.Patches
 
             }
         }
+
+        //killing off zeekers code for masked teleporting at the main entrance... its causing a bug
+        [HarmonyPatch(typeof(MaskedPlayerEnemy), "TeleportMaskedEnemyAndSync")]
+        [HarmonyPrefix]
+        private static bool TeleportMaskedEnemyAndSync_Prefix()
+        {
+            return false;
+        }
+
+
+        //my replacement for MaskedEnemy.TeleportMaskedEnemyAndSync ... killing off the original function and using this will disable the vanilla behaviour for masked to teleport.
+        private void TeleportMaskedEnemyAndSync(Vector3 pos, bool setOutside)
+        {
+            if (!base.IsOwner)
+            {
+                return;
+            }
+            maskedEnemy.TeleportMaskedEnemy(pos, setOutside);
+            maskedEnemy.TeleportMaskedEnemyServerRpc(pos, setOutside);
+        }
+
 
         private Vector3? getTeleportDestination(EntranceTeleport entrance)
         {
