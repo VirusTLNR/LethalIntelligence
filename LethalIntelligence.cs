@@ -117,7 +117,7 @@ namespace LethalIntelligence
 
             //debug settings
             debugModeSetting = ((BaseUnityPlugin)this).Config.Bind<bool>("DebugMode", "Debug Mode", true, "Enables more spammy logs for debugging, will be enabled automatically if imperium is installed. (all other DebugMode settings are ignored if Debug Mode is disabled)").Value;
-            debugStatusDelay = ((BaseUnityPlugin)this).Config.Bind<int>("DebugMode", "Status Report Delay", 100, "How often should status reports (only updates when information changes) be logged (higher number = less spam but also less accurate as not all information is gathered").Value;
+            debugStatusDelay = ((BaseUnityPlugin)this).Config.Bind<int>("DebugMode", "Status Report Delay", 0, "How often should status reports (only updates when information changes) be logged (higher number = less log spam but also less accurate as not all information is gathered").Value;
             if (imperiumFound || debugModeSetting)
             {
                 if (imperiumFound)
