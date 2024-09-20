@@ -6,20 +6,14 @@ A mod aiming to tweak all AI in the game to have improved flavour and perhaps be
 
 This mod is built upon Piggy's "MaskedAiRevamp v0.2.1" (https://thunderstore.io/c/lethal-company/p/Piggy/MaskedAIRevamp/). (github located here.. https://github.com/Piggy3590/MaskedAIRevamp)
 
-As piggy wrote in the readme for v0.2.1 - this mod maybe very buggy, i hope to make it more stable over time!
-
-All clients must have this mod installed for it to work!
-
-There is compatibility with RugbugRedfern's SkinWalkers mod.
-
-The current version is a **very very early** version, no optimization work has been done, so you may experience significant frame drops even with high PC specs!!!
+Serious FPS drops may occur, even on high end PCs, do report them to me if they occur and I will look into them.
 
 *Also... There may be tons of bugs.* (please do report them to me, either via github or the Lethal Company Modding Community on discord!)
 
 ## Note re:DebugMode
-There is now a setting in config for debug mode, while this is experimental, this will be turned on by default, if you are getting performance issues (low fps i mean) then feel free to turn it off, but it shouldent be causing an issue, but does give me vital information for fixing your issues. (if you were using this mod before v0.1.5 this will not be on by default)
+There is now a setting in config for debug mode, while this is experimental, this will be turned on by default, if you are getting performance issues (low fps i mean) then feel free to turn it off, or just increase the delay between reports. It shouldent be causing an issue, but does give me vital information for fixing your issues. (if you were using this mod before v0.1.5 this will not be on by default, and if you are using this since before v0.1.8 then the delay will be 100, the lower the better though.)
 
-if this is on.. OR Imperium is installed.. debug mode will be turned on, this will provide more logs (potentially more spammy), if debug mode is on, regular "status" reports will be logged for every masked. If you are having issues, feel free to turn this mode on, replicate the issue, then send me the log.
+if this is on.. OR Imperium is installed.. debug mode will be turned on, this will provide more logs (potentially more spammy), if debug mode is on, regular "status" reports will be logged for every masked, so if you are having issues, feel free to turn this mode on, replicate the issue, then send me the log.
 
 ## Mod Features
 <details>
@@ -53,13 +47,19 @@ if this is on.. OR Imperium is installed.. debug mode will be turned on, this wi
  </details>
 
 ## Known Issues
-- potential differences in focus/activities for masked between host/clients leading to masked acting weird, will fix this when im able to.
+- masked "ignoring players" is sometimes way too much, and sometimes way too little, a rework of the system will occur soon.
 
 ## Mods
-Recommended to install with this mod:
 
-+ 'MaskedEnemyOverhaulFork' mod by Coppertiel (the original by HomelessGinger is bugged at time of writing this).
-+ 'Skinwalkers' by RedbugRedfern. OR 'Mirage' by qwbarch OR 'Wendigos_Voice_Cloning' by Tim_Shaw (no integration for mirage as of yet, but it is planned when mirage v2 is out)
+100% Compatible:
++ 'MaskedEnemyOverhaulFork' mod by Coppertiel
++ 'Skinwalkers' by RedbugRedfern
++ 'Mirage' by qwbarch
++ 'Wendigos_Voice_Cloning' by Tim_Shaw
+
+Not 100% Compatible (and how to get the best compatibility with these mods.. feel free to suggest other things that need adding to this list as i dont use every mod!):
++ General Improvements - Disable all settings related to the masked, if you turn some on and get no issues, do let me know which ones so i can add them here as "fine". The "map dot" should be a 100% turn off as its part of this mod too.
++ TooManyEmotes - Turn off "stop and stare duration override"? on, or off, one or the other, this may make masked look weird!
  
 
 ## Thanks to...

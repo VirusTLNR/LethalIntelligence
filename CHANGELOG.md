@@ -1,5 +1,10 @@
 ## Changelog
 
+### 0.1.8
+- Fixed masked "double teleporting" at the main entrance leading to them getting stuck thinking they are outside when they are inside, and vica versa.
+- Added auto removal of config entries that are no longer being used in the Lethal Intelligence config file. (for the future where I see many settings being added, then later removed :))
+- Changed the default configuration of "debug mode delay" to 0 as that provides the most information, and I dont think status reports provide any lag. if you refresh your config and start getting lag after this update, then turn off debug mode, or increase the delay.
+
 ### 0.1.7
 - Focus, Activity, and whether the masked is Running or not should now be synced from host to client, if you see different things from host to client, do let me know.
 - Fixed a null reference exception relating to the breakerbox that was previously missed.
