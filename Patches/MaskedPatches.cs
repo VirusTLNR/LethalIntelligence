@@ -4652,7 +4652,7 @@ namespace LethalIntelligence.Patches
 
         private Vector3? getTeleportDestination(EntranceTeleport entrance)
         {
-            if(entrance==null)
+            if (entrance == null)
             {
                 return null;
             }
