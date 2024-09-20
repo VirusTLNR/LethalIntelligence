@@ -130,11 +130,29 @@ namespace LethalIntelligence
                 }
                 DebugMode = true;
             }
+            RemoveOrphanedConfigs();
             Patch();
             /*Logger = base.Logger;
             Instance = this;
 
             Patch();*/
+        }
+
+        internal void RemoveOrphanedConfigs()
+        {
+            //for testing that orphan removel is working.
+            //int orphan = ((BaseUnityPlugin)this).Config.Bind<int>("Test", "Orphan", 100, "just an orphan").Value;
+
+            PropertyInfo orphanedEntriesProp = ((BaseUnityPlugin)this).Config.GetType().GetProperty("OrphanedEntries", BindingFlags.NonPublic | BindingFlags.Instance);
+
+            var orphanedEntries = (Dictionary<BepInEx.Configuration.ConfigDefinition, string>)orphanedEntriesProp.GetValue(Config, null);
+            if(orphanedEntries.Count !=0)
+            {
+                Plugin.mls.LogInfo("Found Orphaned Config Entries - Removing them all as they are not needed anymore");
+            }
+
+            orphanedEntries.Clear(); // Clear orphaned entries (Unbinded/Abandoned entries)
+            ((BaseUnityPlugin)this).Config.Save(); // Save the config file
         }
 
         internal static void Patch()
