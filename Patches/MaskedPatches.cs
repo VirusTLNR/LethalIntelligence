@@ -1208,6 +1208,12 @@ namespace LethalIntelligence.Patches
                 if (isUsingTerminal == true)
                 {
                     Plugin.isTerminalBeingUsed = false; //attempting to fix a killed/despawned mask locking out others from the terminal
+                    terminal.SetTerminalNoLongerInUse(); //makes it so terminal is useable after they die
+                    if (GameNetworkManager.Instance.isHostingGame)
+                    {
+                        //enabling terminal when masked stops using it as it is disabled while they use it to prevent you softlocking yourself on the terminal
+                        terminal.gameObject.SetActive(true);
+                    }
                 }
                 return; //stops them doing anything if they are dead?
             }
@@ -3240,6 +3246,11 @@ namespace LethalIntelligence.Patches
             {
                 maskedGoal = "using terminal";
                 creatureAnimator.SetTrigger("Terminal");
+                if (GameNetworkManager.Instance.isHostingGame)
+                {
+                    //disabling terminal while masked is using it to prevent a softlock
+                    terminal.gameObject.SetActive(false);
+                }
                 __instance.inSpecialAnimation = true;
                 this.ignoringPersonality = false;
                 terminal.placeableObject.inUse = true;
@@ -3288,6 +3299,11 @@ namespace LethalIntelligence.Patches
                         //GrabItem();
                         //__instance.SetDestinationToPosition(GameObject.Find("ItemShip").transform.position, false); //doesnt actually route to the item ship, just uses it as a hook to get off i guess.
                         isUsingTerminal = false;
+                        if (GameNetworkManager.Instance.isHostingGame)
+                        {
+                            //enabling terminal when masked stops using it.
+                            terminal.gameObject.SetActive(true);
+                        }
                         noMoreTerminal = true;
                         dropShipTimer = 0;
                     }
@@ -3308,6 +3324,11 @@ namespace LethalIntelligence.Patches
                         maskedEnemy.headTiltTarget.gameObject.SetActive(true);
                         //__instance.SetDestinationToPosition(GameObject.Find("ItemShip").transform.position, false); //doesnt actually route to the item ship, just uses it as a hook to get off i guess.
                         isUsingTerminal = false;
+                        if (GameNetworkManager.Instance.isHostingGame)
+                        {
+                            //enabling terminal when masked stops using it.
+                            terminal.gameObject.SetActive(true);
+                        }
                         noMoreTerminal = true;
                         Plugin.isTerminalBeingUsed = false;
                         isTerminalEscaping = false;
@@ -3349,6 +3370,11 @@ namespace LethalIntelligence.Patches
                         maskedEnemy.headTiltTarget.gameObject.SetActive(true);
                         //__instance.SetDestinationToPosition(GameObject.Find("ItemShip").transform.position, false); //doesnt actually route to the item ship, just uses it as a hook to get off i guess.
                         isUsingTerminal = false;
+                        if (GameNetworkManager.Instance.isHostingGame)
+                        {
+                            //enabling terminal when masked stops using it.
+                            terminal.gameObject.SetActive(true);
+                        }
                         noMoreTerminal = true;
                         //isTerminalEscaping = false;
                         if(maskedFocus == Focus.Escape)
@@ -3377,6 +3403,11 @@ namespace LethalIntelligence.Patches
                         maskedEnemy.headTiltTarget.gameObject.SetActive(true);
                         //__instance.SetDestinationToPosition(GameObject.Find("ItemShip").transform.position, false); //doesnt actually route to the item ship, just uses it as a hook to get off i guess.
                         isUsingTerminal = false;
+                        if (GameNetworkManager.Instance.isHostingGame)
+                        {
+                            //enabling terminal when masked stops using it.
+                            terminal.gameObject.SetActive(true);
+                        }
                         noMoreTerminal = true;
                         Plugin.isTerminalBeingUsed = false;
                         return;
@@ -3414,6 +3445,11 @@ namespace LethalIntelligence.Patches
                         maskedEnemy.headTiltTarget.gameObject.SetActive(true);
                         //__instance.SetDestinationToPosition(GameObject.Find("ItemShip").transform.position, false); //doesnt actually route to the item ship, just uses it as a hook to get off i guess.
                         isUsingTerminal = false;
+                        if (GameNetworkManager.Instance.isHostingGame)
+                        {
+                            //enabling terminal when masked stops using it.
+                            terminal.gameObject.SetActive(true);
+                        }
                         noMoreTerminal = true;
                         Plugin.isTerminalBeingUsed = false;
                     }
