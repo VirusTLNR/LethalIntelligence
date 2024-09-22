@@ -3274,7 +3274,10 @@ namespace LethalIntelligence.Patches
                             {
                                 dropship.ShipLeave();
                             }*/
-                            dropship.LandShipOnServer();
+                            //dropship.LandShipOnServer();
+                            dropship.playersFirstOrder = false;
+                            dropship.shipTimer = 41f;
+                            terminal.orderedItemsFromTerminal.Add(1);
                             isDeliverEmptyDropship = true;
                         }
                     }
