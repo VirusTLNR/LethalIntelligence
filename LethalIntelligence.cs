@@ -166,6 +166,7 @@ namespace LethalIntelligence
 
             //all masked patches
             harmony.PatchAll(typeof(MaskedPlayerEnemyPatch));
+            harmony.PatchAll(typeof(MaskedAIRevamp));
             harmony.PatchAll(typeof(ShotgunItemPatch));
             harmony.PatchAll(typeof(GrabbableObjectPatch));
             harmony.PatchAll(typeof(StartOfRoundPatch));
