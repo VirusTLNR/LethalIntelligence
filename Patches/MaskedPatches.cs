@@ -1495,7 +1495,7 @@ namespace LethalIntelligence.Patches
 
         public void LookAtPos(Vector3 pos, float lookAtTime = 1f)
         {
-            maskedGoal = "lookatpos";
+            maskedGoal = "Looking at where player was last seen";
             //IL_0006: Unknown result type (might be due to invalid IL or missing references)
             //IL_0023: Unknown result type (might be due to invalid IL or missing references)
             //IL_0024: Unknown result type (might be due to invalid IL or missing references)
@@ -1509,7 +1509,7 @@ namespace LethalIntelligence.Patches
             bool canSeePos = __instance.CheckLineOfSightForPosition(pos, 80f, 60, -1, null);
             if (canSeePos)
             {
-                maskedGoal = $"Look at position {pos} called! lookatpositiontimer setting to {lookAtTime}";
+                //maskedGoal = $"Look at position {pos} called! lookatpositiontimer setting to {lookAtTime}"; //this is laggy sadly..
                 maskedEnemy.focusOnPosition = pos;
                 maskedEnemy.lookAtPositionTimer = lookAtTime;
                 float num = Vector3.Angle(((Component)this).transform.forward, pos - ((Component)this).transform.position);
@@ -1521,7 +1521,7 @@ namespace LethalIntelligence.Patches
             }
             else
             {
-                maskedGoal = $"Look at position {pos} failed! Cannot see target, walking normally!";
+                //maskedGoal = $"Look at position {pos} failed! Cannot see target, walking normally!"; //this is laggy sadly..
                 //these lines seemingly are not needed, as the default directioning is enough.
                 //maskedEnemy.LookAtDirection(originDestination);
                 //maskedEnemy.lookAtPositionTimer = lookAtTime;
