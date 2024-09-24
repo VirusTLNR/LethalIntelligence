@@ -172,7 +172,8 @@ namespace LethalIntelligence.Patches
             BreakerBox,
             Apparatus,
             RandomItem,
-            RandomPlayer
+            RandomPlayer,
+            WalkieTalkie
         }
 
         private void TestConfig()
@@ -1215,6 +1216,7 @@ namespace LethalIntelligence.Patches
             if (useWalkie.Value)
             {
                 maskedGoal = "use walkie";
+                GrabWalkie();
                 HoldWalkie();
                 useWalkie.Value = false;
             }
@@ -1271,7 +1273,7 @@ namespace LethalIntelligence.Patches
             }
             if ((Plugin.wendigosIntegrated || Plugin.skinWalkersIntegrated) && ((NetworkBehaviour)this).IsHost && (maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane || maskedPersonality == Personality.Stealthy))
             {
-                maskedGoal = "using walkietalkie! (skinwalkers/Wendigos integration)";
+                maskedGoal = "confirming WalkieTalkie usage! (skinwalkers/Wendigos integration)";
                 useWalkie.Value = true;
             }
             if ((Object)(object)creatureAnimator == (Object)null)
@@ -2095,12 +2097,99 @@ namespace LethalIntelligence.Patches
             }
         }
 
+        private void GrabWalkie()
+        {
+            if (((NetworkBehaviour)this).IsHost)
+            {
+                if (isHoldingObject)
+                {
+                    return; //you are currently holding an object.
+                }
+                if (maskedFocus != Focus.None)
+                {
+                    return; //masked is focused on something right now so shouldent be picking up a walkie.
+                }
+                if (StartOfRound.Instance.allPlayerScripts.Count() < 2)
+                {
+                    return; //less than two players in the game, so no point using wallkies. (skin walkers 100% bugs out with less than 1 players)
+                }
+                List<WalkieTalkie> walkieTalkies = GlobalItemList.Instance.allWalkieTalkies;
+                if (walkieTalkies.Count < 2)
+                {
+                    return; //once again, if there isnt a second walkie, no point using a walkie.
+                }
+                GrabbableObject walkieToGrab = null;
+                foreach (var walkie in walkieTalkies)
+                {
+                    if (__instance.CheckLineOfSightForPosition(walkie.transform.position, 60f))
+                    {
+                        if (walkie.isHeld || walkie.isHeldByEnemy)
+                        {
+                            continue; //this walkie is already held so you shouldent be trying to take it.
+                        }
+                        walkieToGrab = walkie;
+                        maskedFocusInt.Value = (int)Focus.None; //syncing variables
+                        maskedActivityInt.Value = (int)Activity.WalkieTalkie; //syncing variables
+                    }
+                }
+                if (walkieToGrab == null)
+                {
+                    return; //there is no walkie to grab in sight.. so dont continue.
+                }
+                var distance = Vector3.Distance(__instance.transform.position, walkieToGrab.transform.position);
+                if (distance < 1.5f && !isHoldingObject)
+                {
+                    isCrouched.Value = true;
+                }
+                else
+                {
+                    isCrouched.Value = false;
+                    mustChangeFocus = true;
+                    mustChangeActivity = true;
+                }
+                if (distance > 0.5f)
+                {
+                    __instance.SetDestinationToPosition(((Component)walkieToGrab).transform.position, true);
+                    __instance.moveTowardsDestination = true;
+                    __instance.movingTowardsTargetPlayer = false;
+                }
+                if (distance > 0.5f && distance < 3f)
+                {
+                    maskedEnemy.focusOnPosition = ((Component)walkieToGrab).transform.position;
+                    maskedEnemy.lookAtPositionTimer = 1.5f;
+                }
+                if (distance < 0.9f)
+                {
+                    if (isHoldingObject)
+                    {
+                        return;
+                    }
+                    //NotGrabItemsTime(); //may not be a fix
+                    float num3 = Vector3.Angle(((Component)__instance).transform.forward, ((Component)walkieToGrab).transform.position - ((Component)__instance).transform.position);
+                    if (((Component)walkieToGrab).transform.position.y - maskedEnemy.headTiltTarget.position.y < 0f)
+                    {
+                        num3 *= -1f;
+                    }
+                    maskedEnemy.verticalLookAngle = num3;
+                    heldGrabbable = walkieToGrab;
+                    walkieToGrab.parentObject = itemHolder.transform;
+                    walkieToGrab.hasHitGround = false;
+                    walkieToGrab.isHeld = true;
+                    walkieToGrab.isHeldByEnemy = true;
+                    walkieToGrab.grabbable = false;
+                    isHoldingObject = true;
+                    itemDroped = false;
+                    walkieToGrab.GrabItemFromEnemy(__instance);
+                }
+            }
+        }
+
         private void HoldWalkie()
         {
             maskedGoal = "holdwalkie";
-            if ((Plugin.wendigosIntegrated || Plugin.skinWalkersIntegrated) && isHoldingObject && closestGrabbable is WalkieTalkie)
+            if ((Plugin.wendigosIntegrated || Plugin.skinWalkersIntegrated) && isHoldingObject && heldGrabbable is WalkieTalkie)
             {
-                WalkieTalkie component = ((Component)closestGrabbable).GetComponent<WalkieTalkie>();
+                WalkieTalkie component = ((Component)heldGrabbable).GetComponent<WalkieTalkie>();
                 //walkieCooldown += Time.deltaTime;
                 walkieCooldown += updateFrequency;
                 if (walkieCooldown < 1f)
@@ -2186,10 +2275,10 @@ namespace LethalIntelligence.Patches
                         }
                         else if (Plugin.wendigosIntegrated)
                         {
-                            if (wendigosTimer()) //should play an audio clip at random once every 20 updates, maybe thats too quick..
-                            {
-                                allWalkieTalky.target.PlayOneShot(wendigosClip());
-                            }
+                            //if (wendigosTimer()) //should play an audio clip at random once every 20 updates, maybe thats too quick..
+                            //{
+                            allWalkieTalky.target.PlayOneShot(wendigosClip());
+                            //}
                         }
                     }
                 }
