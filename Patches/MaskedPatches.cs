@@ -4757,6 +4757,7 @@ namespace LethalIntelligence.Patches
         #region mirageDependency
         // Firstly, each EnemyAI will have an AudioStream component attached to it. This is used for handling networked audio.
         AudioStream audioStream;
+        AudioClip audioClip = null;
 
         //put this in masked spawn
         // Subscribe to the event.
@@ -4767,24 +4768,22 @@ namespace LethalIntelligence.Patches
         }
 
         // In order to know when a new audio clip is created and streamed over, we will be subscribing to "AudioStreamEvent"s.
-        public void OnAudioStreamHandler(AudioStreamEvent audioEvent)
+        public void OnAudioStreamHandler(object _, AudioStreamEventArgs eventArgs)
         {
-            AudioClip audioClip = null;
             List<WalkieTalkie> allWalkieTalkies = GlobalItemList.Instance.allWalkieTalkies;
+            var audioEvent = eventArgs.EventData;
 
             foreach (WalkieTalkie walkieTalkie in allWalkieTalkies)
             {
-                if (audioEvent is AudioStartEvent startEvent)
+                switch (audioEvent)
                 {
-
-            }
-                    switch (audioEvent)
-                {
-                    case AudioStartEvent startEvent:
+                    case AudioStreamEvent.AudioStartEvent:
+                        var startEvent = (audioEvent as AudioStreamEvent.AudioStartEvent).Item;
                         walkieTalkie.target.Stop();
                         walkieTalkie.target.clip = AudioClip.Create("maskedClip", startEvent.lengthSamples, startEvent.channels, startEvent.frequency, true);
                         break;
-                    case AudioReceivedEvent receivedEvent:
+                    case AudioStreamEvent.AudioReceivedEvent:
+                        var receivedEvent = (audioEvent as AudioStreamEvent.AudioReceivedEvent).Item;
                         audioClip.SetData(receivedEvent.samples, receivedEvent.sampleIndex);
                         if (!walkieTalkie.target.isPlaying)
                         {
