@@ -11,6 +11,7 @@ using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 using System.Linq;
 using System.Threading.Tasks;
+using static Mirage.Unity.AudioStream;
 
 namespace LethalIntelligence.Patches
 {
@@ -1173,6 +1174,40 @@ namespace LethalIntelligence.Patches
             { 
                 ///idk be lazy, do nothing.
             }*/
+        }
+
+        private void OnVoiceMimic()
+        { }
+
+        private void mirageAudioTesting()
+        {
+            //https://discord.com/channels/1168655651455639582/1200695291972685926/1288563261851041833
+            if (Plugin.mirageIntegrated)
+            {
+                AudioClip audioClip = null;
+                List<WalkieTalkie> allWalkieTalkies = new List<WalkieTalkie>();
+                OnVoiceMimic += (isFirstFrame, samples, sampleIndex) =>
+                {
+                    foreach (WalkieTalkie walkieTalkie in allWalkieTalkies)
+                    {
+                        // only reset the audioclip if it's a new voice clip (indicated by isFirstFrame)
+                        if (isFirstFrame)
+                        {
+                            walkieTalkie.target.Stop();
+                            audioClip = AudioClip.Create(); // assume params are filled
+                            walkieTalkie.target.AudioClip = audioClip;
+                        }
+                        // since this callback is invoked each time a new frame is received, this will set the audioclip's audio data
+                        // as soon as new audio data is received
+                        audioClip.SetData(samples, sampleIndex, samples.Length);
+                        // doesn't need to be this exact condition, just have to play the audiosource if it hasn't started yet
+                        if (!walkieTalkie.target.IsPlaying())
+                        {
+                            walkieTalkie.target.Play();
+                        }
+                    }
+                };
+            }
         }
 
         public void FixedUpdate()
@@ -4754,7 +4789,7 @@ namespace LethalIntelligence.Patches
                         if (!walkieTalkie.target.isPlaying)
                         {
                             walkieTalkie.target.Play();
-        }
+                        }
                         break;
                 }
             }
