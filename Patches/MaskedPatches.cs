@@ -1176,7 +1176,7 @@ namespace LethalIntelligence.Patches
             }*/
         }
 
-        private void OnVoiceMimic()
+        /*private void OnVoiceMimic()
         { }
 
         private void mirageAudioTesting()
@@ -1208,7 +1208,7 @@ namespace LethalIntelligence.Patches
                     }
                 };
             }
-        }
+        }*/
 
         public void FixedUpdate()
         {
