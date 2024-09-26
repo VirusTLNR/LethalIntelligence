@@ -631,6 +631,7 @@ namespace LethalIntelligence.Patches
             if (GameNetworkManager.Instance.isHostingGame)
             {
                 maxDanceCount.Value = Random.Range(2, 4);
+                enableMirageAudio();
             }
             if ((Object)(object)creatureAnimator.runtimeAnimatorController != (Object)(object)Plugin.MaskedAnimController)
             {
@@ -4757,14 +4758,17 @@ namespace LethalIntelligence.Patches
         #region mirageDependency
         // Firstly, each EnemyAI will have an AudioStream component attached to it. This is used for handling networked audio.
         AudioStream audioStream;
-        AudioClip audioClip = null;
+        AudioClip audioClip;
 
         //put this in masked spawn
         // Subscribe to the event.
         private void enableMirageAudio()
         {
-            audioStream = maskedEnemy.GetComponent<AudioStream>();
-            audioStream.OnAudioStream += OnAudioStreamHandler;
+            if (Plugin.mirageIntegrated)
+            {
+                audioStream = maskedEnemy.GetComponent<AudioStream>();
+                audioStream.OnAudioStream += OnAudioStreamHandler;
+            }
         }
 
         // In order to know when a new audio clip is created and streamed over, we will be subscribing to "AudioStreamEvent"s.
@@ -4780,10 +4784,12 @@ namespace LethalIntelligence.Patches
                     case AudioStreamEvent.AudioStartEvent:
                         var startEvent = (audioEvent as AudioStreamEvent.AudioStartEvent).Item;
                         walkieTalkie.target.Stop();
-                        walkieTalkie.target.clip = AudioClip.Create("maskedClip", startEvent.lengthSamples, startEvent.channels, startEvent.frequency, true);
+                        audioClip = AudioClip.Create("maskedClip", startEvent.lengthSamples, startEvent.channels, startEvent.frequency, false);
+                        walkieTalkie.target.clip = audioClip;
                         break;
                     case AudioStreamEvent.AudioReceivedEvent:
                         var receivedEvent = (audioEvent as AudioStreamEvent.AudioReceivedEvent).Item;
+                        //Plugin.mls.LogError("Samples=" + receivedEvent.samples.Length.ToString());
                         audioClip.SetData(receivedEvent.samples, receivedEvent.sampleIndex);
                         if (!walkieTalkie.target.isPlaying)
                         {
