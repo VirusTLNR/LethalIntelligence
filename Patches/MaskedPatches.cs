@@ -4719,6 +4719,48 @@ namespace LethalIntelligence.Patches
             }
         }
 
+        #region mirageDependency
+        // Firstly, each EnemyAI will have an AudioStream component attached to it. This is used for handling networked audio.
+        AudioStream audioStream;
+
+        //put this in masked spawn
+        // Subscribe to the event.
+        private void enableMirageAudio()
+        {
+            audioStream = maskedEnemy.GetComponent<AudioStream>();
+            audioStream.OnAudioStream += OnAudioStreamHandler;
+        }
+
+        // In order to know when a new audio clip is created and streamed over, we will be subscribing to "AudioStreamEvent"s.
+        public void OnAudioStreamHandler(AudioStreamEvent audioEvent)
+        {
+            AudioClip audioClip = null;
+            List<WalkieTalkie> allWalkieTalkies = GlobalItemList.Instance.allWalkieTalkies;
+
+            foreach (WalkieTalkie walkieTalkie in allWalkieTalkies)
+            {
+                if (audioEvent is AudioStartEvent startEvent)
+                {
+
+            }
+                    switch (audioEvent)
+                {
+                    case AudioStartEvent startEvent:
+                        walkieTalkie.target.Stop();
+                        walkieTalkie.target.clip = AudioClip.Create("maskedClip", startEvent.lengthSamples, startEvent.channels, startEvent.frequency, true);
+                        break;
+                    case AudioReceivedEvent receivedEvent:
+                        audioClip.SetData(receivedEvent.samples, receivedEvent.sampleIndex);
+                        if (!walkieTalkie.target.isPlaying)
+                        {
+                            walkieTalkie.target.Play();
+        }
+                        break;
+                }
+            }
+        }
+        #endregion mirageDependency
+
         //killing off zeekers code for masked teleporting at the main entrance... its causing a bug
         [HarmonyPatch(typeof(MaskedPlayerEnemy), "TeleportMaskedEnemyAndSync")]
         [HarmonyPrefix]
