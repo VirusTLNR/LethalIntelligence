@@ -4758,7 +4758,6 @@ namespace LethalIntelligence.Patches
         #region mirageDependency
         // Firstly, each EnemyAI will have an AudioStream component attached to it. This is used for handling networked audio.
         AudioStream audioStream;
-        AudioClip audioClip;
 
         //put this in masked spawn
         // Subscribe to the event.
@@ -4784,13 +4783,12 @@ namespace LethalIntelligence.Patches
                     case AudioStreamEvent.AudioStartEvent:
                         var startEvent = (audioEvent as AudioStreamEvent.AudioStartEvent).Item;
                         walkieTalkie.target.Stop();
-                        audioClip = AudioClip.Create("maskedClip", startEvent.lengthSamples, startEvent.channels, startEvent.frequency, false);
-                        walkieTalkie.target.clip = audioClip;
+                        walkieTalkie.target.clip = AudioClip.Create("maskedClip", startEvent.lengthSamples, startEvent.channels, startEvent.frequency, false);
                         break;
                     case AudioStreamEvent.AudioReceivedEvent:
                         var receivedEvent = (audioEvent as AudioStreamEvent.AudioReceivedEvent).Item;
                         //Plugin.mls.LogError("Samples=" + receivedEvent.samples.Length.ToString());
-                        audioClip.SetData(receivedEvent.samples, receivedEvent.sampleIndex);
+                        walkieTalkie.target.clip.SetData(receivedEvent.samples, receivedEvent.sampleIndex);
                         if (!walkieTalkie.target.isPlaying)
                         {
                             walkieTalkie.target.Play();
