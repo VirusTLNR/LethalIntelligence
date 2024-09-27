@@ -4778,6 +4778,11 @@ namespace LethalIntelligence.Patches
 
             foreach (WalkieTalkie walkieTalkie in allWalkieTalkies)
             {
+                if (walkieTalkie.target.volume != Plugin.walkieVolume)
+                {
+                    Plugin.mls.LogError("Setting Volume = " + walkieTalkie.target.volume);
+                }
+                walkieTalkie.target.volume = Plugin.walkieVolume;
                 switch (audioEvent)
                 {
                     case AudioStreamEvent.AudioStartEvent:
