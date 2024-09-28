@@ -2227,7 +2227,7 @@ namespace LethalIntelligence.Patches
         private void HoldWalkie()
         {
             maskedGoal = "holdwalkie";
-            if ((Plugin.wendigosIntegrated || Plugin.skinWalkersIntegrated) && isHoldingObject && heldGrabbable is WalkieTalkie)
+            if ((Plugin.wendigosIntegrated || Plugin.skinWalkersIntegrated || Plugin.mirageIntegrated) && isHoldingObject && heldGrabbable is WalkieTalkie)
             {
                 WalkieTalkie component = ((Component)heldGrabbable).GetComponent<WalkieTalkie>();
                 //walkieCooldown += Time.deltaTime;
@@ -2279,7 +2279,7 @@ namespace LethalIntelligence.Patches
         public void UseWalkie()
         {
             maskedGoal = "usewalkie";
-            if ((!Plugin.wendigosIntegrated && !Plugin.skinWalkersIntegrated) || !isHoldingObject || !(closestGrabbable is WalkieTalkie))
+            if ((!Plugin.wendigosIntegrated && !Plugin.skinWalkersIntegrated && !Plugin.mirageIntegrated) || !isHoldingObject || !(closestGrabbable is WalkieTalkie))
             {
                 return;
             }
@@ -2311,7 +2311,8 @@ namespace LethalIntelligence.Patches
                     {
                         if (Plugin.skinWalkersIntegrated)
                         {
-                            allWalkieTalky.target.PlayOneShot(SkinwalkerModPersistent.Instance.GetSample());
+                            Plugin.mls.LogError("why is skin walkers activating!?");
+                            playSkinwalkersAudio(allWalkieTalky);
                         }
                         else if (Plugin.wendigosIntegrated)
                         {
@@ -2320,8 +2321,21 @@ namespace LethalIntelligence.Patches
                             allWalkieTalky.target.PlayOneShot(wendigosClip());
                             //}
                         }
+                        else if (Plugin.mirageIntegrated)
+                        {
+                            /*if (allWalkieTalky.target.isPlaying || mirageHasNewClip)
+                            {
+                                audioStream.enabled = true;
+                            }*/
+                            
+                            Plugin.mls.LogError("Mirage Can Use Walkies Now");
+                             mirageCanUseWalkies = true;
                     }
                 }
+                }
+
+                Plugin.mls.LogError("Mirage will not Use Walkies Now");
+                mirageCanUseWalkies = false;
                 creatureAnimator.SetTrigger("UseWalkie");
                 walkieVoiceTransmitted = true;
             }
@@ -2347,6 +2361,11 @@ namespace LethalIntelligence.Patches
             creatureAnimator.ResetTrigger("UseWalkie");
             walkieCooldown = 0f;
             walkieTimer = 0f;
+        }
+
+        private void playSkinwalkersAudio(WalkieTalkie walkie)
+        {
+            walkie.target.PlayOneShot(SkinwalkerModPersistent.Instance.GetSample()); //fixing some dumb error with skin walkers not being present.
         }
 
         public void AwayFromPlayer()
