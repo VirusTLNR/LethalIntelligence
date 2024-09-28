@@ -1307,9 +1307,9 @@ namespace LethalIntelligence.Patches
             {
                 agent = ((Component)this).GetComponent<NavMeshAgent>();
             }
-            if ((Plugin.wendigosIntegrated || Plugin.skinWalkersIntegrated) && ((NetworkBehaviour)this).IsHost && (maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane || maskedPersonality == Personality.Stealthy))
+            if ((Plugin.wendigosIntegrated || Plugin.skinWalkersIntegrated || Plugin.mirageIntegrated) && ((NetworkBehaviour)this).IsHost && (maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane || maskedPersonality == Personality.Stealthy))
             {
-                maskedGoal = "confirming WalkieTalkie usage! (skinwalkers/Wendigos integration)";
+                maskedGoal = "confirming WalkieTalkie usage! (Skinwalkers/Wendigos/Mirage integration)";
                 useWalkie.Value = true;
             }
             if ((Object)(object)creatureAnimator == (Object)null)
@@ -2132,7 +2132,7 @@ namespace LethalIntelligence.Patches
                 num++;
             }
         }
-
+        GrabbableObject walkieToGrab = null;
         private void GrabWalkie()
         {
             if (((NetworkBehaviour)this).IsHost)
@@ -2145,16 +2145,17 @@ namespace LethalIntelligence.Patches
                 {
                     return; //masked is focused on something right now so shouldent be picking up a walkie.
                 }
-                if (StartOfRound.Instance.allPlayerScripts.Count() < 2)
+                if (StartOfRound.Instance.allPlayerScripts.Count() < 2 && Plugin.skinWalkersIntegrated)
                 {
-                    return; //less than two players in the game, so no point using wallkies. (skin walkers 100% bugs out with less than 1 players)
+                    return; //less than two players in the game, so no point using wallkies. (skin walkers will not play audio without two players being in the game)
                 }
                 List<WalkieTalkie> walkieTalkies = GlobalItemList.Instance.allWalkieTalkies;
                 if (walkieTalkies.Count < 2)
                 {
-                    return; //once again, if there isnt a second walkie, no point using a walkie.
+                    return; //once again, if there isnt a second walkie, no point using a walkie as the masked will be talking to themselves.
                 }
-                GrabbableObject walkieToGrab = null;
+                if (walkieToGrab == null)
+                {
                 foreach (var walkie in walkieTalkies)
                 {
                     if (__instance.CheckLineOfSightForPosition(walkie.transform.position, 60f))
@@ -2166,22 +2167,18 @@ namespace LethalIntelligence.Patches
                         walkieToGrab = walkie;
                         maskedFocusInt.Value = (int)Focus.None; //syncing variables
                         maskedActivityInt.Value = (int)Activity.WalkieTalkie; //syncing variables
+                            break; //masked has chosen their walkie.
                     }
                 }
-                if (walkieToGrab == null)
+                }
+                if (walkieToGrab == null) //if still null...
                 {
                     return; //there is no walkie to grab in sight.. so dont continue.
                 }
                 var distance = Vector3.Distance(__instance.transform.position, walkieToGrab.transform.position);
-                if (distance < 1.5f && !isHoldingObject)
+                if (distance < 1.0f && !isHoldingObject)
                 {
                     isCrouched.Value = true;
-                }
-                else
-                {
-                    isCrouched.Value = false;
-                    mustChangeFocus = true;
-                    mustChangeActivity = true;
                 }
                 if (distance > 0.5f)
                 {
@@ -2216,6 +2213,13 @@ namespace LethalIntelligence.Patches
                     isHoldingObject = true;
                     itemDroped = false;
                     walkieToGrab.GrabItemFromEnemy(__instance);
+                    if(isHoldingObject)
+                    {
+                        walkieToGrab = null;
+                        isCrouched.Value = false;
+                        mustChangeFocus = true;
+                        mustChangeActivity = true;
+                    }
                 }
             }
         }
