@@ -138,7 +138,6 @@ namespace LethalIntelligence
             Instance = this;
 
             Patch();*/
-            Start();
         }
 
         internal void RemoveOrphanedConfigs()
