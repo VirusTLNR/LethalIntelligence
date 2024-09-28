@@ -4758,6 +4758,7 @@ namespace LethalIntelligence.Patches
         #region mirageDependency
         // Firstly, each EnemyAI will have an AudioStream component attached to it. This is used for handling networked audio.
         AudioStream audioStream;
+        bool mirageCanUseWalkies = true;
 
         //put this in masked spawn
         // Subscribe to the event.
@@ -4773,32 +4774,33 @@ namespace LethalIntelligence.Patches
         // In order to know when a new audio clip is created and streamed over, we will be subscribing to "AudioStreamEvent"s.
         public void OnAudioStreamHandler(object _, AudioStreamEventArgs eventArgs)
         {
-            List<WalkieTalkie> allWalkieTalkies = GlobalItemList.Instance.allWalkieTalkies;
-            var audioEvent = eventArgs.EventData;
-
-            foreach (WalkieTalkie walkieTalkie in allWalkieTalkies)
+            if (mirageCanUseWalkies)
             {
-                if (walkieTalkie.target.volume != Plugin.walkieVolume)
+                List<WalkieTalkie> allWalkieTalkies = GlobalItemList.Instance.allWalkieTalkies;
+                var audioEvent = eventArgs.EventData;
+
+                foreach (WalkieTalkie walkieTalkie in allWalkieTalkies)
                 {
-                    Plugin.mls.LogError("Setting Volume = " + walkieTalkie.target.volume);
-                }
-                walkieTalkie.target.volume = Plugin.walkieVolume;
-                switch (audioEvent)
-                {
-                    case AudioStreamEvent.AudioStartEvent:
-                        var startEvent = (audioEvent as AudioStreamEvent.AudioStartEvent).Item;
-                        walkieTalkie.target.Stop();
-                        walkieTalkie.target.clip = AudioClip.Create("maskedClip", startEvent.lengthSamples, startEvent.channels, startEvent.frequency, false);
-                        break;
-                    case AudioStreamEvent.AudioReceivedEvent:
-                        var receivedEvent = (audioEvent as AudioStreamEvent.AudioReceivedEvent).Item;
-                        //Plugin.mls.LogError("Samples=" + receivedEvent.samples.Length.ToString());
-                        walkieTalkie.target.clip.SetData(receivedEvent.samples, receivedEvent.sampleIndex);
-                        if (!walkieTalkie.target.isPlaying)
-                        {
-                            walkieTalkie.target.Play();
-                        }
-                        break;
+                    walkieTalkie.target.volume = 1.2f; //this may not even be doing anything...
+                    switch (audioEvent)
+                    {
+                        case AudioStreamEvent.AudioStartEvent:
+                            var startEvent = (audioEvent as AudioStreamEvent.AudioStartEvent).Item;
+                            if (walkieTalkie.target.isPlaying)
+                            {
+                                walkieTalkie.target.Stop();
+                            }
+                            walkieTalkie.target.clip = AudioClip.Create("maskedClip", startEvent.lengthSamples, startEvent.channels, startEvent.frequency, false);
+                            break;
+                        case AudioStreamEvent.AudioReceivedEvent:
+                            var receivedEvent = (audioEvent as AudioStreamEvent.AudioReceivedEvent).Item;
+                            walkieTalkie.target.clip.SetData(receivedEvent.samples, receivedEvent.sampleIndex);
+                            if (!walkieTalkie.target.isPlaying)
+                            {
+                                walkieTalkie.target.Play();
+                            }
+                            break;
+                    }
                 }
             }
         }

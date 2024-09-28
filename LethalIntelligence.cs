@@ -47,7 +47,6 @@ namespace LethalIntelligence
         //config settings
             //gen
         public static bool enableMaskedFeatures, enableSkinWalkers, enableWendigos, enableMirage;
-        public static float walkieVolume;
 
         //masked personalities
         public static bool enableMaskedAggressive, enableMaskedStealthy, enableMaskedCunning, enableMaskedDeceiving, enableMaskedInsane;
@@ -99,8 +98,7 @@ namespace LethalIntelligence
             enableSkinWalkers = ((BaseUnityPlugin)this).Config.Bind<bool>("General", "SkinWalkers mod Compatibility", true, "Enables compatibility with the SkinWalkers mod. (Requires SkinWalkers mod installed, automatically disables on launch if not installed)").Value;
             enableWendigos = ((BaseUnityPlugin)this).Config.Bind<bool>("General", "Wendigos mod Compatibility", true, "Enables compatibility with the Wendigos_Voice_Cloning mod. (Requires Wendigos_Voice_Cloning mod installed, automatically disables on launch if not installed)").Value;
             enableMirage = ((BaseUnityPlugin)this).Config.Bind<bool>("General", "Mirage mod Compatibility", true, "Enables compatibility with the Mirage mod. (Requires Mirage mod installed, automatically disables on launch if not installed)").Value;
-            walkieVolume = ((BaseUnityPlugin)this).Config.Bind<float>("General", "WalkieTalkieVolume", 1.2f, "Temporary Setting for working out the best volume for the walkie and checking if changing it modifies player volume").Value;
-
+            
             //maskedPersonality
             enableMaskedAggressive = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedPersonalities", "MaskedAggressive", true, "Enables the 'Aggressive' personality for the Masked (at least 1 of these must be TRUE)").Value;
             enableMaskedStealthy = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedPersonalities", "MaskedStealthy", true, "Enables the 'Stealthy' personality for the Masked (at least 1 of these must be TRUE)").Value;
