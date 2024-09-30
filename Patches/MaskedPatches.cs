@@ -539,7 +539,7 @@ namespace LethalIntelligence.Patches
                         stopStatusReporting = true;
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Plugin.mls.LogWarning("MaskedStatusReport has failed to write...\n\t" + ex.ToString());
                 }
@@ -1372,7 +1372,7 @@ namespace LethalIntelligence.Patches
                     Plugin.mls.LogWarning("maskedPersonality = " + maskedPersonality);
                     Plugin.mls.LogWarning("SelectPersonalityInt.Value" + SelectPersonalityInt.Value);
                     Plugin.mls.LogWarning("No Personality Found => changing personality!");
-                    foreach(Personality p in useablePersonalities)
+                    foreach (Personality p in useablePersonalities)
                     {
                         Plugin.mls.LogWarning(p.ToString() + " is available");
                     }
@@ -1862,7 +1862,7 @@ namespace LethalIntelligence.Patches
                 agent.speed = 1.9f;
             }
             //else if (maskedEnemy.running)
-            else if(isRunning.Value)
+            else if (isRunning.Value)
             {
                 //running
                 isCrouched.Value = false;
@@ -2213,7 +2213,7 @@ namespace LethalIntelligence.Patches
                     isHoldingObject = true;
                     itemDroped = false;
                     walkieToGrab.GrabItemFromEnemy(__instance);
-                    if(isHoldingObject)
+                    if (isHoldingObject)
                     {
                         walkieToGrab = null;
                         isCrouched.Value = false;
@@ -3120,7 +3120,7 @@ namespace LethalIntelligence.Patches
                 maskedGoal = "(escape) heading outside";
                 maskedEnemy.SetDestinationToPosition(maskedEnemy.mainEntrancePosition);
                 selectedEntrance = null;
-                selectedEntrance = selectClosestEntrance(maskedEnemy.isOutside,true, true);
+                selectedEntrance = selectClosestEntrance(maskedEnemy.isOutside, true, true);
                 if (selectedEntrance == null)
                 {
                     maskedGoal = "No Entrance Found, Changing Focus";
@@ -3137,7 +3137,7 @@ namespace LethalIntelligence.Patches
                 {
                     isTerminalEscaping = true;
                 }
-                if(isTerminalEscaping)
+                if (isTerminalEscaping)
                 {
                     //check if signal translator is enabled once in range
                     if (Vector3.Distance(maskedEnemy.transform.position, terminalPosition) < 5f)
@@ -3149,7 +3149,7 @@ namespace LethalIntelligence.Patches
                             isLeverEscaping = true;
                             return;
                         }
-                        if(!Plugin.useTerminal)
+                        if (!Plugin.useTerminal)
                         {
                             Plugin.mls.LogDebug("Terminal usage is disabled so skipping 'escape warnings'");
                             isTerminalEscaping = false;
@@ -3185,7 +3185,7 @@ namespace LethalIntelligence.Patches
                     }
                     
                 }
-                if(isLeverEscaping)
+                if (isLeverEscaping)
                 {
                     isTerminalEscaping = false;
                     if (Plugin.maskedShipDeparture)
@@ -3489,7 +3489,7 @@ namespace LethalIntelligence.Patches
                         isUsingTerminal = false;
                         noMoreTerminal = true;
                         //isTerminalEscaping = false;
-                        if(maskedFocus == Focus.Escape)
+                        if (maskedFocus == Focus.Escape)
                         {
                             isTerminalEscaping = false;
                             isLeverEscaping = true;
@@ -4717,7 +4717,7 @@ namespace LethalIntelligence.Patches
 
         private void useEntranceTeleport(EntranceTeleport entrance)
         {
-            if(entrance == null)
+            if (entrance == null)
             {
                 //mustChangeFocus = true;
                 //mustChangeActivity = true;
@@ -4728,9 +4728,9 @@ namespace LethalIntelligence.Patches
             if (distanceToEntrance > 2f)
             {
                 maskedGoal = "Walking to entrance (" + entrance.entranceId + "/" + tPos.ToString() + ")";
-                maskedEnemy.SetDestinationToPosition(tPos,true);
+                maskedEnemy.SetDestinationToPosition(tPos, true);
             }
-            if(distanceToEntrance <2f)
+            if (distanceToEntrance < 2f)
             {
                 maskedGoal = "reached entrance (" + entrance.entranceId + "/" + tPos.ToString() + ")";
                 maskedEnemy.running = false;
@@ -4750,7 +4750,7 @@ namespace LethalIntelligence.Patches
                         mustChangeActivity = true;
                     }
                 }
-                else if (TimeSinceTeleporting > (MaxTimeBeforeTeleporting*0.75) && TimeSinceTeleporting <=MaxTimeBeforeTeleporting)
+                else if (TimeSinceTeleporting > (MaxTimeBeforeTeleporting * 0.75) && TimeSinceTeleporting <= MaxTimeBeforeTeleporting)
                 {
                     maskedGoal = "being idle waiting to use entrance (" + entrance.entranceId + ")";
                     maskedEnemy.LookAndRunRandomly();
