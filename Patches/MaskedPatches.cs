@@ -945,40 +945,40 @@ namespace LethalIntelligence.Patches
                 }
                 if (mustChangeFocus || maskedActivity == Activity.ItemLocker)
                 {
-                        if (GameObject.Find("LockerAudio") == null)
+                    if (GameObject.Find("LockerAudio") == null)
+                    {
+                        Plugin.mls.LogDebug("LockerAudio is Null");
+                        lockerReachable = false;
+                        lockerDistance = 1000f;
+                        //noMoreLocker = true; //not currently a variable
+                    }
+                    else
+                    {
+                        try
                         {
-                            Plugin.mls.LogDebug("LockerAudio is Null");
+                            lockerPosition = GameObject.Find("LockerAudio").transform.position; // so use this for now
+                                                                                                //this isnt working right now.. it routes the masked on to above the ship..
+                            /*if (NavMesh.SamplePosition(GameObject.Find("LockerAudio").transform.position,out hitLocker,10,-1))
+                            {
+                                lockerReachable = agent.CalculatePath(hitTerminal.position, nmpLocker);
+                                lockerDistance = Vector3.Distance(((Component)this).transform.position, GameObject.Find("LockerAudio").transform.position);
+                                lockerClosestPoint = Vector3.Distance(hitTerminal.position, terminal.transform.position);
+                                lockerPosition = hitTerminal.position;
+                            }*/
+                        }
+                        catch (NullReferenceException nre)
+                        {
+                            Plugin.mls.LogDebug("Locker NullReferenceException() Caught!\n" + nre.Message);
                             lockerReachable = false;
-                            lockerDistance = 1000f;
                             //noMoreLocker = true; //not currently a variable
                         }
-                        else
+                        catch (Exception e)
                         {
-                            try
-                            {
-                                lockerPosition = GameObject.Find("LockerAudio").transform.position; // so use this for now
-                                                                                                    //this isnt working right now.. it routes the masked on to above the ship..
-                                /*if (NavMesh.SamplePosition(GameObject.Find("LockerAudio").transform.position,out hitLocker,10,-1))
-                                {
-                                    lockerReachable = agent.CalculatePath(hitTerminal.position, nmpLocker);
-                                    lockerDistance = Vector3.Distance(((Component)this).transform.position, GameObject.Find("LockerAudio").transform.position);
-                                    lockerClosestPoint = Vector3.Distance(hitTerminal.position, terminal.transform.position);
-                                    lockerPosition = hitTerminal.position;
-                                }*/
-                            }
-                            catch (NullReferenceException nre)
-                            {
-                                Plugin.mls.LogDebug("Locker NullReferenceException() Caught!\n" + nre.Message);
-                                lockerReachable = false;
-                                //noMoreLocker = true; //not currently a variable
-                            }
-                            catch (Exception e)
-                            {
-                                Plugin.mls.LogDebug("Locker Exception() Caught!\n" + e.Message);
-                                lockerReachable = false;
-                                //noMorelocker = true; //not currently a variable
-                            }
+                            Plugin.mls.LogDebug("Locker Exception() Caught!\n" + e.Message);
+                            lockerReachable = false;
+                            //noMorelocker = true; //not currently a variable
                         }
+                    }
                 }
             }
         }
@@ -1217,8 +1217,8 @@ namespace LethalIntelligence.Patches
             {
                 try
                 {
-                ImperiumPatches.maskedVisualization(maskedPersonality, maskedActivity, maskedFocus);
-            }
+                    ImperiumPatches.maskedVisualization(maskedPersonality, maskedActivity, maskedFocus);
+                }
                 catch (MissingMethodException mme)
                 {
                     //v50 error.. just ignore. (imperium 0.1.9 and before only)
@@ -1266,43 +1266,43 @@ namespace LethalIntelligence.Patches
                     //Plugin.mls.LogError(useablePersonalities.Count);
                 }
             }
-                maskedPersonality = useablePersonalities[SelectPersonalityInt.Value];
-                /*if (SelectPersonalityInt.Value == 0)
+            maskedPersonality = useablePersonalities[SelectPersonalityInt.Value];
+            /*if (SelectPersonalityInt.Value == 0)
+            {
+                maskedPersonality = Personality.Aggressive;
+            }
+            else if (SelectPersonalityInt.Value == 1)
+            {
+                maskedPersonality = Personality.Cunning;
+            }
+            else if (SelectPersonalityInt.Value == 2)
+            {
+                maskedPersonality = Personality.Deceiving;
+            }
+            else if (SelectPersonalityInt.Value == 3)
+            {
+                maskedPersonality = Personality.Stealthy;
+            }
+            else if (SelectPersonalityInt.Value == 4)
+            {
+                maskedPersonality = Personality.Insane;
+            }*/
+            if (lastMaskedPersonality != maskedPersonality)
+            {
+                maskedGoal = "selecting new personality";
+                lastMaskedPersonality = maskedPersonality;
+                if (maskedPersonality == Personality.Deceiving)
                 {
-                    maskedPersonality = Personality.Aggressive;
+                    SyncTermianlInt(15);
                 }
-                else if (SelectPersonalityInt.Value == 1)
+                else if (maskedPersonality == Personality.Insane)
                 {
-                    maskedPersonality = Personality.Cunning;
+                    SyncTermianlInt(10);
                 }
-                else if (SelectPersonalityInt.Value == 2)
-                {
-                    maskedPersonality = Personality.Deceiving;
-                }
-                else if (SelectPersonalityInt.Value == 3)
-                {
-                    maskedPersonality = Personality.Stealthy;
-                }
-                else if (SelectPersonalityInt.Value == 4)
-                {
-                    maskedPersonality = Personality.Insane;
-                }*/
-                if (lastMaskedPersonality != maskedPersonality)
-                {
-                    maskedGoal = "selecting new personality";
-                    lastMaskedPersonality = maskedPersonality;
-                    if (maskedPersonality == Personality.Deceiving)
-                    {
-                        SyncTermianlInt(15);
-                    }
-                    else if (maskedPersonality == Personality.Insane)
-                    {
-                        SyncTermianlInt(10);
-                    }
-                    Plugin.mls.LogInfo("Masked '" + maskedId + "' personality changed to '" + maskedPersonality.ToString() + "'");
-                    mustChangeFocus = true;
-                    mustChangeActivity = true;
-                }
+                Plugin.mls.LogInfo("Masked '" + maskedId + "' personality changed to '" + maskedPersonality.ToString() + "'");
+                mustChangeFocus = true;
+                mustChangeActivity = true;
+            }
             if (!((Component)this).TryGetComponent<NavMeshAgent>(out agent))
             {
                 agent = ((Component)this).GetComponent<NavMeshAgent>();
@@ -2234,7 +2234,6 @@ namespace LethalIntelligence.Patches
                 walkieCooldown += updateFrequency;
                 if (walkieCooldown < 1f)
                 {
-                    Plugin.mls.LogError("WalkieCooldown < 1f");
                     creatureAnimator.ResetTrigger("UseWalkie");
                     walkieUsed = false;
                     walkieVoiceTransmitted = false;
@@ -2321,7 +2320,6 @@ namespace LethalIntelligence.Patches
                             //{
                             allWalkieTalky.target.PlayOneShot(wendigosClip());
                             //}
-                        }
                         }
                     }
                 }
@@ -3183,7 +3181,7 @@ namespace LethalIntelligence.Patches
                         maskedGoal = "(escape) heading to terminal in player ship";
                         maskedEnemy.SetDestinationToPosition(terminalPosition);
                     }
-                    
+
                 }
                 if (isLeverEscaping)
                 {
@@ -3207,7 +3205,7 @@ namespace LethalIntelligence.Patches
                         }
                         //creatureAnimator.SetTrigger("PushLever");
                         //creatureAnimator.SetTrigger("PressStopButton");
-                        Plugin.mls.LogError("distance="+Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position));
+                        //Plugin.mls.LogError("distance=" + Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position));
                         if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) < 3f)
                         {
                             startMatchLever.LeverAnimation();
@@ -3263,50 +3261,50 @@ namespace LethalIntelligence.Patches
                             //maybe pull HORN here instead of just leaving without a warning?? or maybe teleport a player??
                             return;
                         }*/
-              /*          noMoreTerminal = false;
-                        maskedGoal = "(escape) sending warnings about leaving";
-                        if (Plugin.useTerminal && TerminalPatches.Transmitter.IsSignalTranslatorUnlocked())
-                        {
-                            UsingTerminal();
-                        }
- 
-                    }
-                    else if(isLeverEscaping)
-                    {
-                        isTerminalEscaping = false;
-                        new WaitForSeconds(10f);
-                        if (Plugin.maskedShipDeparture)
-                        {
-                            maskedGoal = "(escape) walking to ships lever";
-                            //pull lever
-                            StartMatchLever startMatchLever = GameNetworkManager.FindObjectOfType<StartMatchLever>();
-                            if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) > 0.5f)
-                            {
-                                maskedEnemy.SetDestinationToPosition(startMatchLever.transform.position);
-                            }
-                            if (startMatchLever == null)
-                            {
-                                Plugin.mls.LogError("StartMatchLever cannot be found so cannot be used by InsaneMasked!");
-                                mustChangeFocus = true;
-                                mustChangeActivity = true;
-                                Plugin.maskedShipDeparture = false;
-                                return;
-                            }
-                            //creatureAnimator.SetTrigger("PushLever");
-                            //creatureAnimator.SetTrigger("PressStopButton");
-                            if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) < 0.5f)
-                                startMatchLever.LeverAnimation();
-                            startMatchLever.EndGame();
-                            //creatureAnimator.ResetTrigger("StartMatchLever");
-                        }
-                        else
-                        {
-                            Plugin.mls.LogInfo("maskedShipDeparture = " + Plugin.maskedShipDeparture.ToString() + " so the escape finish is impossible!");
-                            mustChangeFocus = true;
-                            mustChangeActivity = true;
-                        }
-                    }
-                }*/
+                /*          noMoreTerminal = false;
+                          maskedGoal = "(escape) sending warnings about leaving";
+                          if (Plugin.useTerminal && TerminalPatches.Transmitter.IsSignalTranslatorUnlocked())
+                          {
+                              UsingTerminal();
+                          }
+
+                      }
+                      else if(isLeverEscaping)
+                      {
+                          isTerminalEscaping = false;
+                          new WaitForSeconds(10f);
+                          if (Plugin.maskedShipDeparture)
+                          {
+                              maskedGoal = "(escape) walking to ships lever";
+                              //pull lever
+                              StartMatchLever startMatchLever = GameNetworkManager.FindObjectOfType<StartMatchLever>();
+                              if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) > 0.5f)
+                              {
+                                  maskedEnemy.SetDestinationToPosition(startMatchLever.transform.position);
+                              }
+                              if (startMatchLever == null)
+                              {
+                                  Plugin.mls.LogError("StartMatchLever cannot be found so cannot be used by InsaneMasked!");
+                                  mustChangeFocus = true;
+                                  mustChangeActivity = true;
+                                  Plugin.maskedShipDeparture = false;
+                                  return;
+                              }
+                              //creatureAnimator.SetTrigger("PushLever");
+                              //creatureAnimator.SetTrigger("PressStopButton");
+                              if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) < 0.5f)
+                                  startMatchLever.LeverAnimation();
+                              startMatchLever.EndGame();
+                              //creatureAnimator.ResetTrigger("StartMatchLever");
+                          }
+                          else
+                          {
+                              Plugin.mls.LogInfo("maskedShipDeparture = " + Plugin.maskedShipDeparture.ToString() + " so the escape finish is impossible!");
+                              mustChangeFocus = true;
+                              mustChangeActivity = true;
+                          }
+                      }
+                  }*/
             }
         }
 
@@ -3593,7 +3591,7 @@ namespace LethalIntelligence.Patches
                         msg = "hurry!!";
                         break;
                     case 7:
-                         msg = "come ship!";
+                        msg = "come ship!";
                         break;
                     case 8:
                         msg = "evacuate!";
@@ -3608,66 +3606,66 @@ namespace LethalIntelligence.Patches
             }
             else
             {
-            int m = Random.Range(0, 10);
-            switch (m)
-            {
-                case 0:
-                    msg = "safe";
-                    break;
-                case 1:
-                    msg = "danger";
-                    break;
-                case 2:
-                    //entities
-                    int e = Random.Range(0, 7);
-                    switch (e)
-                    {
-                        case 0:
-                            msg = "dogs";
-                            break;
-                        case 1:
-                            msg = "bracken";
-                            break;
-                        case 2:
-                            msg = "giant";
-                            break;
-                        case 3:
-                            msg = "worm";
-                            break;
-                        case 4:
-                            msg = "coilhead";
-                            break;
-                        case 5:
-                            msg = "mine";
-                            break;
-                        case 6:
-                            msg = "turret";
-                            break;
-                    }
-                    break;
-                case 3:
-                    msg = "7pm";
-                    break;
-                case 4:
-                    msg = "9pm";
-                    break;
-                case 5:
-                    msg = "behind u";
-                    break;
-                case 6:
-                    msg = "left";
-                    break;
-                case 7:
-                    msg = "right";
-                    break;
-                case 8:
-                    msg = "go back";
-                    break;
-                case 9:
-                    msg = "watch out";
-                    break;
-            }
-            //msg.Substring(0, 10);
+                int m = Random.Range(0, 10);
+                switch (m)
+                {
+                    case 0:
+                        msg = "safe";
+                        break;
+                    case 1:
+                        msg = "danger";
+                        break;
+                    case 2:
+                        //entities
+                        int e = Random.Range(0, 7);
+                        switch (e)
+                        {
+                            case 0:
+                                msg = "dogs";
+                                break;
+                            case 1:
+                                msg = "bracken";
+                                break;
+                            case 2:
+                                msg = "giant";
+                                break;
+                            case 3:
+                                msg = "worm";
+                                break;
+                            case 4:
+                                msg = "coilhead";
+                                break;
+                            case 5:
+                                msg = "mine";
+                                break;
+                            case 6:
+                                msg = "turret";
+                                break;
+                        }
+                        break;
+                    case 3:
+                        msg = "7pm";
+                        break;
+                    case 4:
+                        msg = "9pm";
+                        break;
+                    case 5:
+                        msg = "behind u";
+                        break;
+                    case 6:
+                        msg = "left";
+                        break;
+                    case 7:
+                        msg = "right";
+                        break;
+                    case 8:
+                        msg = "go back";
+                        break;
+                    case 9:
+                        msg = "watch out";
+                        break;
+                }
+                //msg.Substring(0, 10);
             }
             return msg;
         }
@@ -4622,9 +4620,9 @@ namespace LethalIntelligence.Patches
             //now only if outside, not in player ship, and not dead)
             //if (__instance.isOutside && !__instance.isInsidePlayerShip && !__instance.isEnemyDead)
             //{
-                maskedGoal = "walking to ships locker";
-                maskedEnemy.lostLOSTimer = 0f;
-                maskedEnemy.stopAndStareTimer = 0f;
+            maskedGoal = "walking to ships locker";
+            maskedEnemy.lostLOSTimer = 0f;
+            maskedEnemy.stopAndStareTimer = 0f;
             bool reachable = ((EnemyAI)maskedEnemy).SetDestinationToPosition(lockerPosition, true);
             if (!reachable)
             {
@@ -4644,9 +4642,9 @@ namespace LethalIntelligence.Patches
         {
             //if (!__instance.isOutside && !__instance.isEnemyDead)
             //{
-                maskedGoal = "walking to breaker box";
-                maskedEnemy.lostLOSTimer = 0f;
-                maskedEnemy.stopAndStareTimer = 0f;
+            maskedGoal = "walking to breaker box";
+            maskedEnemy.lostLOSTimer = 0f;
+            maskedEnemy.stopAndStareTimer = 0f;
             bool reachable = ((EnemyAI)maskedEnemy).SetDestinationToPosition(breakerPosition, true);
             //__instance.moveTowardsDestination = true;
             if (!reachable)
@@ -4712,7 +4710,7 @@ namespace LethalIntelligence.Patches
             }
             //loggedID = true;
             return et; //may be null;
-            
+
         }
 
         private void useEntranceTeleport(EntranceTeleport entrance)
@@ -4762,7 +4760,7 @@ namespace LethalIntelligence.Patches
                     mustChangeActivity = true;
                 }
                 //maskedGoal = "looking and running randomly near entranceTeleport (" + entrance.entranceId + ")";
-                
+
 
             }
         }
@@ -4875,17 +4873,17 @@ namespace LethalIntelligence.Patches
                     endMirageClipTime = DateTime.Now.AddYears(1);
                 }
                 if (audioEvent.IsAudioStartEvent)
-                    {
+                {
                     //if (mirageShouldUseWalkies())
                     if(true) //bypassing the walkie check for testing
-                            {
+                    {
                         mirageClipAllowed = true;
                     }
                     else
-                                {
+                    {
                         mirageClipAllowed = false;
-                                    return;
-                                }
+                        return;
+                    }
                     //mirageTurnOnWalkie
                     mirageTurnOnWalkie();
                     //miragePressWalkieButton
@@ -4895,7 +4893,7 @@ namespace LethalIntelligence.Patches
                 if(!mirageClipAllowed)
                 {
                     return;
-                            }
+                }
                 foreach (WalkieTalkie walkieTalkie in allWalkieTalkies)
                 {
                     walkieTalkie.target.volume = 100f; //this should be loud enough
