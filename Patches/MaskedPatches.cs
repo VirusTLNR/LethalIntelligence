@@ -4847,12 +4847,12 @@ namespace LethalIntelligence.Patches
             {
                 if (Random.RandomRangeInt(0, walkiesThatShouldHearMasked + 1) == 0)
                 {
-                    Plugin.mls.LogInfo("(LI<->Mirage) Masked is not using WalkieTalkie to speak (" + walkieChance.ToString() + "% chance to use walkie");
+                    Plugin.mls.LogInfo("(LI<->Mirage) Masked is not using WalkieTalkie to speak (" + walkieChance.ToString() + "% chance to use walkie)");
                     return false;
                 }
                 else
                 {
-                    Plugin.mls.LogInfo("(LI<->Mirage) Masked is using WalkieTalkie to speak (" + walkieChance.ToString() + "% chance to use walkie");
+                    Plugin.mls.LogInfo("(LI<->Mirage) Masked is using WalkieTalkie to speak (" + walkieChance.ToString() + "% chance to use walkie)");
                     return true;
                 }
             }
