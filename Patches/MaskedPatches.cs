@@ -1989,7 +1989,7 @@ namespace LethalIntelligence.Patches
                 //upperBodyAnimationsWeight = Mathf.Lerp(upperBodyAnimationsWeight, 0f, 25f * Time.deltaTime);
                 upperBodyAnimationsWeight = Mathf.Lerp(upperBodyAnimationsWeight, 0f, 25f * updateFrequency);
                 creatureAnimator.SetLayerWeight(creatureAnimator.GetLayerIndex("Item"), upperBodyAnimationsWeight);
-                creatureAnimator.SetLayerWeight(creatureAnimator.GetLayerIndex("Item"), upperBodyAnimationsWeight);
+                //creatureAnimator.SetLayerWeight(creatureAnimator.GetLayerIndex("Item"), upperBodyAnimationsWeight); //this line isnt needed surely?
             }
             if (isHoldingObject && heldGrabbable.itemProperties.twoHandedAnimation && !(heldGrabbable is ShotgunItem))
             {
