@@ -12,7 +12,6 @@ using Random = UnityEngine.Random;
 using System.Linq;
 using System.Threading.Tasks;
 using static Mirage.Unity.AudioStream;
-using UnityEngine.InputSystem.LowLevel;
 
 namespace LethalIntelligence.Patches
 {
@@ -4909,21 +4908,21 @@ namespace LethalIntelligence.Patches
                     }
                     else
                     {
-                    //mirageTurnOnWalkie
-                    mirageTurnOnWalkie();
-                    //miragePressWalkieButton
-                    mirageActivateWalkieSpeaking();
+                        //mirageTurnOnWalkie
+                        mirageTurnOnWalkie();
+                        //miragePressWalkieButton
+                        mirageActivateWalkieSpeaking();
 
-                    endMirageClipTime = DateTime.Now.AddMilliseconds(audioLength); //remove 0.5% of the audio length to ensure the clip plays and the masked end the transmission
+                        endMirageClipTime = DateTime.Now.AddMilliseconds(audioLength); //remove 0.5% of the audio length to ensure the clip plays and the masked end the transmission
                         /*Plugin.mls.LogError("audioLength = " + audioLength.ToString());
-                    Plugin.mls.LogError("startTime = " + DateTime.Now.ToString("dd/MM/yyyy hh:mm:ss.fff"));
+                        Plugin.mls.LogError("startTime = " + DateTime.Now.ToString("dd/MM/yyyy hh:mm:ss.fff"));
                         Plugin.mls.LogError("endTime = " + endMirageClipTime.ToString("dd/MM/yyyy hh:mm:ss.fff"));*/
-                    mirageDeactivateWalkieSpeaking(endMirageClipTime);
+                        mirageDeactivateWalkieSpeaking(endMirageClipTime);
 
-                    //mirageTurnOffWalkie
-                    //new WaitForSeconds(2.5f);
-                    mirageTurnOffWalkie(endMirageClipTime);
-                }
+                        //mirageTurnOffWalkie
+                        //new WaitForSeconds(2.5f);
+                        mirageTurnOffWalkie(endMirageClipTime);
+                    }
                 }
                 //Plugin.mls.LogError("mirageClipAllowed = " + mirageClipAllowed);
                 if(!mirageClipAllowed)
