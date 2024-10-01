@@ -2176,6 +2176,14 @@ namespace LethalIntelligence.Patches
                 {
                     return; //there is no walkie to grab in sight.. so dont continue.
                 }
+                if(walkieToGrab.isHeld || walkieToGrab.isHeldByEnemy)
+                {
+                    walkieToGrab = null;
+                    isCrouched.Value = false;
+                    mustChangeFocus = true;
+                    mustChangeActivity = true;
+                    return; //sorry buddy, someone else got there first
+                }
                 var distance = Vector3.Distance(__instance.transform.position, walkieToGrab.transform.position);
                 if (distance < 1.0f && !isHoldingObject)
                 {
