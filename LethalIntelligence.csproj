@@ -44,17 +44,17 @@
         <PackageId>$(AssemblyName)</PackageId>
         <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="SkinwalkerMod">
-      <HintPath>CompatibilityDLLs\SkinwalkerMod.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-    <ItemGroup>
-      <ApplicationDefinition Include="CompatibilityDLLs\SkinwalkerMod.dll">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </ApplicationDefinition>
-    </ItemGroup>
+	<ItemGroup>
+		<Reference Include="SkinwalkerMod">
+			<HintPath>CompatibilityDLLs\SkinwalkerMod.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+	</ItemGroup>
+	<ItemGroup>
+		<ApplicationDefinition Include="CompatibilityDLLs\SkinwalkerMod.dll">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</ApplicationDefinition>
+	</ItemGroup>
 	<ItemGroup>
 		<Reference Include="Wendigos">
 			<HintPath>CompatibilityDLLs\Wendigos.dll</HintPath>
@@ -63,6 +63,17 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ApplicationDefinition Include="CompatibilityDLLs\Wendigos.dll">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</ApplicationDefinition>
+	</ItemGroup>
+	<ItemGroup>
+		<Reference Include="Mirage">
+			<HintPath>CompatibilityDLLs\Mirage.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+	</ItemGroup>
+	<ItemGroup>
+		<ApplicationDefinition Include="CompatibilityDLLs\Mirage.dll">
 			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</ApplicationDefinition>
 	</ItemGroup>

@@ -46,9 +46,9 @@ namespace LethalIntelligence
 
         //config settings
             //gen
-        public static bool enableMaskedFeatures, enableSkinWalkers, enableWendigos;
+        public static bool enableMaskedFeatures, enableSkinWalkers, enableWendigos, enableMirage;
 
-            //masked personalities
+        //masked personalities
         public static bool enableMaskedAggressive, enableMaskedStealthy, enableMaskedCunning, enableMaskedDeceiving, enableMaskedInsane;
 
             //masked config
@@ -60,7 +60,8 @@ namespace LethalIntelligence
         public static string PluginDirectory;
         public static bool skinWalkersIntegrated;
         public static bool wendigosIntegrated;
-        public static bool moreEmotesIntegrated;
+        public static bool mirageIntegrated;
+        //public static bool moreEmotesIntegrated; //not currently implemented?
 
         public static bool debugModeSetting;
         public static int debugStatusDelay;
@@ -96,7 +97,8 @@ namespace LethalIntelligence
             enableMaskedFeatures = ((BaseUnityPlugin)this).Config.Bind<bool>("General", "Masked AI Features", true, "Turn on masked AI features. If this feature is disabled, it will only change Masked's radar movement. If all masked Personalities are disabled, this will be disabled by default. *This option must be enabled to change Masked's AI.*").Value;
             enableSkinWalkers = ((BaseUnityPlugin)this).Config.Bind<bool>("General", "SkinWalkers mod Compatibility", true, "Enables compatibility with the SkinWalkers mod. (Requires SkinWalkers mod installed, automatically disables on launch if not installed)").Value;
             enableWendigos = ((BaseUnityPlugin)this).Config.Bind<bool>("General", "Wendigos mod Compatibility", true, "Enables compatibility with the Wendigos_Voice_Cloning mod. (Requires Wendigos_Voice_Cloning mod installed, automatically disables on launch if not installed)").Value;
-
+            enableMirage = ((BaseUnityPlugin)this).Config.Bind<bool>("General", "Mirage mod Compatibility", true, "Enables compatibility with the Mirage mod. (Requires Mirage mod installed, automatically disables on launch if not installed)").Value;
+            
             //maskedPersonality
             enableMaskedAggressive = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedPersonalities", "MaskedAggressive", true, "Enables the 'Aggressive' personality for the Masked (at least 1 of these must be TRUE)").Value;
             enableMaskedStealthy = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedPersonalities", "MaskedStealthy", true, "Enables the 'Stealthy' personality for the Masked (at least 1 of these must be TRUE)").Value;
@@ -136,7 +138,6 @@ namespace LethalIntelligence
             Instance = this;
 
             Patch();*/
-            Start();
         }
 
         internal void RemoveOrphanedConfigs()
@@ -180,22 +181,26 @@ namespace LethalIntelligence
         {
             if (enableMaskedFeatures)
             {
-                mls.LogInfo((object)"Experimental feature has been enabled! Masked AI's behavior changes.");
+                mls.LogInfo((object)"MaskedPersonalities feature has been enabled! Masked AI's behavior is now modified.");
             }
             else
             {
-                mls.LogInfo((object)"Experimental feature has been disabled! This does not change the behavior of the Masked AI.");
+                mls.LogInfo((object)"MaskedPersonalities feature has been disabled! Masked AI's behaviour will not be modified.");
             }
-            if (Chainloader.PluginInfos.Keys.Any((string k) => k == "RugbugRedfern.SkinwalkerMod") && enableSkinWalkers)
+            if (Chainloader.PluginInfos.Keys.Any((string k) => k == "RugbugRedfern.SkinwalkerMod") && enableSkinWalkers && enableMaskedFeatures)
             {
                 mls.LogInfo((object)logPluginName + " <-> SkinWalkers Integrated!");
                 skinWalkersIntegrated = true;
             }
-            if (Chainloader.PluginInfos.Keys.Any((string w) => w == "Tim_Shaw.Wendigos_Voice_Cloning") && enableWendigos)
+            if (Chainloader.PluginInfos.Keys.Any((string w) => w == "Tim_Shaw.Wendigos_Voice_Cloning") && enableWendigos && enableMaskedFeatures)
             {
                 mls.LogInfo((object)logPluginName + " <-> Wendigos_Voice_Cloning Integrated!");
                 wendigosIntegrated = true;
-
+            }
+            if (Chainloader.PluginInfos.Keys.Any((string w) => w == "qwbarch.Mirage") && enableMirage && enableMaskedFeatures)
+            {
+                mls.LogInfo((object)logPluginName + " <-> Mirage Integrated!");
+                mirageIntegrated = true;
             }
         }
 

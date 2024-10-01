@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.1.9 - Mirage Integration Patch
+- Fixed Masked Picking up WalkieTalkies (previously they would not pick them up)
+- Added integration with Mirage, masked will now play mirage audio through walkies to trick you (Stealthy/Deceiving/Insane only), audio will only play through walkies if someone has an active walkie far enough away from the masked, the starting rate is 50% chance, more far players with walkies will increase that chance)
+
 ### 0.1.8
 - Fixed masked "double teleporting" at the main entrance leading to them getting stuck thinking they are outside when they are inside, and vica versa.
 - Added auto removal of config entries that are no longer being used in the Lethal Intelligence config file. (for the future where I see many settings being added, then later removed :))

@@ -11,6 +11,7 @@ using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 using System.Linq;
 using System.Threading.Tasks;
+using static Mirage.Unity.AudioStream;
 
 namespace LethalIntelligence.Patches
 {
@@ -538,7 +539,7 @@ namespace LethalIntelligence.Patches
                         stopStatusReporting = true;
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Plugin.mls.LogWarning("MaskedStatusReport has failed to write...\n\t" + ex.ToString());
                 }
@@ -630,6 +631,7 @@ namespace LethalIntelligence.Patches
             if (GameNetworkManager.Instance.isHostingGame)
             {
                 maxDanceCount.Value = Random.Range(2, 4);
+                enableMirageAudio();
             }
             if ((Object)(object)creatureAnimator.runtimeAnimatorController != (Object)(object)Plugin.MaskedAnimController)
             {
@@ -943,40 +945,40 @@ namespace LethalIntelligence.Patches
                 }
                 if (mustChangeFocus || maskedActivity == Activity.ItemLocker)
                 {
-                        if (GameObject.Find("LockerAudio") == null)
+                    if (GameObject.Find("LockerAudio") == null)
+                    {
+                        Plugin.mls.LogDebug("LockerAudio is Null");
+                        lockerReachable = false;
+                        lockerDistance = 1000f;
+                        //noMoreLocker = true; //not currently a variable
+                    }
+                    else
+                    {
+                        try
                         {
-                            Plugin.mls.LogDebug("LockerAudio is Null");
+                            lockerPosition = GameObject.Find("LockerAudio").transform.position; // so use this for now
+                                                                                                //this isnt working right now.. it routes the masked on to above the ship..
+                            /*if (NavMesh.SamplePosition(GameObject.Find("LockerAudio").transform.position,out hitLocker,10,-1))
+                            {
+                                lockerReachable = agent.CalculatePath(hitTerminal.position, nmpLocker);
+                                lockerDistance = Vector3.Distance(((Component)this).transform.position, GameObject.Find("LockerAudio").transform.position);
+                                lockerClosestPoint = Vector3.Distance(hitTerminal.position, terminal.transform.position);
+                                lockerPosition = hitTerminal.position;
+                            }*/
+                        }
+                        catch (NullReferenceException nre)
+                        {
+                            Plugin.mls.LogDebug("Locker NullReferenceException() Caught!\n" + nre.Message);
                             lockerReachable = false;
-                            lockerDistance = 1000f;
                             //noMoreLocker = true; //not currently a variable
                         }
-                        else
+                        catch (Exception e)
                         {
-                            try
-                            {
-                                lockerPosition = GameObject.Find("LockerAudio").transform.position; // so use this for now
-                                                                                                    //this isnt working right now.. it routes the masked on to above the ship..
-                                /*if (NavMesh.SamplePosition(GameObject.Find("LockerAudio").transform.position,out hitLocker,10,-1))
-                                {
-                                    lockerReachable = agent.CalculatePath(hitTerminal.position, nmpLocker);
-                                    lockerDistance = Vector3.Distance(((Component)this).transform.position, GameObject.Find("LockerAudio").transform.position);
-                                    lockerClosestPoint = Vector3.Distance(hitTerminal.position, terminal.transform.position);
-                                    lockerPosition = hitTerminal.position;
-                                }*/
-                            }
-                            catch (NullReferenceException nre)
-                            {
-                                Plugin.mls.LogDebug("Locker NullReferenceException() Caught!\n" + nre.Message);
-                                lockerReachable = false;
-                                //noMoreLocker = true; //not currently a variable
-                            }
-                            catch (Exception e)
-                            {
-                                Plugin.mls.LogDebug("Locker Exception() Caught!\n" + e.Message);
-                                lockerReachable = false;
-                                //noMorelocker = true; //not currently a variable
-                            }
+                            Plugin.mls.LogDebug("Locker Exception() Caught!\n" + e.Message);
+                            lockerReachable = false;
+                            //noMorelocker = true; //not currently a variable
                         }
+                    }
                 }
             }
         }
@@ -1175,14 +1177,48 @@ namespace LethalIntelligence.Patches
             }*/
         }
 
+        /*private void OnVoiceMimic()
+        { }
+
+        private void mirageAudioTesting()
+        {
+            //https://discord.com/channels/1168655651455639582/1200695291972685926/1288563261851041833
+            if (Plugin.mirageIntegrated)
+            {
+                AudioClip audioClip = null;
+                List<WalkieTalkie> allWalkieTalkies = new List<WalkieTalkie>();
+                OnVoiceMimic += (isFirstFrame, samples, sampleIndex) =>
+                {
+                    foreach (WalkieTalkie walkieTalkie in allWalkieTalkies)
+                    {
+                        // only reset the audioclip if it's a new voice clip (indicated by isFirstFrame)
+                        if (isFirstFrame)
+                        {
+                            walkieTalkie.target.Stop();
+                            audioClip = AudioClip.Create(); // assume params are filled
+                            walkieTalkie.target.AudioClip = audioClip;
+                        }
+                        // since this callback is invoked each time a new frame is received, this will set the audioclip's audio data
+                        // as soon as new audio data is received
+                        audioClip.SetData(samples, sampleIndex, samples.Length);
+                        // doesn't need to be this exact condition, just have to play the audiosource if it hasn't started yet
+                        if (!walkieTalkie.target.IsPlaying())
+                        {
+                            walkieTalkie.target.Play();
+                        }
+                    }
+                };
+            }
+        }*/
+
         public void FixedUpdate()
         {
             if (Plugin.imperiumFound)
             {
                 try
                 {
-                ImperiumPatches.maskedVisualization(maskedPersonality, maskedActivity, maskedFocus);
-            }
+                    ImperiumPatches.maskedVisualization(maskedPersonality, maskedActivity, maskedFocus);
+                }
                 catch (MissingMethodException mme)
                 {
                     //v50 error.. just ignore. (imperium 0.1.9 and before only)
@@ -1230,50 +1266,50 @@ namespace LethalIntelligence.Patches
                     //Plugin.mls.LogError(useablePersonalities.Count);
                 }
             }
-                maskedPersonality = useablePersonalities[SelectPersonalityInt.Value];
-                /*if (SelectPersonalityInt.Value == 0)
+            maskedPersonality = useablePersonalities[SelectPersonalityInt.Value];
+            /*if (SelectPersonalityInt.Value == 0)
+            {
+                maskedPersonality = Personality.Aggressive;
+            }
+            else if (SelectPersonalityInt.Value == 1)
+            {
+                maskedPersonality = Personality.Cunning;
+            }
+            else if (SelectPersonalityInt.Value == 2)
+            {
+                maskedPersonality = Personality.Deceiving;
+            }
+            else if (SelectPersonalityInt.Value == 3)
+            {
+                maskedPersonality = Personality.Stealthy;
+            }
+            else if (SelectPersonalityInt.Value == 4)
+            {
+                maskedPersonality = Personality.Insane;
+            }*/
+            if (lastMaskedPersonality != maskedPersonality)
+            {
+                maskedGoal = "selecting new personality";
+                lastMaskedPersonality = maskedPersonality;
+                if (maskedPersonality == Personality.Deceiving)
                 {
-                    maskedPersonality = Personality.Aggressive;
+                    SyncTermianlInt(15);
                 }
-                else if (SelectPersonalityInt.Value == 1)
+                else if (maskedPersonality == Personality.Insane)
                 {
-                    maskedPersonality = Personality.Cunning;
+                    SyncTermianlInt(10);
                 }
-                else if (SelectPersonalityInt.Value == 2)
-                {
-                    maskedPersonality = Personality.Deceiving;
-                }
-                else if (SelectPersonalityInt.Value == 3)
-                {
-                    maskedPersonality = Personality.Stealthy;
-                }
-                else if (SelectPersonalityInt.Value == 4)
-                {
-                    maskedPersonality = Personality.Insane;
-                }*/
-                if (lastMaskedPersonality != maskedPersonality)
-                {
-                    maskedGoal = "selecting new personality";
-                    lastMaskedPersonality = maskedPersonality;
-                    if (maskedPersonality == Personality.Deceiving)
-                    {
-                        SyncTermianlInt(15);
-                    }
-                    else if (maskedPersonality == Personality.Insane)
-                    {
-                        SyncTermianlInt(10);
-                    }
-                    Plugin.mls.LogInfo("Masked '" + maskedId + "' personality changed to '" + maskedPersonality.ToString() + "'");
-                    mustChangeFocus = true;
-                    mustChangeActivity = true;
-                }
+                Plugin.mls.LogInfo("Masked '" + maskedId + "' personality changed to '" + maskedPersonality.ToString() + "'");
+                mustChangeFocus = true;
+                mustChangeActivity = true;
+            }
             if (!((Component)this).TryGetComponent<NavMeshAgent>(out agent))
             {
                 agent = ((Component)this).GetComponent<NavMeshAgent>();
             }
-            if ((Plugin.wendigosIntegrated || Plugin.skinWalkersIntegrated) && ((NetworkBehaviour)this).IsHost && (maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane || maskedPersonality == Personality.Stealthy))
+            if ((Plugin.wendigosIntegrated || Plugin.skinWalkersIntegrated || Plugin.mirageIntegrated) && ((NetworkBehaviour)this).IsHost && (maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane || maskedPersonality == Personality.Stealthy))
             {
-                maskedGoal = "confirming WalkieTalkie usage! (skinwalkers/Wendigos integration)";
+                maskedGoal = "confirming WalkieTalkie usage! (Skinwalkers/Wendigos/Mirage integration)";
                 useWalkie.Value = true;
             }
             if ((Object)(object)creatureAnimator == (Object)null)
@@ -1336,7 +1372,7 @@ namespace LethalIntelligence.Patches
                     Plugin.mls.LogWarning("maskedPersonality = " + maskedPersonality);
                     Plugin.mls.LogWarning("SelectPersonalityInt.Value" + SelectPersonalityInt.Value);
                     Plugin.mls.LogWarning("No Personality Found => changing personality!");
-                    foreach(Personality p in useablePersonalities)
+                    foreach (Personality p in useablePersonalities)
                     {
                         Plugin.mls.LogWarning(p.ToString() + " is available");
                     }
@@ -1826,7 +1862,7 @@ namespace LethalIntelligence.Patches
                 agent.speed = 1.9f;
             }
             //else if (maskedEnemy.running)
-            else if(isRunning.Value)
+            else if (isRunning.Value)
             {
                 //running
                 isCrouched.Value = false;
@@ -1953,7 +1989,7 @@ namespace LethalIntelligence.Patches
                 //upperBodyAnimationsWeight = Mathf.Lerp(upperBodyAnimationsWeight, 0f, 25f * Time.deltaTime);
                 upperBodyAnimationsWeight = Mathf.Lerp(upperBodyAnimationsWeight, 0f, 25f * updateFrequency);
                 creatureAnimator.SetLayerWeight(creatureAnimator.GetLayerIndex("Item"), upperBodyAnimationsWeight);
-                creatureAnimator.SetLayerWeight(creatureAnimator.GetLayerIndex("Item"), upperBodyAnimationsWeight);
+                //creatureAnimator.SetLayerWeight(creatureAnimator.GetLayerIndex("Item"), upperBodyAnimationsWeight); //this line isnt needed surely?
             }
             if (isHoldingObject && heldGrabbable.itemProperties.twoHandedAnimation && !(heldGrabbable is ShotgunItem))
             {
@@ -2096,7 +2132,7 @@ namespace LethalIntelligence.Patches
                 num++;
             }
         }
-
+        GrabbableObject walkieToGrab = null;
         private void GrabWalkie()
         {
             if (((NetworkBehaviour)this).IsHost)
@@ -2109,43 +2145,48 @@ namespace LethalIntelligence.Patches
                 {
                     return; //masked is focused on something right now so shouldent be picking up a walkie.
                 }
-                if (StartOfRound.Instance.allPlayerScripts.Count() < 2)
+                if (StartOfRound.Instance.allPlayerScripts.Count() < 2 && Plugin.skinWalkersIntegrated)
                 {
-                    return; //less than two players in the game, so no point using wallkies. (skin walkers 100% bugs out with less than 1 players)
+                    return; //less than two players in the game, so no point using wallkies. (skin walkers will not play audio without two players being in the game)
                 }
                 List<WalkieTalkie> walkieTalkies = GlobalItemList.Instance.allWalkieTalkies;
                 if (walkieTalkies.Count < 2)
                 {
-                    return; //once again, if there isnt a second walkie, no point using a walkie.
-                }
-                GrabbableObject walkieToGrab = null;
-                foreach (var walkie in walkieTalkies)
-                {
-                    if (__instance.CheckLineOfSightForPosition(walkie.transform.position, 60f))
-                    {
-                        if (walkie.isHeld || walkie.isHeldByEnemy)
-                        {
-                            continue; //this walkie is already held so you shouldent be trying to take it.
-                        }
-                        walkieToGrab = walkie;
-                        maskedFocusInt.Value = (int)Focus.None; //syncing variables
-                        maskedActivityInt.Value = (int)Activity.WalkieTalkie; //syncing variables
-                    }
+                    return; //once again, if there isnt a second walkie, no point using a walkie as the masked will be talking to themselves.
                 }
                 if (walkieToGrab == null)
                 {
+                    foreach (var walkie in walkieTalkies)
+                    {
+                        if (__instance.CheckLineOfSightForPosition(walkie.transform.position, 60f))
+                        {
+                            if (walkie.isHeld || walkie.isHeldByEnemy)
+                            {
+                                continue; //this walkie is already held so you shouldent be trying to take it.
+                            }
+                            walkieToGrab = walkie;
+                            maskedFocusInt.Value = (int)Focus.None; //syncing variables
+                            maskedActivityInt.Value = (int)Activity.WalkieTalkie; //syncing variables
+                            break; //masked has chosen their walkie.
+                        }
+                    }
+                }
+                if (walkieToGrab == null) //if still null...
+                {
                     return; //there is no walkie to grab in sight.. so dont continue.
                 }
-                var distance = Vector3.Distance(__instance.transform.position, walkieToGrab.transform.position);
-                if (distance < 1.5f && !isHoldingObject)
+                if(walkieToGrab.isHeld || walkieToGrab.isHeldByEnemy)
                 {
-                    isCrouched.Value = true;
-                }
-                else
-                {
+                    walkieToGrab = null;
                     isCrouched.Value = false;
                     mustChangeFocus = true;
                     mustChangeActivity = true;
+                    return; //sorry buddy, someone else got there first
+                }
+                var distance = Vector3.Distance(__instance.transform.position, walkieToGrab.transform.position);
+                if (distance < 1.0f && !isHoldingObject)
+                {
+                    isCrouched.Value = true;
                 }
                 if (distance > 0.5f)
                 {
@@ -2180,6 +2221,13 @@ namespace LethalIntelligence.Patches
                     isHoldingObject = true;
                     itemDroped = false;
                     walkieToGrab.GrabItemFromEnemy(__instance);
+                    if (isHoldingObject)
+                    {
+                        walkieToGrab = null;
+                        isCrouched.Value = false;
+                        mustChangeFocus = true;
+                        mustChangeActivity = true;
+                    }
                 }
             }
         }
@@ -2205,6 +2253,7 @@ namespace LethalIntelligence.Patches
                 }
                 if (walkieCooldown > 10f)
                 {
+                    //Plugin.mls.LogError("walkieCooldown > 10f aka UseWalkie() time");
                     UseWalkie();
                 }
             }
@@ -2239,13 +2288,13 @@ namespace LethalIntelligence.Patches
         public void UseWalkie()
         {
             maskedGoal = "usewalkie";
-            if ((!Plugin.wendigosIntegrated && !Plugin.skinWalkersIntegrated) || !isHoldingObject || !(closestGrabbable is WalkieTalkie))
+            if ((!Plugin.wendigosIntegrated && !Plugin.skinWalkersIntegrated) || !isHoldingObject || !(heldGrabbable is WalkieTalkie))
             {
                 return;
             }
             //walkieTimer += Time.deltaTime;
             walkieTimer += updateFrequency;
-            WalkieTalkie component = ((Component)closestGrabbable).GetComponent<WalkieTalkie>();
+            WalkieTalkie component = ((Component)heldGrabbable).GetComponent<WalkieTalkie>();
             if (walkieTimer > 1f && !walkieUsed)
             {
                 if (!((GrabbableObject)component).isBeingUsed)
@@ -2267,11 +2316,11 @@ namespace LethalIntelligence.Patches
                     {
                         allWalkieTalky.thisAudio.PlayOneShot(allWalkieTalky.startTransmissionSFX[Random.Range(0, allWalkieTalky.startTransmissionSFX.Length + 1)]);
                     }
-                    if ((Object)(object)((Component)closestGrabbable).gameObject != (Object)(object)((Component)allWalkieTalky).gameObject && ((GrabbableObject)allWalkieTalky).isBeingUsed)
+                    if ((Object)(object)((Component)heldGrabbable).gameObject != (Object)(object)((Component)allWalkieTalky).gameObject && ((GrabbableObject)allWalkieTalky).isBeingUsed)
                     {
                         if (Plugin.skinWalkersIntegrated)
                         {
-                            allWalkieTalky.target.PlayOneShot(SkinwalkerModPersistent.Instance.GetSample());
+                            playSkinwalkersAudio(allWalkieTalky);
                         }
                         else if (Plugin.wendigosIntegrated)
                         {
@@ -2295,7 +2344,7 @@ namespace LethalIntelligence.Patches
                 {
                     allWalkieTalky2.thisAudio.PlayOneShot(allWalkieTalky2.stopTransmissionSFX[Random.Range(0, allWalkieTalky2.stopTransmissionSFX.Length + 1)]);
                 }
-                if ((Object)(object)((Component)closestGrabbable).gameObject == (Object)(object)((Component)allWalkieTalky2).gameObject && ((GrabbableObject)allWalkieTalky2).isBeingUsed)
+                if ((Object)(object)((Component)heldGrabbable).gameObject == (Object)(object)((Component)allWalkieTalky2).gameObject && ((GrabbableObject)allWalkieTalky2).isBeingUsed)
                 {
                     ((GrabbableObject)component).isBeingUsed = false;
                     component.EnableWalkieTalkieListening(false);
@@ -2307,6 +2356,11 @@ namespace LethalIntelligence.Patches
             creatureAnimator.ResetTrigger("UseWalkie");
             walkieCooldown = 0f;
             walkieTimer = 0f;
+        }
+
+        private void playSkinwalkersAudio(WalkieTalkie walkie)
+        {
+            walkie.target.PlayOneShot(SkinwalkerModPersistent.Instance.GetSample()); //fixing some dumb error with skin walkers not being present.
         }
 
         public void AwayFromPlayer()
@@ -3072,7 +3126,7 @@ namespace LethalIntelligence.Patches
                 maskedGoal = "(escape) heading outside";
                 maskedEnemy.SetDestinationToPosition(maskedEnemy.mainEntrancePosition);
                 selectedEntrance = null;
-                selectedEntrance = selectClosestEntrance(maskedEnemy.isOutside,true, true);
+                selectedEntrance = selectClosestEntrance(maskedEnemy.isOutside, true, true);
                 if (selectedEntrance == null)
                 {
                     maskedGoal = "No Entrance Found, Changing Focus";
@@ -3089,7 +3143,7 @@ namespace LethalIntelligence.Patches
                 {
                     isTerminalEscaping = true;
                 }
-                if(isTerminalEscaping)
+                if (isTerminalEscaping)
                 {
                     //check if signal translator is enabled once in range
                     if (Vector3.Distance(maskedEnemy.transform.position, terminalPosition) < 5f)
@@ -3101,7 +3155,7 @@ namespace LethalIntelligence.Patches
                             isLeverEscaping = true;
                             return;
                         }
-                        if(!Plugin.useTerminal)
+                        if (!Plugin.useTerminal)
                         {
                             Plugin.mls.LogDebug("Terminal usage is disabled so skipping 'escape warnings'");
                             isTerminalEscaping = false;
@@ -3135,9 +3189,9 @@ namespace LethalIntelligence.Patches
                         maskedGoal = "(escape) heading to terminal in player ship";
                         maskedEnemy.SetDestinationToPosition(terminalPosition);
                     }
-                    
+
                 }
-                if(isLeverEscaping)
+                if (isLeverEscaping)
                 {
                     isTerminalEscaping = false;
                     if (Plugin.maskedShipDeparture)
@@ -3159,7 +3213,7 @@ namespace LethalIntelligence.Patches
                         }
                         //creatureAnimator.SetTrigger("PushLever");
                         //creatureAnimator.SetTrigger("PressStopButton");
-                        Plugin.mls.LogError("distance="+Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position));
+                        //Plugin.mls.LogError("distance=" + Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position));
                         if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) < 3f)
                         {
                             startMatchLever.LeverAnimation();
@@ -3215,50 +3269,50 @@ namespace LethalIntelligence.Patches
                             //maybe pull HORN here instead of just leaving without a warning?? or maybe teleport a player??
                             return;
                         }*/
-              /*          noMoreTerminal = false;
-                        maskedGoal = "(escape) sending warnings about leaving";
-                        if (Plugin.useTerminal && TerminalPatches.Transmitter.IsSignalTranslatorUnlocked())
-                        {
-                            UsingTerminal();
-                        }
- 
-                    }
-                    else if(isLeverEscaping)
-                    {
-                        isTerminalEscaping = false;
-                        new WaitForSeconds(10f);
-                        if (Plugin.maskedShipDeparture)
-                        {
-                            maskedGoal = "(escape) walking to ships lever";
-                            //pull lever
-                            StartMatchLever startMatchLever = GameNetworkManager.FindObjectOfType<StartMatchLever>();
-                            if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) > 0.5f)
-                            {
-                                maskedEnemy.SetDestinationToPosition(startMatchLever.transform.position);
-                            }
-                            if (startMatchLever == null)
-                            {
-                                Plugin.mls.LogError("StartMatchLever cannot be found so cannot be used by InsaneMasked!");
-                                mustChangeFocus = true;
-                                mustChangeActivity = true;
-                                Plugin.maskedShipDeparture = false;
-                                return;
-                            }
-                            //creatureAnimator.SetTrigger("PushLever");
-                            //creatureAnimator.SetTrigger("PressStopButton");
-                            if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) < 0.5f)
-                                startMatchLever.LeverAnimation();
-                            startMatchLever.EndGame();
-                            //creatureAnimator.ResetTrigger("StartMatchLever");
-                        }
-                        else
-                        {
-                            Plugin.mls.LogInfo("maskedShipDeparture = " + Plugin.maskedShipDeparture.ToString() + " so the escape finish is impossible!");
-                            mustChangeFocus = true;
-                            mustChangeActivity = true;
-                        }
-                    }
-                }*/
+                /*          noMoreTerminal = false;
+                          maskedGoal = "(escape) sending warnings about leaving";
+                          if (Plugin.useTerminal && TerminalPatches.Transmitter.IsSignalTranslatorUnlocked())
+                          {
+                              UsingTerminal();
+                          }
+
+                      }
+                      else if(isLeverEscaping)
+                      {
+                          isTerminalEscaping = false;
+                          new WaitForSeconds(10f);
+                          if (Plugin.maskedShipDeparture)
+                          {
+                              maskedGoal = "(escape) walking to ships lever";
+                              //pull lever
+                              StartMatchLever startMatchLever = GameNetworkManager.FindObjectOfType<StartMatchLever>();
+                              if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) > 0.5f)
+                              {
+                                  maskedEnemy.SetDestinationToPosition(startMatchLever.transform.position);
+                              }
+                              if (startMatchLever == null)
+                              {
+                                  Plugin.mls.LogError("StartMatchLever cannot be found so cannot be used by InsaneMasked!");
+                                  mustChangeFocus = true;
+                                  mustChangeActivity = true;
+                                  Plugin.maskedShipDeparture = false;
+                                  return;
+                              }
+                              //creatureAnimator.SetTrigger("PushLever");
+                              //creatureAnimator.SetTrigger("PressStopButton");
+                              if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) < 0.5f)
+                                  startMatchLever.LeverAnimation();
+                              startMatchLever.EndGame();
+                              //creatureAnimator.ResetTrigger("StartMatchLever");
+                          }
+                          else
+                          {
+                              Plugin.mls.LogInfo("maskedShipDeparture = " + Plugin.maskedShipDeparture.ToString() + " so the escape finish is impossible!");
+                              mustChangeFocus = true;
+                              mustChangeActivity = true;
+                          }
+                      }
+                  }*/
             }
         }
 
@@ -3441,7 +3495,7 @@ namespace LethalIntelligence.Patches
                         isUsingTerminal = false;
                         noMoreTerminal = true;
                         //isTerminalEscaping = false;
-                        if(maskedFocus == Focus.Escape)
+                        if (maskedFocus == Focus.Escape)
                         {
                             isTerminalEscaping = false;
                             isLeverEscaping = true;
@@ -3545,7 +3599,7 @@ namespace LethalIntelligence.Patches
                         msg = "hurry!!";
                         break;
                     case 7:
-                         msg = "come ship!";
+                        msg = "come ship!";
                         break;
                     case 8:
                         msg = "evacuate!";
@@ -3560,66 +3614,66 @@ namespace LethalIntelligence.Patches
             }
             else
             {
-            int m = Random.Range(0, 10);
-            switch (m)
-            {
-                case 0:
-                    msg = "safe";
-                    break;
-                case 1:
-                    msg = "danger";
-                    break;
-                case 2:
-                    //entities
-                    int e = Random.Range(0, 7);
-                    switch (e)
-                    {
-                        case 0:
-                            msg = "dogs";
-                            break;
-                        case 1:
-                            msg = "bracken";
-                            break;
-                        case 2:
-                            msg = "giant";
-                            break;
-                        case 3:
-                            msg = "worm";
-                            break;
-                        case 4:
-                            msg = "coilhead";
-                            break;
-                        case 5:
-                            msg = "mine";
-                            break;
-                        case 6:
-                            msg = "turret";
-                            break;
-                    }
-                    break;
-                case 3:
-                    msg = "7pm";
-                    break;
-                case 4:
-                    msg = "9pm";
-                    break;
-                case 5:
-                    msg = "behind u";
-                    break;
-                case 6:
-                    msg = "left";
-                    break;
-                case 7:
-                    msg = "right";
-                    break;
-                case 8:
-                    msg = "go back";
-                    break;
-                case 9:
-                    msg = "watch out";
-                    break;
-            }
-            //msg.Substring(0, 10);
+                int m = Random.Range(0, 10);
+                switch (m)
+                {
+                    case 0:
+                        msg = "safe";
+                        break;
+                    case 1:
+                        msg = "danger";
+                        break;
+                    case 2:
+                        //entities
+                        int e = Random.Range(0, 7);
+                        switch (e)
+                        {
+                            case 0:
+                                msg = "dogs";
+                                break;
+                            case 1:
+                                msg = "bracken";
+                                break;
+                            case 2:
+                                msg = "giant";
+                                break;
+                            case 3:
+                                msg = "worm";
+                                break;
+                            case 4:
+                                msg = "coilhead";
+                                break;
+                            case 5:
+                                msg = "mine";
+                                break;
+                            case 6:
+                                msg = "turret";
+                                break;
+                        }
+                        break;
+                    case 3:
+                        msg = "7pm";
+                        break;
+                    case 4:
+                        msg = "9pm";
+                        break;
+                    case 5:
+                        msg = "behind u";
+                        break;
+                    case 6:
+                        msg = "left";
+                        break;
+                    case 7:
+                        msg = "right";
+                        break;
+                    case 8:
+                        msg = "go back";
+                        break;
+                    case 9:
+                        msg = "watch out";
+                        break;
+                }
+                //msg.Substring(0, 10);
             }
             return msg;
         }
@@ -4574,9 +4628,9 @@ namespace LethalIntelligence.Patches
             //now only if outside, not in player ship, and not dead)
             //if (__instance.isOutside && !__instance.isInsidePlayerShip && !__instance.isEnemyDead)
             //{
-                maskedGoal = "walking to ships locker";
-                maskedEnemy.lostLOSTimer = 0f;
-                maskedEnemy.stopAndStareTimer = 0f;
+            maskedGoal = "walking to ships locker";
+            maskedEnemy.lostLOSTimer = 0f;
+            maskedEnemy.stopAndStareTimer = 0f;
             bool reachable = ((EnemyAI)maskedEnemy).SetDestinationToPosition(lockerPosition, true);
             if (!reachable)
             {
@@ -4596,9 +4650,9 @@ namespace LethalIntelligence.Patches
         {
             //if (!__instance.isOutside && !__instance.isEnemyDead)
             //{
-                maskedGoal = "walking to breaker box";
-                maskedEnemy.lostLOSTimer = 0f;
-                maskedEnemy.stopAndStareTimer = 0f;
+            maskedGoal = "walking to breaker box";
+            maskedEnemy.lostLOSTimer = 0f;
+            maskedEnemy.stopAndStareTimer = 0f;
             bool reachable = ((EnemyAI)maskedEnemy).SetDestinationToPosition(breakerPosition, true);
             //__instance.moveTowardsDestination = true;
             if (!reachable)
@@ -4664,12 +4718,12 @@ namespace LethalIntelligence.Patches
             }
             //loggedID = true;
             return et; //may be null;
-            
+
         }
 
         private void useEntranceTeleport(EntranceTeleport entrance)
         {
-            if(entrance == null)
+            if (entrance == null)
             {
                 //mustChangeFocus = true;
                 //mustChangeActivity = true;
@@ -4680,9 +4734,9 @@ namespace LethalIntelligence.Patches
             if (distanceToEntrance > 2f)
             {
                 maskedGoal = "Walking to entrance (" + entrance.entranceId + "/" + tPos.ToString() + ")";
-                maskedEnemy.SetDestinationToPosition(tPos,true);
+                maskedEnemy.SetDestinationToPosition(tPos, true);
             }
-            if(distanceToEntrance <2f)
+            if (distanceToEntrance < 2f)
             {
                 maskedGoal = "reached entrance (" + entrance.entranceId + "/" + tPos.ToString() + ")";
                 maskedEnemy.running = false;
@@ -4702,7 +4756,7 @@ namespace LethalIntelligence.Patches
                         mustChangeActivity = true;
                     }
                 }
-                else if (TimeSinceTeleporting > (MaxTimeBeforeTeleporting*0.75) && TimeSinceTeleporting <=MaxTimeBeforeTeleporting)
+                else if (TimeSinceTeleporting > (MaxTimeBeforeTeleporting * 0.75) && TimeSinceTeleporting <= MaxTimeBeforeTeleporting)
                 {
                     maskedGoal = "being idle waiting to use entrance (" + entrance.entranceId + ")";
                     maskedEnemy.LookAndRunRandomly();
@@ -4714,10 +4768,298 @@ namespace LethalIntelligence.Patches
                     mustChangeActivity = true;
                 }
                 //maskedGoal = "looking and running randomly near entranceTeleport (" + entrance.entranceId + ")";
-                
+
 
             }
         }
+
+        #region mirageDependency
+        // Firstly, each EnemyAI will have an AudioStream component attached to it. This is used for handling networked audio.
+        AudioStream audioStream;
+        int mirageAudioClipsPlayedInARow;
+        int randomMirageAllowedAudioClipsInARow;
+
+        //put this in masked spawn
+        // Subscribe to the event.
+        private void enableMirageAudio()
+        {
+            if (Plugin.mirageIntegrated)
+            {
+                audioStream = maskedEnemy.GetComponent<AudioStream>();
+                audioStream.OnAudioStream += OnAudioStreamHandler;
+            }
+        }
+
+        DateTime endMirageClipTime;
+        // In order to know when a new audio clip is created and streamed over, we will be subscribing to "AudioStreamEvent"s.
+
+        public bool mirageShouldUseWalkies()
+        {
+            //determine how many walkies are in use, how many in line of sight, and determine if to use the walkie based off that.
+            int totalOtherWalkieTalkies = 0;
+            int walkieNotBeingUsed = 0;
+            int walkieInLineOfSight = 0;
+            int walkieNearby = 0;
+            float walkieDistance;
+
+            foreach(WalkieTalkie walkie in GlobalItemList.Instance.allWalkieTalkies)
+            {
+                if (walkie == heldGrabbable)
+                {
+                    //current masked is holding this walkie.. so ignore.
+                    continue;
+                }
+                totalOtherWalkieTalkies++; //add up how many walkies exist.. that are not held by the current masked
+
+                //if walkie talkie is off.. CONTINUE because they dont matter.. UNLESS they are seen in person.
+                if(((Renderer)((GrabbableObject)walkie).mainObjectRenderer).sharedMaterial == walkie.offMaterial)
+                //if (!walkie.isBeingUsed)
+                {
+                    walkieNotBeingUsed++;
+                    continue;
+                }
+
+                //if walkie talkie is in line of sight add to walkies in line of sight.
+                if (__instance.CheckLineOfSightForPosition(walkie.transform.position, 60f))
+                {
+                    walkieInLineOfSight++;
+                    walkieDistance = 0f;
+                    continue;
+                }
+
+                //check distance
+                walkieDistance = Vector3.Distance(__instance.transform.position, walkie.transform.position);
+                if (walkieDistance <= 15f)
+                {
+                    walkieNearby++;
+                    continue;
+                }
+            }
+
+            /*Plugin.mls.LogError("totalWalkieTalkies = " + totalOtherWalkieTalkies);
+            Plugin.mls.LogError("walkieNotInLineOfSight = " + walkieInLineOfSight);
+            Plugin.mls.LogError("walkieNotNearby = " + walkieNearby);
+            Plugin.mls.LogError("walkieNotBeingUsed = " + walkieNotBeingUsed);*/
+
+            var walkiesThatShouldHearMasked = (totalOtherWalkieTalkies - (walkieInLineOfSight + walkieNearby + walkieNotBeingUsed));
+            double walkieChance = (((walkiesThatShouldHearMasked + 0.5) / totalOtherWalkieTalkies) * 100); //0 = dont play.. then 1 for every walkie thats valid, so + 1 (because the below IF is + 2)
+            if (walkiesThatShouldHearMasked > 0)
+            {
+                if (Random.RandomRangeInt(0, walkiesThatShouldHearMasked + 1) == 0)
+                {
+                    Plugin.mls.LogInfo("(LI<->Mirage) Masked is not using WalkieTalkie to speak (" + walkieChance.ToString() + "% chance to use walkie)");
+                    return false;
+                }
+                else
+                {
+                    Plugin.mls.LogInfo("(LI<->Mirage) Masked is using WalkieTalkie to speak (" + walkieChance.ToString() + "% chance to use walkie)");
+                    return true;
+                }
+            }
+            else
+            {
+                Plugin.mls.LogInfo("(LI<->Mirage) Masked is not using WalkieTalkie to speak (No Other Valid Walkies Nearby/TurnedOn)");
+                return false;
+            }
+        }
+
+        bool mirageClipAllowed;
+
+        public void OnAudioStreamHandler(object _, AudioStreamEventArgs eventArgs)
+        {
+            if (Plugin.mirageIntegrated && heldGrabbable is WalkieTalkie)
+            {
+                List<WalkieTalkie> allWalkieTalkies = GlobalItemList.Instance.allWalkieTalkies;
+                var audioEvent = eventArgs.EventData;
+                double audioLength = -1;
+                
+                if(endMirageClipTime==null)
+                {
+                    endMirageClipTime = DateTime.Now.AddYears(1);
+                }
+                if (audioEvent.IsAudioStartEvent)
+                {
+                    if (mirageShouldUseWalkies()) //50%+ activation rate
+                    //if(true) //bypassing the walkie check for testing
+                    {
+                        mirageClipAllowed = true;
+                    }
+                    else
+                    {
+                        mirageClipAllowed = false;
+                        return;
+                    }
+                    var sEvent = (audioEvent as AudioStreamEvent.AudioStartEvent).Item;
+                    /*double sof = (double)sEvent.lengthSamples / (double)sEvent.frequency;
+                    double sofoc = (double)sof / (double)sEvent.channels;
+                    audioLength = (double)sofoc * 1000; //milliseconds
+
+
+                    Plugin.mls.LogWarning(String.Format("LengthSamples = {0}", sEvent.lengthSamples.ToString()));
+                    Plugin.mls.LogWarning(String.Format("Frequency = {0}", sEvent.frequency.ToString()));
+                    Plugin.mls.LogWarning(String.Format("Channels = {0}", sEvent.channels.ToString()));
+
+                    Plugin.mls.LogWarning(String.Format("{0}, {1}", sof.ToString(), sofoc.ToString()));*/
+                    audioLength = ((double)sEvent.lengthSamples / (double)sEvent.frequency) / (double)sEvent.channels * 1000; //milliseconds
+                    //Plugin.mls.LogError(audioLength + " = (" + (double)sEvent.lengthSamples + " / " + (double)sEvent.frequency + ") / " + (double)sEvent.channels + " * 1000");
+                    if (audioLength == 0)
+                    {
+                        Plugin.mls.LogWarning("LI<->Mirage Audio Integration -> clip length was 0 (this shouldent normally happen)");
+                        return; //this return may lead to errors.. so i maybe disabling this very soon
+                    }
+                    else
+                    {
+                        //mirageTurnOnWalkie
+                        mirageTurnOnWalkie();
+                        //miragePressWalkieButton
+                        mirageActivateWalkieSpeaking();
+
+                        endMirageClipTime = DateTime.Now.AddMilliseconds(audioLength); //remove 0.5% of the audio length to ensure the clip plays and the masked end the transmission
+                        /*Plugin.mls.LogError("audioLength = " + audioLength.ToString());
+                        Plugin.mls.LogError("startTime = " + DateTime.Now.ToString("dd/MM/yyyy hh:mm:ss.fff"));
+                        Plugin.mls.LogError("endTime = " + endMirageClipTime.ToString("dd/MM/yyyy hh:mm:ss.fff"));*/
+                        mirageDeactivateWalkieSpeaking(endMirageClipTime);
+
+                        //mirageTurnOffWalkie
+                        //new WaitForSeconds(2.5f);
+                        mirageTurnOffWalkie(endMirageClipTime);
+                    }
+                }
+                //Plugin.mls.LogError("mirageClipAllowed = " + mirageClipAllowed);
+                if(!mirageClipAllowed)
+                {
+                    return;
+                }
+                foreach (WalkieTalkie walkieTalkie in allWalkieTalkies)
+                {
+                    if(walkieTalkie == heldGrabbable)
+                    {
+                        continue; //masked is holding this walkie
+                    }
+                    if (((Renderer)((GrabbableObject)walkieTalkie).mainObjectRenderer).sharedMaterial == walkieTalkie.offMaterial)
+                    {
+                        continue; //walkie is turned off
+                    }
+                    walkieTalkie.target.volume = 100f; //dont change this as it affects EVERYTHING (masked voices + the playing of the soundeffects when the masked try to speak)
+                    switch (audioEvent)
+                    {
+                        case AudioStreamEvent.AudioStartEvent:
+                            var startEvent = (audioEvent as AudioStreamEvent.AudioStartEvent).Item;
+                            walkieTalkie.target.clip = AudioClip.Create("maskedClip", startEvent.lengthSamples, startEvent.channels, startEvent.frequency, false);
+                            //Plugin.mls.LogInfo("StartEvent.LengthSamples = " + startEvent.lengthSamples);
+                            break;
+                        case AudioStreamEvent.AudioReceivedEvent:
+                            var receivedEvent = (audioEvent as AudioStreamEvent.AudioReceivedEvent).Item;
+                            walkieTalkie.target.clip.SetData(receivedEvent.samples, receivedEvent.sampleIndex);
+                            //Plugin.mls.LogInfo("ReceivedEvent.Samples.Count = " + receivedEvent.samples.Count());
+                            if (!walkieTalkie.target.isPlaying)
+                            {
+                                walkieTalkie.target.Play();
+                            }
+                            break;
+                    }
+                    /*if (endMirageClipTime <= DateTime.Now)
+                    {
+                        Plugin.mls.LogWarning("Playback Stopping");
+                        //stop playback only
+                        walkieTalkie.target.Stop();
+                    }*/
+                }
+                //Plugin.mls.LogInfo((heldGrabbable as WalkieTalkie).thisAudio.clip.ToString());
+                /*if (endMirageClipTime <= DateTime.Now.AddSeconds(-1))
+                {
+                    new WaitForSecondsRealtime(1); //slight pause at the end of the clip
+                }*/
+                //Plugin.mls.LogWarning(endMirageClipTime.ToString("dd/MM/yyyy hh:mm:ss.fff") + " <= " + DateTime.Now.ToString("dd/MM/yyyy hh:mm:ss.fff"));
+                /*if (endMirageClipTime <= DateTime.Now) //stop everything else now
+                {
+                    Plugin.mls.LogWarning("Finishing Off @ " + DateTime.Now.ToString("dd/MM/yyyy hh:mm:ss.fff"));
+                    //endMirageClipTime = DateTime.Now.AddYears(1);
+                    //new WaitForSeconds(2.5f);
+                    //mirageLetGoOfWalkieButton
+                    mirageClipAllowed = false;
+                    mirageDeactivateWalkieSpeaking();
+
+                    //mirageTurnOffWalkie
+                    //new WaitForSeconds(2.5f);
+                    mirageTurnOffWalkie();
+                }
+                else //if(endMirageClipTime <= DateTime.Now.AddMilliseconds(-200))
+                {
+                    //Plugin.mls.LogWarning("ExitingHandler @ " + DateTime.Now);
+                }*/
+
+            }
+        }
+
+        private void mirageTurnOnWalkie()
+        {
+            WalkieTalkie component = ((Component)heldGrabbable).GetComponent<WalkieTalkie>();
+            if (!((GrabbableObject)component).isBeingUsed)
+            {
+                Plugin.mls.LogDebug("Masked Turning Walkie On!");
+                ((GrabbableObject)component).isBeingUsed = true;
+                component.EnableWalkieTalkieListening(true);
+                ((Renderer)((GrabbableObject)component).mainObjectRenderer).sharedMaterial = component.onMaterial;
+                ((Behaviour)component.walkieTalkieLight).enabled = true;
+                component.thisAudio.PlayOneShot(component.switchWalkieTalkiePowerOn);
+            }
+        }
+
+        private void mirageActivateWalkieSpeaking()
+        {
+            Plugin.mls.LogDebug("Masked Started Pressing Speaking Button!");
+            foreach (WalkieTalkie allWalkieTalky in GlobalItemList.Instance.allWalkieTalkies)
+            {
+                if (((GrabbableObject)allWalkieTalky).isBeingUsed)
+                {
+                    allWalkieTalky.thisAudio.PlayOneShot(allWalkieTalky.startTransmissionSFX[Random.Range(0, allWalkieTalky.startTransmissionSFX.Length)]);
+                }
+            }
+            creatureAnimator.SetTrigger("UseWalkie");
+        }
+
+        private async void mirageDeactivateWalkieSpeaking(DateTime endTime)
+        {
+            await Task.Run(() =>
+            {
+                do
+                {
+
+                } while (endTime.AddSeconds(1.5f) > DateTime.Now);
+                Plugin.mls.LogDebug("Masked Stopped Pressing Speaking Button!");
+                creatureAnimator.ResetTrigger("UseWalkie");
+                foreach (WalkieTalkie allWalkieTalky2 in GlobalItemList.Instance.allWalkieTalkies)
+                {
+                    if (((GrabbableObject)allWalkieTalky2).isBeingUsed)
+                    {
+                        allWalkieTalky2.thisAudio.PlayOneShot(allWalkieTalky2.stopTransmissionSFX[Random.Range(0, allWalkieTalky2.stopTransmissionSFX.Length)]);
+                    }
+                }
+            });
+        }
+
+        private async void mirageTurnOffWalkie(DateTime endTime)
+        {
+            await Task.Run(() =>
+            {
+                do
+                {
+
+                } while (endTime.AddSeconds(2f) > DateTime.Now);
+                WalkieTalkie component = ((Component)heldGrabbable).GetComponent<WalkieTalkie>();
+                if (((GrabbableObject)component).isBeingUsed)
+                {
+                    ((GrabbableObject)component).isBeingUsed = false;
+                    component.EnableWalkieTalkieListening(false);
+                    ((Renderer)((GrabbableObject)component).mainObjectRenderer).sharedMaterial = component.offMaterial;
+                    ((Behaviour)component.walkieTalkieLight).enabled = false;
+                    component.thisAudio.PlayOneShot(component.switchWalkieTalkiePowerOff);
+                    Plugin.mls.LogDebug("Masked Turned Walkie Off!");
+                }
+            });
+        }
+        #endregion mirageDependency
 
         //killing off zeekers code for masked teleporting at the main entrance... its causing a bug
         [HarmonyPatch(typeof(MaskedPlayerEnemy), "TeleportMaskedEnemyAndSync")]
