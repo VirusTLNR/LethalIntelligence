@@ -20,14 +20,15 @@ if this is on.. OR Imperium is installed.. debug mode will be turned on, this wi
   <summary>Masked Behaviour (spoiler?):</summary>
 
 * Aggressive
-    * If you have a dropped shotgun, pick it up and shoot people.
-    * If there is a player with a shotgun, attack with a shovel type item.
+    * If you have a dropped shotgun, pick it up and shoot people. (currently bugged - fixing soon)
+    * If there is a player with a shotgun, attack with a shovel type item. (currently bugged - fixing soon)
     * will almost always target a detected player. (also has a player focus where they 100% focus on chasing you til you are dead)
 
 * Stealthy
     * Will mimic players
     * will hide from players
     * very unlikely to target players
+    * Can pick up and use WalkieTalkies
 
 * Cunning
     * Stealing items in the area around the ship and hiding them in bushes (max 5 items)
@@ -37,17 +38,21 @@ if this is on.. OR Imperium is installed.. debug mode will be turned on, this wi
 * Deceiving
     * Uses terminal codes to make you think someone is in the ship and help/hinder you.
     * will tend to ignore you in favour of making you beleive they are a player.
+    * Can pick up and use WalkieTalkies
 
 * Insane
     * Uses signal translator to make you think someone is in the ship and help/hinder you.
     * can "sabotage" the apparatus (after 2pm only)
     * will make the ship take off after it has completed sabotaging the apparatus.. fair warning will occur as long as you own a signal translator.
     * will tend to target players more than most other personalities
+    * Can pick up and use WalkieTalkies
 
  </details>
 
 ## Known Issues
 - masked "ignoring players" is sometimes way too much, and sometimes way too little, a rework of the system will occur soon.
+- masked holding 1 handed items leads to a null reference error relating to "arms locked to camera" - trying to resolve this as i think the 1 handed item animation is at fault.
+- maybe some slight bugs around when walkie talkies are turned on/off while a masked is speaking into them (please report any bugs as this feature is still new!)
 
 ## Mods
 
@@ -72,3 +77,4 @@ Not 100% Compatible (and how to get the best compatibility with these mods.. fee
 - Tim_Shaw for help on trying to make their mod compatible.
 - XuXiaolan for help/advice/tips with spawning items as well as many other things (soon to be too many things to mention).
 - Szumi57 for inspiration on how to fix EntranceTeleports.
+- qwbarch for all the help on integrating Mirage and LethalIntelligence!
