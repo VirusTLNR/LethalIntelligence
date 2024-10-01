@@ -4812,7 +4812,8 @@ namespace LethalIntelligence.Patches
                 totalOtherWalkieTalkies++; //add up how many walkies exist.. that are not held by the current masked
 
                 //if walkie talkie is off.. CONTINUE because they dont matter.. UNLESS they are seen in person.
-                if (!walkie.isBeingUsed)
+                if(((Renderer)((GrabbableObject)walkie).mainObjectRenderer).sharedMaterial == walkie.offMaterial)
+                //if (!walkie.isBeingUsed)
                 {
                     walkieNotBeingUsed++;
                     continue;
@@ -4931,6 +4932,14 @@ namespace LethalIntelligence.Patches
                 }
                 foreach (WalkieTalkie walkieTalkie in allWalkieTalkies)
                 {
+                    if(walkieTalkie == heldGrabbable)
+                    {
+                        continue; //masked is holding this walkie
+                    }
+                    if (((Renderer)((GrabbableObject)walkieTalkie).mainObjectRenderer).sharedMaterial == walkieTalkie.offMaterial)
+                    {
+                        continue; //walkie is turned off
+                    }
                     walkieTalkie.target.volume = 100f; //dont change this as it affects EVERYTHING (masked voices + the playing of the soundeffects when the masked try to speak)
                     switch (audioEvent)
                     {
