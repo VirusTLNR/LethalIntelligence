@@ -90,7 +90,7 @@ namespace LethalIntelligence
 
             PluginDirectory = ((BaseUnityPlugin)this).Info.Location;
             LoadAssets();
-            mls.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} v{MyPluginInfo.PLUGIN_VERSION} has loaded!");
+            mls.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} v{PluginInfo.PLUGIN_VERSION} has loaded!");
 
             //loading config
             //general settings
@@ -136,8 +136,8 @@ namespace LethalIntelligence
             Patch();
             /*Logger = base.Logger;
             Instance = this;
-
             Patch();*/
+            Start(); //because it seemingly doesnt want to run.
         }
 
         internal void RemoveOrphanedConfigs()
@@ -168,7 +168,7 @@ namespace LethalIntelligence
 
             //all masked patches
             harmony.PatchAll(typeof(MaskedPlayerEnemyPatch));
-            harmony.PatchAll(typeof(MaskedAIRevamp));
+            //harmony.PatchAll(typeof(MaskedAIRevamp));
             harmony.PatchAll(typeof(ShotgunItemPatch));
             harmony.PatchAll(typeof(GrabbableObjectPatch));
             harmony.PatchAll(typeof(StartOfRoundPatch));
@@ -179,6 +179,7 @@ namespace LethalIntelligence
 
         private void Start()
         {
+            //calling this yet again in awake.. because sometimes it doesnt run
             if (enableMaskedFeatures)
             {
                 mls.LogInfo((object)"MaskedPersonalities feature has been enabled! Masked AI's behavior is now modified.");
@@ -202,6 +203,7 @@ namespace LethalIntelligence
                 mls.LogInfo((object)logPluginName + " <-> Mirage Integrated!");
                 mirageIntegrated = true;
             }
+            mls.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} v{PluginInfo.PLUGIN_VERSION} finished checking dependencies!");
         }
 
         private void LoadAssets()
