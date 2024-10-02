@@ -1512,20 +1512,6 @@ namespace LethalIntelligence.Patches
             }*/
         }
 
-        [HarmonyPatch(typeof(MaskedPlayerEnemy), "OnCollideWithPlayer")]
-        [HarmonyPrefix]
-        private static bool OnCollideWithPlayer_Prefix()
-        {
-            return false;
-        }
-
-        [HarmonyPatch(typeof(MaskedPlayerEnemy), "LookAtPosition")]
-        [HarmonyPrefix]
-        private static bool LookAtPosition_Prefix()
-        {
-            return false;
-        }
-
         public void LookAtPos(Vector3 pos, float lookAtTime = 1f)
         {
             maskedGoal = "Looking at where player was last seen";
@@ -1559,13 +1545,6 @@ namespace LethalIntelligence.Patches
                 //maskedEnemy.LookAtDirection(originDestination);
                 //maskedEnemy.lookAtPositionTimer = lookAtTime;
             }
-        }
-
-        [HarmonyPatch(typeof(MaskedPlayerEnemy), "LookAtPlayerServerRpc")]
-        [HarmonyPrefix]
-        private static bool LookAtPlayerServerRpc_Prefix()
-        {
-            return false;
         }
 
         private void setNearestGrabbable()
@@ -5061,15 +5040,6 @@ namespace LethalIntelligence.Patches
         }
         #endregion mirageDependency
 
-        //killing off zeekers code for masked teleporting at the main entrance... its causing a bug
-        [HarmonyPatch(typeof(MaskedPlayerEnemy), "TeleportMaskedEnemyAndSync")]
-        [HarmonyPrefix]
-        private static bool TeleportMaskedEnemyAndSync_Prefix()
-        {
-            return false;
-        }
-
-
         //my replacement for MaskedEnemy.TeleportMaskedEnemyAndSync ... killing off the original function and using this will disable the vanilla behaviour for masked to teleport.
         private void TeleportMaskedEnemyAndSync(Vector3 pos, bool setOutside)
         {
@@ -5191,25 +5161,6 @@ namespace LethalIntelligence.Patches
         public bool GetVar(ref bool ___localClientSendingShootGunRPC)
         {
             return ___localClientSendingShootGunRPC;
-        }
-    }
-    [HarmonyPatch(typeof(MaskedPlayerEnemy))]
-    internal class MaskedPlayerEnemyPatch
-    {
-        public static MaskedAIRevamp vd;
-
-        [HarmonyPrefix]
-        [HarmonyPatch("Awake")]
-        private static void Awake_Prefix(EnemyAI __instance)
-        {
-            if (Plugin.enableMaskedFeatures)
-            {
-                vd = ((Component)__instance).gameObject.AddComponent<MaskedAIRevamp>();
-            }
-            else if ((Object)(object)((Component)((Component)__instance).transform.GetChild(3).GetChild(0)).GetComponent<Animator>().runtimeAnimatorController != (Object)(object)Plugin.MapDotRework)
-            {
-                ((Component)((Component)__instance).transform.GetChild(3).GetChild(0)).GetComponent<Animator>().runtimeAnimatorController = Plugin.MapDotRework;
-            }
         }
     }
 }
