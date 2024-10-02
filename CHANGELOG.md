@@ -1,5 +1,8 @@
 ## Changelog
 
+### 0.2.1 - Mirage Integration Patch (Hotfix 2)
+- Fixed an issue where Mirage was considered a hard dependency and so would break the mod (and potentially the game) if mirage was disabled/not installed.
+
 ### 0.2.0 - Mirage Integration Patch (Hotfix)
 - Fixed the NullReferenceException relating to PlayerAnimationEvents.UnlockArmsFromCamera when masked hold 1 handed items (generic 1 handers, including walkie talkies and flashlights too)
 

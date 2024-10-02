@@ -1,6 +1,6 @@
 {
   "name": "LethalIntelligenceExperimental",
-  "version_number": "0.2.0",
+  "version_number": "0.2.1",
   "website_url": "https://github.com/VirusTLNR/LethalIntelligence",
   "description": "[V64][EXPERIMENTAL]Improved AI in Lethal Company, Currently only improved AI for the masked, but other vanilla entities will get new features once masked is in a stable place.",
   "dependencies": [
