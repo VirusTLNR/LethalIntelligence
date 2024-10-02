@@ -51,7 +51,6 @@ if this is on.. OR Imperium is installed.. debug mode will be turned on, this wi
 
 ## Known Issues
 - masked "ignoring players" is sometimes way too much, and sometimes way too little, a rework of the system will occur soon.
-- masked holding 1 handed items leads to a null reference error relating to "arms locked to camera" - trying to resolve this as i think the 1 handed item animation is at fault.
 - maybe some slight bugs around when walkie talkies are turned on/off while a masked is speaking into them (please report any bugs as this feature is still new!)
 - if you try to use the terminal while a masked is on it you can get softlocked on it. (trying to fix this currently)
 - pathing to the breaker box still has some issues sometimes (as does any route to which the masked cannot reach the destination)

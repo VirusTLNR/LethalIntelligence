@@ -1,5 +1,8 @@
 ## Changelog
 
+### 0.2.0 - Mirage Integration Patch (Hotfix)
+- Fixed the NullReferenceException relating to PlayerAnimationEvents.UnlockArmsFromCamera when masked hold 1 handed items (generic 1 handers, including walkie talkies and flashlights too)
+
 ### 0.1.9 - Mirage Integration Patch
 - Fixed Masked Picking up WalkieTalkies (previously they would not pick them up)
 - Added integration with Mirage, masked will now play mirage audio through walkies to trick you (Stealthy/Deceiving/Insane only), audio will only play through walkies if someone has an active walkie far enough away from the masked, the starting rate is 50% chance, more far players with walkies will increase that chance)
