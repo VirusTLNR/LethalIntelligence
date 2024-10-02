@@ -631,7 +631,10 @@ namespace LethalIntelligence.Patches
             if (GameNetworkManager.Instance.isHostingGame)
             {
                 maxDanceCount.Value = Random.Range(2, 4);
-                enableMirageAudio();
+                if (Plugin.mirageIntegrated)
+                {
+                    enableMirageAudio();
+                }
             }
             if ((Object)(object)creatureAnimator.runtimeAnimatorController != (Object)(object)Plugin.MaskedAnimController)
             {
@@ -4752,25 +4755,20 @@ namespace LethalIntelligence.Patches
             }
         }
 
-        #region mirageDependency
-        // Firstly, each EnemyAI will have an AudioStream component attached to it. This is used for handling networked audio.
-        AudioStream audioStream;
+        #region mirageRequired
+        //none of the code in this region should be run UNLESS Plugin.mirageIntegrated = true!
         int mirageAudioClipsPlayedInARow;
         int randomMirageAllowedAudioClipsInARow;
+        DateTime endMirageClipTime;
+        bool mirageClipAllowed;
 
-        //put this in masked spawn
         // Subscribe to the event.
         private void enableMirageAudio()
         {
-            if (Plugin.mirageIntegrated)
-            {
-                audioStream = maskedEnemy.GetComponent<AudioStream>();
-                audioStream.OnAudioStream += OnAudioStreamHandler;
-            }
+            // Firstly, each EnemyAI will have an AudioStream component attached to it. This is used for handling networked audio.
+            // In order to know when a new audio clip is created and streamed over, we will be subscribing to "AudioStreamEvent"s.
+            maskedEnemy.GetComponent<AudioStream>().OnAudioStream += OnAudioStreamHandler;
         }
-
-        DateTime endMirageClipTime;
-        // In order to know when a new audio clip is created and streamed over, we will be subscribing to "AudioStreamEvent"s.
 
         public bool mirageShouldUseWalkies()
         {
@@ -4841,8 +4839,6 @@ namespace LethalIntelligence.Patches
                 return false;
             }
         }
-
-        bool mirageClipAllowed;
 
         public void OnAudioStreamHandler(object _, AudioStreamEventArgs eventArgs)
         {
@@ -5038,7 +5034,7 @@ namespace LethalIntelligence.Patches
                 }
             });
         }
-        #endregion mirageDependency
+        #endregion mirageRequired
 
         //my replacement for MaskedEnemy.TeleportMaskedEnemyAndSync ... killing off the original function and using this will disable the vanilla behaviour for masked to teleport.
         private void TeleportMaskedEnemyAndSync(Vector3 pos, bool setOutside)
