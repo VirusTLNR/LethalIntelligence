@@ -2140,6 +2140,22 @@ namespace LethalIntelligence.Patches
                 {
                     foreach (var walkie in walkieTalkies)
                     {
+                        if(walkie == null)
+                        {
+                            Plugin.mls.LogError("walkie is Null (GrabWalkie)");
+                            continue;
+                        }
+                        if(walkie.transform == null)
+                        {
+                            Plugin.mls.LogError("walkie.transform is Null (GrabWalkie)");
+                            continue;
+                        }
+                        if(walkie.transform.position == null)
+                        {
+
+                            Plugin.mls.LogError("walkie.transform.position is Null (GrabWalkie)");
+                            continue;
+                        }
                         if (__instance.CheckLineOfSightForPosition(walkie.transform.position, 60f))
                         {
                             if (walkie.isHeld || walkie.isHeldByEnemy)
