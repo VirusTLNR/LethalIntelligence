@@ -839,7 +839,8 @@ namespace LethalIntelligence.Patches
                 }
                 if (mustChangeFocus || maskedFocus == Focus.Items || maskedActivity == Activity.RandomItem)
                 {
-                    setNearestGrabbable();
+                    //setNearestGrabbable();
+                    findRandomItem();
                     //this is in setNearestGrabbable();
                     /*if (!closestGrabbableReachable)
                     {
@@ -1144,6 +1145,10 @@ namespace LethalIntelligence.Patches
                     //maskedActivity = Activity.ItemLocker;
                     maskedActivityInt.Value = (int)Activity.ItemLocker;
                 }
+                else if (maskedActivity != Activity.RandomItem)
+                {
+                    maskedActivityInt.Value = (int)Activity.RandomItem;
+                }
             }
             else if (!maskedEnemy.isOutside)
             {
@@ -1156,6 +1161,10 @@ namespace LethalIntelligence.Patches
                 {
                     //maskedActivity = Activity.Apparatus;
                     maskedActivityInt.Value = (int)Activity.Apparatus;
+                }
+                else if (maskedActivity != Activity.RandomItem)
+                {
+                    maskedActivityInt.Value = (int)Activity.RandomItem;
                 }
             }
             else
