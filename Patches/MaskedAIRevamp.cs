@@ -1431,6 +1431,11 @@ namespace LethalIntelligence.Patches
                     maskedGoal = "finding Apparatus";
                     findApparatus();
                 }
+                else if(maskedActivity == Activity.RandomItem)
+                {
+                    maskedGoal = "finding RandomItem";
+                    findRandomItem();
+            }
             }
             /*if (Plugin.useTerminal && (maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane) && !noMoreTerminal)
             {
