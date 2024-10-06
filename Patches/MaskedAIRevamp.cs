@@ -447,6 +447,10 @@ namespace LethalIntelligence.Patches
                     string hg = "null";
                     string ngd = "null";
                     string cg = "null";
+                    string bbr = "null";
+                    string bbo = "null";
+                    string ar = "null";
+                    string caf = "null";
                     if (nearestGrabbable != null)
                     {
                         ng = nearestGrabbable.name.ToString();
@@ -460,6 +464,16 @@ namespace LethalIntelligence.Patches
                     if (closestGrabbable != null)
                     {
                         cg = closestGrabbable.name.ToString();
+                    }
+                    if(breakerBox != null)
+                    {
+                        bbr = breakerBoxReachable.ToString();
+                        bbo = breakerBox.isPowerOn.ToString();
+                    }
+                    if(apparatus != null)
+                    {
+                        ar = apparatusReachable.ToString();
+                        caf = completedApparatusFocus.ToString();
                     }
                     string bbcp = breakerClosestPoint.ToString();
                     string tcp = terminalClosestPoint.ToString();
@@ -481,8 +495,8 @@ namespace LethalIntelligence.Patches
                     else if (maskedFocus == Focus.BreakerBox || (maskedFocus == Focus.None && maskedActivity == Activity.BreakerBox))
                     {
                         focusDetails = focusStart +
-                            "\nBreakerBoxReachable = " + breakerBoxReachable +
-                            "\nbreakerBox.isPowerOn = " + breakerBox.isPowerOn;
+                            "\nBreakerBoxReachable = " + bbr +
+                            "\nbreakerBox.isPowerOn = " + bbo;
                     }
                     else if (maskedFocus == Focus.Terminal)
                     {
@@ -492,8 +506,8 @@ namespace LethalIntelligence.Patches
                     else if (maskedActivity == Activity.Apparatus || maskedFocus == Focus.Apparatus)
                     {
                         focusDetails = focusStart +
-                        "\nApparatusReachable = " + apparatusReachable +
-                        "\nThisMaskedSabotagedApparatus? = " + completedApparatusFocus;
+                        "\nApparatusReachable = " + ar +
+                        "\nThisMaskedSabotagedApparatus? = " + caf;
                     }
                     else if (maskedFocus == Focus.Escape)
                     {
