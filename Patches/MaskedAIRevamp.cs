@@ -4679,6 +4679,39 @@ namespace LethalIntelligence.Patches
             }
         }
 
+        private void findRandomItem()
+        {
+            //find where an item is, but dont pick it up.
+            List<GrabbableObject> allItems = GlobalItemList.Instance.allitems;
+            List<GrabbableObject> items = (List<GrabbableObject>)allItems.Where(x => x.isInFactory == !maskedEnemy.isOutside);
+            GrabbableObject selectedItem = null;
+            if (selectedItem == null)
+            {
+                foreach (GrabbableObject item in items)
+                {
+
+                    if (item.isHeld || item.isHeldByEnemy)
+                    {
+                        continue; //item is not on the ground
+                    }
+                    selectedItem = item;
+                    break;
+                }
+            }
+            if (selectedItem == null)
+            {
+                mustChangeFocus = true;
+                mustChangeActivity = true;
+                return;
+            }
+            maskedEnemy.SetDestinationToPosition(selectedItem.transform.position, true);
+            if (Vector3.Distance(maskedEnemy.transform.position, selectedItem.transform.position) < 1.5f)
+            {
+                mustChangeFocus = true;
+                mustChangeActivity = true;
+            }
+        }
+
         private void findApparatus()
         {
             maskedGoal = "walking to apparatus";
