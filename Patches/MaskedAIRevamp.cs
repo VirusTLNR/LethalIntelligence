@@ -794,6 +794,9 @@ namespace LethalIntelligence.Patches
             NavMeshPath nmpBreaker = new NavMeshPath(), nmpTerminal = new NavMeshPath(), nmpLocker = new NavMeshPath(), nmpApparatus = new NavMeshPath();
             NavMeshHit hitBreaker, hitTerminal, hitLocker, hitApparatus;
 
+            //TimeSinceTeleporting += updateFrequency;
+            //Plugin.mls.LogError("tst = " + TimeSinceTeleporting);
+
             if (calculationDelay > 0)
             {
                 calculationDelay--;
@@ -802,7 +805,6 @@ namespace LethalIntelligence.Patches
             {
                 calculationDelay = 250; //update is 50 times a second, so this is once every 5 seconds... compared to the 10 updates a second making this 1 update per 5 seconds previously
 
-                TimeSinceTeleporting++;
                 /*if (TimeSinceTeleporting < MaxTimeBeforeTeleporting)
                 {
                     Plugin.mls.LogError("TimeToTp = " + TimeSinceTeleporting);
@@ -4735,7 +4737,7 @@ namespace LethalIntelligence.Patches
         }
 
         private float TimeSinceTeleporting { get; set; }
-        private float MaxTimeBeforeTeleporting = 5;
+        private float MaxTimeBeforeTeleporting = 15000;
         private EntranceTeleport[] entrancesTeleportArray = null!;
         EntranceTeleport? selectedEntrance = null;
 
@@ -4771,6 +4773,8 @@ namespace LethalIntelligence.Patches
 
         }
 
+        //bool isBeingIdle = false;
+
         private void useEntranceTeleport(EntranceTeleport entrance)
         {
             if (entrance == null)
@@ -4779,6 +4783,25 @@ namespace LethalIntelligence.Patches
                 //mustChangeActivity = true;
                 return; //no entrance selected
             }
+            /*if(TimeSinceTeleporting <= MaxTimeBeforeTeleporting)
+            //if (TimeSinceTeleporting > (MaxTimeBeforeTeleporting * 0.75) && TimeSinceTeleporting <= MaxTimeBeforeTeleporting)
+            {
+                maskedGoal = "being idle waiting to use entrance (" + entrance.entranceId + ")";
+                if (!isBeingIdle)
+                {
+                    isBeingIdle = true;
+                    maskedEnemy.LookAndRunRandomly();
+                }
+                return;
+            }*/
+            /*else if(TimeSinceTeleporting <= (MaxTimeBeforeTeleporting * 0.75)) //this isnt working atm so just dont do this now.
+            {
+                maskedGoal = "entrance used recently, doing something else instead. (" + entrance.entranceId + ")";
+                mustChangeFocus = true;
+                mustChangeActivity = true;
+                return;
+            }*/
+            //maskedGoal = "looking and running randomly near entranceTeleport (" + entrance.entranceId + ")";
             Vector3 tPos = entrance.transform.position;
             float distanceToEntrance = Vector3.Distance(maskedEnemy.transform.position, tPos);
             if (distanceToEntrance > 2f)
@@ -4794,10 +4817,11 @@ namespace LethalIntelligence.Patches
                 //System.Diagnostics.Debugger.Break();
                 //Vector3? entryPoint = entrance.entrancePoint.position;
                 Vector3? opposingTeleportPosition = getTeleportDestination(entrance);
-                if (TimeSinceTeleporting > MaxTimeBeforeTeleporting)
+                //if (TimeSinceTeleporting > MaxTimeBeforeTeleporting)
                 {
                     maskedGoal = "using entrance (" + entrance.entranceId + "/" + entrance.entrancePoint.position.ToString() + ")";
                     TimeSinceTeleporting = 0;
+                    //isBeingIdle = false;
                     //maskedEnemy.TeleportMaskedEnemyAndSync((Vector3)opposingTeleportPosition, !maskedEnemy.isOutside);
                     TeleportMaskedEnemyAndSync((Vector3)opposingTeleportPosition, !maskedEnemy.isOutside);
                     if (maskedFocus != Focus.Escape)
@@ -4806,20 +4830,6 @@ namespace LethalIntelligence.Patches
                         mustChangeActivity = true;
                     }
                 }
-                else if (TimeSinceTeleporting > (MaxTimeBeforeTeleporting * 0.75) && TimeSinceTeleporting <= MaxTimeBeforeTeleporting)
-                {
-                    maskedGoal = "being idle waiting to use entrance (" + entrance.entranceId + ")";
-                    maskedEnemy.LookAndRunRandomly();
-                }
-                else
-                {
-                    maskedGoal = "entrance used recently, doing something else instead. (" + entrance.entranceId + ")";
-                    mustChangeFocus = true;
-                    mustChangeActivity = true;
-                }
-                //maskedGoal = "looking and running randomly near entranceTeleport (" + entrance.entranceId + ")";
-
-
             }
         }
 
