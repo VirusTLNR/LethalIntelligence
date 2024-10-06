@@ -3111,7 +3111,7 @@ namespace LethalIntelligence.Patches
                     apparatus.isLungDockedInElevator = false;
                     apparatus.isLungPowered = false;
                     apparatus.GetComponent<AudioSource>().Stop();
-                    apparatus.GetComponent<NetworkObject>().Despawn(false);
+                    //apparatus.GetComponent<NetworkObject>().Despawn(false); //allowing players to pick up the sabotaged apparatus
                     /*foreach (GrabbableObject o in GlobalItemList.Instance.allitems)
                     {
                         if (o.name == "LungApparatusTurnedOff(Clone)" && Vector3.Distance(maskedEnemy.transform.position,o.transform.position)<5.0f)
