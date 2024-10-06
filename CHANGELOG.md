@@ -1,5 +1,12 @@
 ## Changelog
 
+### 0.2.2
+- Potentially fixed a null reference exception when the masked sabotage the apparatus (only seen once on Liminal Pools (i think) so far, hopefully never again :))
+- potentially fixed masked standing at the main entrance and fire exits, as well as standing in the ship staring at the monitors (thanks vanilla code for not doing as expected)
+- potentially fixed a null reference exception when a walkie is picked up
+- added new Activity (findRandomItem)
+- fixed some null reference errors in the masked status report
+ 
 ### 0.2.1 - Mirage Integration Patch (Hotfix 2)
 - Fixed an issue where Mirage was considered a hard dependency and so would break the mod (and potentially the game) if mirage was disabled/not installed.
 
