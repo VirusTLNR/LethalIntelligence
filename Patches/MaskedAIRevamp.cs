@@ -451,6 +451,8 @@ namespace LethalIntelligence.Patches
                     string bbo = "null";
                     string ar = "null";
                     string caf = "null";
+                    string cm = "null";
+                    string ci = "null";
                     if (nearestGrabbable != null)
                     {
                         ng = nearestGrabbable.name.ToString();
@@ -474,6 +476,14 @@ namespace LethalIntelligence.Patches
                     {
                         ar = apparatusReachable.ToString();
                         caf = completedApparatusFocus.ToString();
+                    }
+                    if(currentMoon != null)
+                    {
+                        cm = currentMoon.ToString();
+                    }
+                    if(currentInterior != null)
+                    {
+                        ci = currentInterior.ToString();
                     }
                     string bbcp = breakerClosestPoint.ToString();
                     string tcp = terminalClosestPoint.ToString();
@@ -528,8 +538,8 @@ namespace LethalIntelligence.Patches
                     //"\nDestination = " + destination.ToString() +
                     //"\nDistance to Destination = " + distanceToDestination.ToString() +
                     //"\nNavMeshPathStatus = " + nms +
-                    "\nMoon = " + currentMoon +
-                    "\nInterior = " + currentInterior +
+                    "\nMoon = " + cm +
+                    "\nInterior = " + ci +
                     "\nisDead = " + maskedEnemy.isEnemyDead +
                     "\n\nisOutside = " + maskedEnemy.isOutside +
                     "\nisInsidePlayerShip = " + maskedEnemy.isInsidePlayerShip +
@@ -599,8 +609,21 @@ namespace LethalIntelligence.Patches
         public void Start()
         {
             selectAvailablePersonalities();
+            if (RoundManager.Instance.currentLevel != null && !RoundManager.Instance.currentLevel.ToString().Contains("Gordion"))
+            {
             currentMoon = RoundManager.Instance.currentLevel.PlanetName;
             currentInterior = RoundManager.Instance.dungeonGenerator.Generator.DungeonFlow.name.ToString();
+
+            }
+            else if(RoundManager.Instance.currentLevel.ToString().Contains("Gordion"))
+            {
+                currentMoon = RoundManager.Instance.currentLevel.PlanetName;
+                currentInterior = "null";
+            }
+            else
+            {
+                //agent.Stop();
+            }
             //IL_00ed: Unknown result type (might be due to invalid IL or missing references)
             //IL_00f7: Expected O, but got Unknown
             //IL_0169: Unknown result type (might be due to invalid IL or missing references)
@@ -1246,6 +1269,17 @@ namespace LethalIntelligence.Patches
                 catch (Exception e)
                 {
                     Plugin.mls.LogWarning("Imperium Visualisers Integeration has an (E)xception...\n\r" + e.Message);
+                }
+            }
+            if (currentMoon == null || currentInterior == null)
+            {
+                if (!(currentMoon == null && currentInterior == null))
+                {
+                    //Plugin.mls.LogError(currentMoon.ToString() + @" \|/ " + currentInterior.ToString());
+                    //currentMoon = null;
+                    //currentInterior = null;
+                    //do nothing because null
+                    return;
                 }
             }
             MaskedStatusReport();
