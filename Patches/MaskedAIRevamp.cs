@@ -4910,8 +4910,8 @@ namespace LethalIntelligence.Patches
                 totalOtherWalkieTalkies++; //add up how many walkies exist.. that are not held by the current masked
 
                 //if walkie talkie is off.. CONTINUE because they dont matter.. UNLESS they are seen in person.
-                if(((Renderer)((GrabbableObject)walkie).mainObjectRenderer).sharedMaterial == walkie.offMaterial)
-                //if (!walkie.isBeingUsed)
+                //if(((Renderer)((GrabbableObject)walkie).mainObjectRenderer).sharedMaterial == walkie.offMaterial)
+                if (!walkie.isBeingUsed)
                 {
                     walkieNotBeingUsed++;
                     continue;
@@ -5032,11 +5032,23 @@ namespace LethalIntelligence.Patches
                     {
                         continue; //masked is holding this walkie
                     }
-                    if (((Renderer)((GrabbableObject)walkieTalkie).mainObjectRenderer).sharedMaterial == walkieTalkie.offMaterial)
+                    if(!walkieTalkie.isBeingUsed)
+                    //if (((Renderer)((GrabbableObject)walkieTalkie).mainObjectRenderer).sharedMaterial == walkieTalkie.offMaterial)
                     {
                         continue; //walkie is turned off
                     }
                     walkieTalkie.target.volume = 100f; //dont change this as it affects EVERYTHING (masked voices + the playing of the soundeffects when the masked try to speak)
+                    if (walkieTalkie.playerHeldBy != GameNetworkManager.Instance.localPlayerController)
+                    {
+                        //Plugin.mls.LogError(walkieTalkie.NetworkObjectId + "|current player is not holding this walkie");
+                        if (!Plugin.alwaysHearActiveWalkiesIntegrated)
+                        {
+                            //Plugin.mls.LogError(walkieTalkie.NetworkObjectId + "|cant hear all walkies.. and this player is not holding this walkie");
+                            continue;
+                        }
+                    }
+                    //Plugin.mls.LogError(walkieTalkie.NetworkObjectId + "|player can hear this walkie");
+
                     switch (audioEvent)
                     {
                         case AudioStreamEvent.AudioStartEvent:

@@ -61,6 +61,7 @@ namespace LethalIntelligence
         public static bool skinWalkersIntegrated;
         public static bool wendigosIntegrated;
         public static bool mirageIntegrated;
+        public static bool alwaysHearActiveWalkiesIntegrated;
         //public static bool moreEmotesIntegrated; //not currently implemented?
 
         public static bool debugModeSetting;
@@ -98,7 +99,7 @@ namespace LethalIntelligence
             enableSkinWalkers = ((BaseUnityPlugin)this).Config.Bind<bool>("General", "SkinWalkers mod Compatibility", true, "Enables compatibility with the SkinWalkers mod. (Requires SkinWalkers mod installed, automatically disables on launch if not installed)").Value;
             enableWendigos = ((BaseUnityPlugin)this).Config.Bind<bool>("General", "Wendigos mod Compatibility", true, "Enables compatibility with the Wendigos_Voice_Cloning mod. (Requires Wendigos_Voice_Cloning mod installed, automatically disables on launch if not installed)").Value;
             enableMirage = ((BaseUnityPlugin)this).Config.Bind<bool>("General", "Mirage mod Compatibility", true, "Enables compatibility with the Mirage mod. (Requires Mirage mod installed, automatically disables on launch if not installed)").Value;
-            
+
             //maskedPersonality
             enableMaskedAggressive = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedPersonalities", "MaskedAggressive", true, "Enables the 'Aggressive' personality for the Masked (at least 1 of these must be TRUE)").Value;
             enableMaskedStealthy = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedPersonalities", "MaskedStealthy", true, "Enables the 'Stealthy' personality for the Masked (at least 1 of these must be TRUE)").Value;
@@ -198,12 +199,17 @@ namespace LethalIntelligence
                 mls.LogInfo((object)logPluginName + " <-> Wendigos_Voice_Cloning Integrated!");
                 wendigosIntegrated = true;
             }
-            if (Chainloader.PluginInfos.Keys.Any((string w) => w == "qwbarch.Mirage") && enableMirage && enableMaskedFeatures)
+            if (Chainloader.PluginInfos.Keys.Any((string m) => m == "qwbarch.Mirage") && enableMirage && enableMaskedFeatures)
             {
                 mls.LogInfo((object)logPluginName + " <-> Mirage Integrated!");
                 mirageIntegrated = true;
             }
-            mls.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} v{PluginInfo.PLUGIN_VERSION} finished checking dependencies!");
+            if (Chainloader.PluginInfos.Keys.Any((string s) => s == "suskitech.LCAlwaysHearActiveWalkie") && enableMaskedFeatures)
+            {
+                mls.LogInfo((object)logPluginName + " <-> AlwaysHearActiveWalkies Support Enabled!");
+                alwaysHearActiveWalkiesIntegrated = true;
+            }
+            mls.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} v{PluginInfo.PLUGIN_VERSION} finished checking for available dependencies!");
         }
 
         private void LoadAssets()
