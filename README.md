@@ -37,7 +37,7 @@ if this is on.. OR Imperium is installed.. debug mode will be turned on, this wi
 
 * Deceiving
     * Uses terminal codes to make you think someone is in the ship and help/hinder you.
-    * will tend to ignore you in favour of making you beleive they are a player.
+    * will tend to ignore (not attack) you in favour of making you beleive they are a player.
     * Can pick up and use WalkieTalkies
 
 * Insane
@@ -56,13 +56,14 @@ if this is on.. OR Imperium is installed.. debug mode will be turned on, this wi
 - pathing to the breaker box still has some issues sometimes (as does any route to which the masked cannot reach the destination)
 
 ## Mods
-
-100% Compatible:
+100% Compatible (and good to use with this mod):
 + 'MaskedEnemyOverhaulFork' mod by Coppertiel
 + 'Skinwalkers' by RedbugRedfern
 + 'Mirage' by qwbarch
 + 'Wendigos_Voice_Cloning' by Tim_Shaw
 + 'SignalTranslatorUpgrade' by Fredolx
++ 'AlwaysHearActiveWalkies' by Suskitech
++ 'Remnants' by KawaiiBone
 
 Not 100% Compatible (and how to get the best compatibility with these mods.. feel free to suggest other things that need adding to this list as i dont use every mod!):
 + General Improvements - Disable all settings related to the masked, if you turn some on and get no issues, do let me know which ones so i can add them here as "fine". The "map dot" should be a 100% turn off as its part of this mod too.

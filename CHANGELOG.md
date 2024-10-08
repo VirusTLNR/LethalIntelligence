@@ -1,5 +1,10 @@
 ## Changelog
 
+### 0.2.3
+- Improved the walkie talkie audio so that only the person holding the walkie hears the voice of the masked
+- Added support for 'AlwaysHearActiveWalkies' mod when masked use walkies. (having "AlwaysHearActiveWalkies" installed makes the masked voice play out loud to all those around the walkie)
+- Fixed Insane when they Sabotage the Apparatus and Escape. (they were seemingly running between main entrance and fire exits due to badly modified logic)
+
 ### 0.2.2
 - Potentially fixed a null reference exception when the masked sabotage the apparatus (only seen once on Liminal Pools (i think) so far, hopefully never again :))
 - potentially fixed masked standing at the main entrance and fire exits, as well as standing in the ship staring at the monitors (thanks vanilla code for not doing as expected)
