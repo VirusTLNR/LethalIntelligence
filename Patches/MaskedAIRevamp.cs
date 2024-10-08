@@ -1313,10 +1313,17 @@ namespace LethalIntelligence.Patches
             }
             if (useWalkie.Value)
             {
-                maskedGoal = "use walkie";
-                GrabWalkie();
-                HoldWalkie();
-                useWalkie.Value = false;
+                if ((maskedFocus == Focus.Escape || maskedFocus == Focus.Apparatus) && maskedPersonality == Personality.Insane)
+                {
+                    maskedGoal = "insane is ignoring walkie due to its current focus being urgent";
+                }
+                else
+                {
+                    maskedGoal = "use walkie";
+                    GrabWalkie();
+                    HoldWalkie();
+                    useWalkie.Value = false;
+                }
             }
             if (GameNetworkManager.Instance.isHostingGame)
             {
@@ -3082,8 +3089,8 @@ namespace LethalIntelligence.Patches
             {
                 if (completedApparatusFocus)
                 {
-                    maskedFocus = Focus.Escape;
-                    maskedActivity = Activity.None;
+                    maskedFocusInt.Value = (int)Focus.Escape;
+                    maskedActivityInt.Value = (int)Activity.None;
                 }
                 else
                 {
