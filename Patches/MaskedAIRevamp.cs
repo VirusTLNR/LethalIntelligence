@@ -3112,7 +3112,7 @@ namespace LethalIntelligence.Patches
                     }
                     maskedGoal = "walking to apparatus";
                     __instance.SetDestinationToPosition(apparatus.transform.position, false);
-                    Plugin.mls.LogDebug("ApparatusDistance = " + apparatusDistance);
+                    //Plugin.mls.LogDebug("ApparatusDistance = " + apparatusDistance);
                     __instance.moveTowardsDestination = true;
                 }
                 if ((Object)(object)apparatus != (Object)null && !apparatus.isLungDocked)
