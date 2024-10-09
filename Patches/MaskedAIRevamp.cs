@@ -2609,7 +2609,7 @@ namespace LethalIntelligence.Patches
                     //breakerbox
                     if (breakerBoxDistance < 40f || noMoreTerminal) //add logic for breaker box being turned off so if breaker box is turned OFF, then do nothing.
                     {
-                        maskedGoal = "walking to breaker box";
+                        maskedGoal = "walking to breaker box (" + breakerBox.transform.position.ToString() + ")";
                         //turn off the breaker box.
                         //noMoreTerminal = true;
                         //noMoreItems = true;
@@ -2704,13 +2704,13 @@ namespace LethalIntelligence.Patches
                             {
                                 if (bushDistance > 2f && bushDistance < float.PositiveInfinity && !val.GetComponent<BushSystem>().bushWithItem)
                                 {
-                                    maskedGoal = "walking to bush";
+                                    maskedGoal = "walking to bush (" + val.transform.position.ToString() + ")";
                                     maskedEnemy.SetDestinationToPosition(val.transform.position, true);
                                     moveSpecial = true;
                                 }
                                 if (bushDistance < 2f)
                                 {
-                                    maskedGoal = "hiding item in bush";
+                                    maskedGoal = "hiding item in bush (" + val.transform.position.ToString() + ")";
                                     Plugin.mls.LogDebug("Cunning Is Hiding an Item");
                                     itemSystem.hidedByMasked = true;
                                     dropItem.Value = true;
@@ -3110,7 +3110,7 @@ namespace LethalIntelligence.Patches
                     {
                         return; //cant reach apparatus
                     }
-                    maskedGoal = "walking to apparatus";
+                        maskedGoal = "walking to apparatus (" + apparatusPosition.ToString() + ")";
                     __instance.SetDestinationToPosition(apparatus.transform.position, false);
                     //Plugin.mls.LogDebug("ApparatusDistance = " + apparatusDistance);
                     __instance.moveTowardsDestination = true;
@@ -3265,9 +3265,9 @@ namespace LethalIntelligence.Patches
                     isTerminalEscaping = false;
                     if (Plugin.maskedShipDeparture)
                     {
-                        maskedGoal = "(escape) walking to ships lever";
                         //pull lever
                         StartMatchLever startMatchLever = GameNetworkManager.FindObjectOfType<StartMatchLever>();
+                    maskedGoal = "(escape) walking to ships lever (" + startMatchLever.transform.position.ToString() + ")";
                         if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) > 0.5f)
                         {
                             maskedEnemy.SetDestinationToPosition(startMatchLever.transform.position);
@@ -3440,7 +3440,7 @@ namespace LethalIntelligence.Patches
                     {
                         return; //cant reach terminal
                     }
-                    maskedGoal = "walking to terminal";
+                    maskedGoal = "walking to terminal (" + terminal.transform.position.ToString() + ")";
                     __instance.SetDestinationToPosition(((Component)terminal).transform.position, false);
                     __instance.moveTowardsDestination = true;
                     //noMoreItems = true;
@@ -4697,7 +4697,7 @@ namespace LethalIntelligence.Patches
             //now only if outside, not in player ship, and not dead)
             //if (__instance.isOutside && !__instance.isInsidePlayerShip && !__instance.isEnemyDead)
             //{
-            maskedGoal = "walking to ships locker";
+            maskedGoal = "walking to ships locker (" + lockerPosition.ToString() + ")";
             maskedEnemy.lostLOSTimer = 0f;
             maskedEnemy.stopAndStareTimer = 0f;
             bool reachable = ((EnemyAI)maskedEnemy).SetDestinationToPosition(lockerPosition, true);
@@ -4719,7 +4719,7 @@ namespace LethalIntelligence.Patches
         {
             //if (!__instance.isOutside && !__instance.isEnemyDead)
             //{
-            maskedGoal = "walking to breaker box";
+            maskedGoal = "walking to breaker box (" + breakerPosition.ToString() + ")";
             maskedEnemy.lostLOSTimer = 0f;
             maskedEnemy.stopAndStareTimer = 0f;
             bool reachable = ((EnemyAI)maskedEnemy).SetDestinationToPosition(breakerPosition, true);
@@ -4771,7 +4771,7 @@ namespace LethalIntelligence.Patches
 
         private void findApparatus()
         {
-            maskedGoal = "walking to apparatus";
+            maskedGoal = "walking to apparatus (" + apparatusPosition.ToString() + ")";
             maskedEnemy.lostLOSTimer = 0f;
             maskedEnemy.stopAndStareTimer = 0f;
             bool reachable = ((EnemyAI)maskedEnemy).SetDestinationToPosition(apparatusPosition, true);
