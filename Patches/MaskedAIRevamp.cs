@@ -3100,87 +3100,87 @@ namespace LethalIntelligence.Patches
                 noMoreApparatus = true;
                 //mustChangeFocus = true;
             }
-            if (apparatusDistance < 40f)
-            {
-                dropItem.Value = true;
-                if (!isUsingApparatus && !noMoreApparatus && !__instance.isEnemyDead)
+                if (apparatusDistance < 40f)
                 {
-                    //apparatusReachable = __instance.SetDestinationToPosition(((Component)apparatus).transform.position, true);
-                    if (!apparatusReachable)
+                    dropItem.Value = true;
+                    if (!isUsingApparatus && !noMoreApparatus && !__instance.isEnemyDead)
                     {
-                        return; //cant reach apparatus
-                    }
-                        maskedGoal = "walking to apparatus (" + apparatusPosition.ToString() + ")";
-                    __instance.SetDestinationToPosition(apparatus.transform.position, false);
-                    //Plugin.mls.LogDebug("ApparatusDistance = " + apparatusDistance);
-                    __instance.moveTowardsDestination = true;
-                }
-                if ((Object)(object)apparatus != (Object)null && !apparatus.isLungDocked)
-                {
-                    //noMoreApparatus = true;
-                    return; //apparatus has been taken
-                }
-                if (apparatusDistance < 10f && isHoldingObject)
-                {
-                    DropItem(); //drop item before taking the apparatus
-                }
-                if (!isUsingApparatus && !noMoreApparatus && apparatusDistance < 3.5f)
-                {
-                    //pull apparatus here, maybe insane masked should EAT the apparatus???
-                    isUsingApparatus = true;
-                }
-                //isCrouched.Value = false;
-                //creatureAnimator.ResetTrigger("Crouching"); //temp fix for crouching animation issue
-                if (isUsingApparatus)
-                {
-                    maskedGoal = "sabotaging apparatus";
-                    __instance.inSpecialAnimation = true;
-                    __instance.movingTowardsTargetPlayer = false;
-                    __instance.targetPlayer = null;
-                    ((Component)maskedEnemy.headTiltTarget).gameObject.SetActive(false);
-                    agent.speed = 0f;
-                    //apparatus.GrabItemFromEnemy(__instance);
-                    //SpawningUtils.SpawnScrapServerRpc("LungApparatus", itemHolder.transform.position, itemHolder.transform);
-                    //SpawningUtils.SpawnInactiveItemServerRpc("LungApparatusTurnedOff", maskedEnemy.transform.position);
-                    completedApparatusFocus = true;
-                    apparatus.EquipItem();
-                    apparatus.isLungPowered = false;
-                    apparatus.lungDeviceLightIntensity = 0f;
-                    apparatus.GetComponent<GrabbableObject>().SetScrapValue(0); //tainted by the masked
-                    NetworkObject netObj = apparatus.GetComponent<NetworkObject>();
-                    if (netObj != null)
-                    {
-                        var scanNode = netObj.GetComponentInChildren<ScanNodeProperties>();
-                        scanNode.headerText = "SabotagedApparatus";
-                        scanNode.scrapValue = 0;
-                        scanNode.subText = $"Value: ${0}";
-                        var lights = netObj.GetComponentsInChildren<Light>().ToList();
-                        lights.Do(l => l.enabled = false);
-                    }
-                    apparatus.isLungDocked = false;
-                    apparatus.isLungDockedInElevator = false;
-                    apparatus.isLungPowered = false;
-                    apparatus.GetComponent<AudioSource>().Stop();
-                    //apparatus.GetComponent<NetworkObject>().Despawn(false); //allowing players to pick up the sabotaged apparatus
-                    /*foreach (GrabbableObject o in GlobalItemList.Instance.allitems)
-                    {
-                        if (o.name == "LungApparatusTurnedOff(Clone)" && Vector3.Distance(maskedEnemy.transform.position,o.transform.position)<5.0f)
+                        //apparatusReachable = __instance.SetDestinationToPosition(((Component)apparatus).transform.position, true);
+                        if (!apparatusReachable)
                         {
-                                o.name = "BrokenApparatus";
-                                o.itemProperties.itemSpawnsOnGround = true;
-                                //o.itemProperties.itemSpawnsOnGround = true;
-                                //ManuelGrabItem(o);
+                            return; //cant reach apparatus
                         }
-                    }*/
-                    //grabbableApparatus.ItemActivate(false);
-                    //grabbableApparatus.GrabItemFromEnemy(__instance);
-                    //GrabDockedApparatus(grabbableApparatus);
-                    //ForceGrabCustomItem(grabbableApparatus);
-                    //pull apparatus here..
-                    isUsingApparatus = false;
-                    __instance.inSpecialAnimation = false;
-                    ((Component)maskedEnemy.headTiltTarget).gameObject.SetActive(true);
-                }
+                        maskedGoal = "walking to apparatus (" + apparatusPosition.ToString() + ")";
+                        __instance.SetDestinationToPosition(apparatusPosition, true);
+                        //Plugin.mls.LogDebug("ApparatusDistance = " + apparatusDistance);
+                        __instance.moveTowardsDestination = true;
+                    }
+                    if ((Object)(object)apparatus != (Object)null && !apparatus.isLungDocked)
+                    {
+                    //noMoreApparatus = true;
+                        return; //apparatus has been taken
+                    }
+                    if (apparatusDistance < 10f && isHoldingObject)
+                    {
+                        DropItem(); //drop item before taking the apparatus
+                    }
+                    if (!isUsingApparatus && !noMoreApparatus && apparatusDistance < 3.5f)
+                    {
+                        //pull apparatus here, maybe insane masked should EAT the apparatus???
+                        isUsingApparatus = true;
+                    }
+                    //isCrouched.Value = false;
+                    //creatureAnimator.ResetTrigger("Crouching"); //temp fix for crouching animation issue
+                    if (isUsingApparatus)
+                    {
+                        maskedGoal = "sabotaging apparatus";
+                        __instance.inSpecialAnimation = true;
+                        __instance.movingTowardsTargetPlayer = false;
+                        __instance.targetPlayer = null;
+                        ((Component)maskedEnemy.headTiltTarget).gameObject.SetActive(false);
+                        agent.speed = 0f;
+                        //apparatus.GrabItemFromEnemy(__instance);
+                        //SpawningUtils.SpawnScrapServerRpc("LungApparatus", itemHolder.transform.position, itemHolder.transform);
+                        //SpawningUtils.SpawnInactiveItemServerRpc("LungApparatusTurnedOff", maskedEnemy.transform.position);
+                        completedApparatusFocus = true;
+                        apparatus.EquipItem();
+                        apparatus.isLungPowered = false;
+                        apparatus.lungDeviceLightIntensity = 0f;
+                        apparatus.GetComponent<GrabbableObject>().SetScrapValue(0); //tainted by the masked
+                        NetworkObject netObj = apparatus.GetComponent<NetworkObject>();
+                        if (netObj != null)
+                        {
+                            var scanNode = netObj.GetComponentInChildren<ScanNodeProperties>();
+                            scanNode.headerText = "SabotagedApparatus";
+                            scanNode.scrapValue = 0;
+                            scanNode.subText = $"Value: ${0}";
+                            var lights = netObj.GetComponentsInChildren<Light>().ToList();
+                            lights.Do(l => l.enabled = false);
+                        }
+                        apparatus.isLungDocked = false;
+                        apparatus.isLungDockedInElevator = false;
+                        apparatus.isLungPowered = false;
+                        apparatus.GetComponent<AudioSource>().Stop();
+                        //apparatus.GetComponent<NetworkObject>().Despawn(false); //allowing players to pick up the sabotaged apparatus
+                        /*foreach (GrabbableObject o in GlobalItemList.Instance.allitems)
+                        {
+                            if (o.name == "LungApparatusTurnedOff(Clone)" && Vector3.Distance(maskedEnemy.transform.position,o.transform.position)<5.0f)
+                            {
+                                    o.name = "BrokenApparatus";
+                                    o.itemProperties.itemSpawnsOnGround = true;
+                                    //o.itemProperties.itemSpawnsOnGround = true;
+                                    //ManuelGrabItem(o);
+                            }
+                        }*/
+                        //grabbableApparatus.ItemActivate(false);
+                        //grabbableApparatus.GrabItemFromEnemy(__instance);
+                        //GrabDockedApparatus(grabbableApparatus);
+                        //ForceGrabCustomItem(grabbableApparatus);
+                        //pull apparatus here..
+                        isUsingApparatus = false;
+                        __instance.inSpecialAnimation = false;
+                        ((Component)maskedEnemy.headTiltTarget).gameObject.SetActive(true);
+                    }
             }
         }
 
@@ -3208,181 +3208,181 @@ namespace LethalIntelligence.Patches
             }
             else
             {
-                if (!isTerminalEscaping && !isLeverEscaping)
+            if (!isTerminalEscaping && !isLeverEscaping)
+            {
+                isTerminalEscaping = true;
+            }
+            if (isTerminalEscaping)
+            {
+                //check if signal translator is enabled once in range
+                if (Vector3.Distance(maskedEnemy.transform.position, terminalPosition) < 5f)
                 {
-                    isTerminalEscaping = true;
-                }
-                if (isTerminalEscaping)
-                {
-                    //check if signal translator is enabled once in range
-                    if (Vector3.Distance(maskedEnemy.transform.position, terminalPosition) < 5f)
+                    if (!TerminalPatches.Transmitter.IsSignalTranslatorUnlocked())
                     {
-                        if (!TerminalPatches.Transmitter.IsSignalTranslatorUnlocked())
-                        {
-                            Plugin.mls.LogDebug("Signal Translator is not unlocked so skipping 'escape warnings'");
-                            isTerminalEscaping = false;
-                            isLeverEscaping = true;
-                            return;
-                        }
-                        if (!Plugin.useTerminal)
-                        {
-                            Plugin.mls.LogDebug("Terminal usage is disabled so skipping 'escape warnings'");
-                            isTerminalEscaping = false;
-                            isLeverEscaping = true;
-                            return;
-                        }
-                        if (!isUsingTerminal && Plugin.isTerminalBeingUsed)
-                        {
-                            Plugin.mls.LogDebug("Other entity is using terminal right now so switching focus");
-                            mustChangeFocus = true;
-                            return;
-                        }
-                        //as signal translator is unlocked, we will interact with the terminal
-                        if (enterTermianlSpecialCodeTime == 0 && !isLeverEscaping)
-                        {
-                            enterTermianlSpecialCodeTime = 10;
-                            isTerminalEscaping = true;
-                        }
-                        if (enterTermianlSpecialCodeTime > 0 && !isLeverEscaping)
-                        {
-                            noMoreTerminal = false;
-                            maskedGoal = "(escape) sending warnings about leaving";
-                            if (Plugin.useTerminal && TerminalPatches.Transmitter.IsSignalTranslatorUnlocked())
-                            {
-                                UsingTerminal();
-                            }
-                        }
+                        Plugin.mls.LogDebug("Signal Translator is not unlocked so skipping 'escape warnings'");
+                        isTerminalEscaping = false;
+                        isLeverEscaping = true;
+                        return;
                     }
-                    else
+                    if (!Plugin.useTerminal)
                     {
-                        maskedGoal = "(escape) heading to terminal in player ship";
-                        maskedEnemy.SetDestinationToPosition(terminalPosition);
+                        Plugin.mls.LogDebug("Terminal usage is disabled so skipping 'escape warnings'");
+                        isTerminalEscaping = false;
+                        isLeverEscaping = true;
+                        return;
                     }
-
-                }
-                if (isLeverEscaping)
-                {
-                    isTerminalEscaping = false;
-                    if (Plugin.maskedShipDeparture)
+                    if (!isUsingTerminal && Plugin.isTerminalBeingUsed)
                     {
-                        //pull lever
-                        StartMatchLever startMatchLever = GameNetworkManager.FindObjectOfType<StartMatchLever>();
-                    maskedGoal = "(escape) walking to ships lever (" + startMatchLever.transform.position.ToString() + ")";
-                        if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) > 0.5f)
-                        {
-                            maskedEnemy.SetDestinationToPosition(startMatchLever.transform.position);
-                        }
-                        if (startMatchLever == null)
-                        {
-                            Plugin.mls.LogError("StartMatchLever cannot be found so cannot be used by InsaneMasked!");
-                            mustChangeFocus = true;
-                            mustChangeActivity = true;
-                            Plugin.maskedShipDeparture = false;
-                            return;
-                        }
-                        //creatureAnimator.SetTrigger("PushLever");
-                        //creatureAnimator.SetTrigger("PressStopButton");
-                        //Plugin.mls.LogError("distance=" + Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position));
-                        if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) < 3f)
-                        {
-                            startMatchLever.LeverAnimation();
-                            startMatchLever.EndGame();
-                        }
-                        //creatureAnimator.ResetTrigger("StartMatchLever");
-                    }
-                    else
-                    {
-                        Plugin.mls.LogInfo("maskedShipDeparture = " + Plugin.maskedShipDeparture.ToString() + " so the escape finish is impossible!");
+                        Plugin.mls.LogDebug("Other entity is using terminal right now so switching focus");
                         mustChangeFocus = true;
-                        mustChangeActivity = true;
+                        return;
                     }
-                }
-
-                //old
-                /*if(Vector3.Distance(maskedEnemy.transform.position, terminalPosition) > 5f)
-                {
-                    maskedGoal = "(escape) heading to player ship";
-                    maskedEnemy.SetDestinationToPosition(terminalPosition);
-                }
-                else
-                {
-                    if (!isTerminalEscaping && !isLeverEscaping)
+                    //as signal translator is unlocked, we will interact with the terminal
+                    if (enterTermianlSpecialCodeTime == 0 && !isLeverEscaping)
                     {
                         enterTermianlSpecialCodeTime = 10;
                         isTerminalEscaping = true;
                     }
                     if (enterTermianlSpecialCodeTime > 0 && !isLeverEscaping)
                     {
-                        //translator is not unlocked it gets stuck here
-                        bool stu = TerminalPatches.Transmitter.IsSignalTranslatorUnlocked();
-                        Plugin.mls.LogError("stu = " + stu);
-                        Plugin.mls.LogError("terminalDistance = " + terminalDistance);
-                        if (TerminalPatches.Transmitter.IsSignalTranslatorUnlocked()==false && terminalDistance < 8f)
+                        noMoreTerminal = false;
+                        maskedGoal = "(escape) sending warnings about leaving";
+                        if (Plugin.useTerminal && TerminalPatches.Transmitter.IsSignalTranslatorUnlocked())
                         {
-                            Plugin.mls.LogDebug("Signal Translator is not unlocked so skipping 'escape warnings'");
-                            isTerminalEscaping = false;
-                            isLeverEscaping = true;
-                            return;
+                            UsingTerminal();
                         }
-                        if (Plugin.isTerminalBeingUsed && terminalDistance < 8f)
-                        {
-                            Plugin.mls.LogDebug("Other entity is using terminal right now so switching focus");
-                            mustChangeFocus = true;
-                            return;
-                        }
-                        /*if (Plugin.isTerminalBeingUsed || !Plugin.useTerminal || !TerminalPatches.Transmitter.IsSignalTranslatorUnlocked())
-                        {
-                            enterTermianlSpecialCodeTime = 0;
-                            isLeverEscaping = true;
+                    }
+                }
+                else
+                {
+                    maskedGoal = "(escape) heading to terminal in player ship";
+                    maskedEnemy.SetDestinationToPosition(terminalPosition);
+                }
 
-                            //maybe pull HORN here instead of just leaving without a warning?? or maybe teleport a player??
-                            return;
-                        }*/
-                /*          noMoreTerminal = false;
-                          maskedGoal = "(escape) sending warnings about leaving";
-                          if (Plugin.useTerminal && TerminalPatches.Transmitter.IsSignalTranslatorUnlocked())
-                          {
-                              UsingTerminal();
-                          }
+            }
+            if (isLeverEscaping)
+            {
+                isTerminalEscaping = false;
+                if (Plugin.maskedShipDeparture)
+                {
+                    //pull lever
+                    StartMatchLever startMatchLever = GameNetworkManager.FindObjectOfType<StartMatchLever>();
+                    maskedGoal = "(escape) walking to ships lever (" + startMatchLever.transform.position.ToString() + ")";
+                    if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) > 0.5f)
+                    {
+                        maskedEnemy.SetDestinationToPosition(startMatchLever.transform.position);
+                    }
+                    if (startMatchLever == null)
+                    {
+                        Plugin.mls.LogError("StartMatchLever cannot be found so cannot be used by InsaneMasked!");
+                        mustChangeFocus = true;
+                        mustChangeActivity = true;
+                        Plugin.maskedShipDeparture = false;
+                        return;
+                    }
+                    //creatureAnimator.SetTrigger("PushLever");
+                    //creatureAnimator.SetTrigger("PressStopButton");
+                    //Plugin.mls.LogError("distance=" + Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position));
+                    if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) < 3f)
+                    {
+                        startMatchLever.LeverAnimation();
+                        startMatchLever.EndGame();
+                    }
+                    //creatureAnimator.ResetTrigger("StartMatchLever");
+                }
+                else
+                {
+                    Plugin.mls.LogInfo("maskedShipDeparture = " + Plugin.maskedShipDeparture.ToString() + " so the escape finish is impossible!");
+                    mustChangeFocus = true;
+                    mustChangeActivity = true;
+                }
+            }
 
-                      }
-                      else if(isLeverEscaping)
+            //old
+            /*if(Vector3.Distance(maskedEnemy.transform.position, terminalPosition) > 5f)
+            {
+                maskedGoal = "(escape) heading to player ship";
+                maskedEnemy.SetDestinationToPosition(terminalPosition);
+            }
+            else
+            {
+                if (!isTerminalEscaping && !isLeverEscaping)
+                {
+                    enterTermianlSpecialCodeTime = 10;
+                    isTerminalEscaping = true;
+                }
+                if (enterTermianlSpecialCodeTime > 0 && !isLeverEscaping)
+                {
+                    //translator is not unlocked it gets stuck here
+                    bool stu = TerminalPatches.Transmitter.IsSignalTranslatorUnlocked();
+                    Plugin.mls.LogError("stu = " + stu);
+                    Plugin.mls.LogError("terminalDistance = " + terminalDistance);
+                    if (TerminalPatches.Transmitter.IsSignalTranslatorUnlocked()==false && terminalDistance < 8f)
+                    {
+                        Plugin.mls.LogDebug("Signal Translator is not unlocked so skipping 'escape warnings'");
+                        isTerminalEscaping = false;
+                        isLeverEscaping = true;
+                        return;
+                    }
+                    if (Plugin.isTerminalBeingUsed && terminalDistance < 8f)
+                    {
+                        Plugin.mls.LogDebug("Other entity is using terminal right now so switching focus");
+                        mustChangeFocus = true;
+                        return;
+                    }
+                    /*if (Plugin.isTerminalBeingUsed || !Plugin.useTerminal || !TerminalPatches.Transmitter.IsSignalTranslatorUnlocked())
+                    {
+                        enterTermianlSpecialCodeTime = 0;
+                        isLeverEscaping = true;
+
+                        //maybe pull HORN here instead of just leaving without a warning?? or maybe teleport a player??
+                        return;
+                    }*/
+            /*          noMoreTerminal = false;
+                      maskedGoal = "(escape) sending warnings about leaving";
+                      if (Plugin.useTerminal && TerminalPatches.Transmitter.IsSignalTranslatorUnlocked())
                       {
-                          isTerminalEscaping = false;
-                          new WaitForSeconds(10f);
-                          if (Plugin.maskedShipDeparture)
+                          UsingTerminal();
+                      }
+
+                  }
+                  else if(isLeverEscaping)
+                  {
+                      isTerminalEscaping = false;
+                      new WaitForSeconds(10f);
+                      if (Plugin.maskedShipDeparture)
+                      {
+                          maskedGoal = "(escape) walking to ships lever";
+                          //pull lever
+                          StartMatchLever startMatchLever = GameNetworkManager.FindObjectOfType<StartMatchLever>();
+                          if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) > 0.5f)
                           {
-                              maskedGoal = "(escape) walking to ships lever";
-                              //pull lever
-                              StartMatchLever startMatchLever = GameNetworkManager.FindObjectOfType<StartMatchLever>();
-                              if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) > 0.5f)
-                              {
-                                  maskedEnemy.SetDestinationToPosition(startMatchLever.transform.position);
-                              }
-                              if (startMatchLever == null)
-                              {
-                                  Plugin.mls.LogError("StartMatchLever cannot be found so cannot be used by InsaneMasked!");
-                                  mustChangeFocus = true;
-                                  mustChangeActivity = true;
-                                  Plugin.maskedShipDeparture = false;
-                                  return;
-                              }
-                              //creatureAnimator.SetTrigger("PushLever");
-                              //creatureAnimator.SetTrigger("PressStopButton");
-                              if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) < 0.5f)
-                                  startMatchLever.LeverAnimation();
-                              startMatchLever.EndGame();
-                              //creatureAnimator.ResetTrigger("StartMatchLever");
+                              maskedEnemy.SetDestinationToPosition(startMatchLever.transform.position);
                           }
-                          else
+                          if (startMatchLever == null)
                           {
-                              Plugin.mls.LogInfo("maskedShipDeparture = " + Plugin.maskedShipDeparture.ToString() + " so the escape finish is impossible!");
+                              Plugin.mls.LogError("StartMatchLever cannot be found so cannot be used by InsaneMasked!");
                               mustChangeFocus = true;
                               mustChangeActivity = true;
+                              Plugin.maskedShipDeparture = false;
+                              return;
                           }
+                          //creatureAnimator.SetTrigger("PushLever");
+                          //creatureAnimator.SetTrigger("PressStopButton");
+                          if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) < 0.5f)
+                              startMatchLever.LeverAnimation();
+                          startMatchLever.EndGame();
+                          //creatureAnimator.ResetTrigger("StartMatchLever");
                       }
-                  }*/
-            }
+                      else
+                      {
+                          Plugin.mls.LogInfo("maskedShipDeparture = " + Plugin.maskedShipDeparture.ToString() + " so the escape finish is impossible!");
+                          mustChangeFocus = true;
+                          mustChangeActivity = true;
+                      }
+                  }
+              }*/
+        }
         }
 
         //terminal
@@ -4806,6 +4806,7 @@ namespace LethalIntelligence.Patches
             {
                 if ((entrancesTeleportArray[i].entranceId == 0 && MainEntranceAllowed) || (entrancesTeleportArray[i].entranceId > 0 && FireExitsAllowed))
                 {
+                    //Plugin.mls.LogError(String.Format("{0}/{1}/{2}/{3}", entrancesTeleportArray[i].entranceId, entrancesTeleportArray[i].transform.position, entrancesTeleportArray[i].entrancePoint.position, entrancesTeleportArray[i].isEntranceToBuilding));
                     //if (!loggedID)
                     //{
                     //    Plugin.mls.LogError("TP#" + entrancesTeleportArray[i].entranceId + " -> " + entrancesTeleportArray[i].transform.position + "|" + Vector3.Distance(maskedEnemy.transform.position, entrancesTeleportArray[i].transform.position));
@@ -4816,6 +4817,11 @@ namespace LethalIntelligence.Patches
                         dist = tempDist;
                         et = entrancesTeleportArray[i];
                     }
+                    /*else if(tempDist < dist && isOutside != entrancesTeleportArray[i].isEntranceToBuilding)
+                    {
+                        dist = tempDist;
+                        et = entrancesTeleportArray[i];
+                    }*/
                 }
             }
             //loggedID = true;
