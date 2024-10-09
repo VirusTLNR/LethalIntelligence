@@ -870,7 +870,7 @@ namespace LethalIntelligence.Patches
                                 apparatusDistance = Vector3.Distance(((Component)this).transform.position, ((Component)apparatus).transform.position);
                                 //Plugin.mls.LogError("dis:- " + apparatusDistance);
                                 apparatusClosestPoint = Vector3.Distance(hitApparatus.position, apparatus.transform.position);
-                                apparatusPosition = apparatus.transform.position;
+                                apparatusPosition = hitApparatus.position;
                             }
                             else
                             {
