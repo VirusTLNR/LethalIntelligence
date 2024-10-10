@@ -3108,6 +3108,7 @@ namespace LethalIntelligence.Patches
                 noMoreApparatus = true;
                 //mustChangeFocus = true;
             }
+            apparatusDistance = Vector3.Distance(maskedEnemy.transform.position, apparatusPosition);
             if (apparatusDistance > 0f)
             {
                 dropItem.Value = true;
@@ -3136,7 +3137,7 @@ namespace LethalIntelligence.Patches
                 {
                     Plugin.mls.LogError("ApparatusDistance = " + apparatusDistance); //for debugging distance issues
                 }*/
-                if (!isUsingApparatus && !noMoreApparatus && apparatusDistance < 5.5f) //5.046259 is the biggest distance ive found
+                if (!isUsingApparatus && !noMoreApparatus && apparatusDistance < 3.5f)
                 {
                     //pull apparatus here, maybe insane masked should EAT the apparatus???
                     isUsingApparatus = true;
