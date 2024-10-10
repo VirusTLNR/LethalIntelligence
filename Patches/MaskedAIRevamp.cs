@@ -182,8 +182,8 @@ namespace LethalIntelligence.Patches
             maskedPersonality = Personality.Insane; //for testing a specific personality
             SelectPersonalityInt.Value = 0; //for testing a specific personality
             lastMaskedPersonality = Personality.Insane;
-            maskedFocus = Focus.Apparatus;
-            maskedActivity = Activity.None;
+            maskedFocusInt.Value = (int)Focus.None;
+            maskedActivityInt.Value = (int)Activity.RandomItem;
             mustChangeFocus = false;
         }
 
@@ -837,10 +837,10 @@ namespace LethalIntelligence.Patches
                 {
                     lateGameChoices = true;
                 }
-                if (mustChangeFocus || maskedFocus == Focus.Items || maskedActivity == Activity.RandomItem)
+                if (mustChangeFocus || maskedFocus == Focus.Items)
                 {
-                    //setNearestGrabbable();
-                    findRandomItem();
+                    setNearestGrabbable();
+                    //findRandomItem();
                     //this is in setNearestGrabbable();
                     /*if (!closestGrabbableReachable)
                     {
@@ -4754,13 +4754,11 @@ namespace LethalIntelligence.Patches
 
         private void findRandomItem()
         {
-            //find where an item is, but dont pick it up.
-            List<GrabbableObject> allItems = GlobalItemList.Instance.allitems.ToList();
-            List<GrabbableObject> items = allItems.Where(x => x.isInFactory == !maskedEnemy.isOutside).ToList();
+            //find where an item is, but dont pick it up. fixed this now, adding this comment so i can commit this as a seperate item (see 2 commits ago for what was changed)
             GrabbableObject selectedItem = null;
             if (selectedItem == null)
             {
-                foreach (GrabbableObject item in items)
+                foreach (GrabbableObject item in GlobalItemList.Instance.allitems.Where(x => Vector3.Distance(maskedEnemy.transform.position,x.transform.position)<50f).ToList())
                 {
 
                     if (item.isHeld || item.isHeldByEnemy)
@@ -4777,6 +4775,7 @@ namespace LethalIntelligence.Patches
                 mustChangeActivity = true;
                 return;
             }
+            maskedGoal = "wallking to " +  selectedItem.name + "(" + maskedEnemy.isOutside + "/" + selectedItem.isInFactory + "/" + selectedItem.transform.position + ")";
             maskedEnemy.SetDestinationToPosition(selectedItem.transform.position, true);
             if (Vector3.Distance(maskedEnemy.transform.position, selectedItem.transform.position) < 1.5f)
             {
