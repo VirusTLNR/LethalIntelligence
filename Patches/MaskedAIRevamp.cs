@@ -685,7 +685,7 @@ namespace LethalIntelligence.Patches
             terminalAccessibleObject = Object.FindObjectsOfType<TerminalAccessibleObject>();
             // Entrances
             entrancesTeleportArray = Object.FindObjectsOfType<EntranceTeleport>(includeInactive: false);
-            TimeSinceTeleporting = MaxTimeBeforeTeleporting;
+            //TimeSinceTeleporting = MaxTimeBeforeTeleporting;
             /*Plugin.mls.LogError("Name|entranceId|entrancePointPosition|transformPosition|isEntranceToBuilding|isActiveAndEnabled");
             for (int i = 0; i < entrancesTeleportArray.Length; i++)
             {
@@ -817,7 +817,7 @@ namespace LethalIntelligence.Patches
             NavMeshPath nmpBreaker = new NavMeshPath(), nmpTerminal = new NavMeshPath(), nmpLocker = new NavMeshPath(), nmpApparatus = new NavMeshPath();
             NavMeshHit hitBreaker, hitTerminal, hitLocker, hitApparatus;
 
-            //TimeSinceTeleporting += updateFrequency;
+//TimeSinceTeleporting += updateFrequency;
             //Plugin.mls.LogError("tst = " + TimeSinceTeleporting);
 
             if (calculationDelay > 0)
@@ -867,7 +867,7 @@ namespace LethalIntelligence.Patches
                                 apparatusReachable = agent.CalculatePath(hitApparatus.position, nmpApparatus);
                                 //Plugin.mls.LogError("Reachable=" + apparatusReachable);
                                 //breakerBoxDistance = Vector3.Distance(((Component)this).transform.position, hitBreaker.position);
-                                apparatusDistance = Vector3.Distance(((Component)this).transform.position, ((Component)apparatus).transform.position);
+                                apparatusDistance = Vector3.Distance(maskedEnemy.transform.position, hitApparatus.position);
                                 //Plugin.mls.LogError("dis:- " + apparatusDistance);
                                 apparatusClosestPoint = Vector3.Distance(hitApparatus.position, apparatus.transform.position);
                                 apparatusPosition = hitApparatus.position;
@@ -1094,9 +1094,17 @@ namespace LethalIntelligence.Patches
                                                                       //maskedActivity = Activity.None;
                         mustChangeActivity = true;
                     }
-                    else if (maskedPersonality == Personality.Insane && lastMaskedFocus != Focus.Apparatus && lateGameChoices)
+                    else if (maskedPersonality == Personality.Insane && lastMaskedFocus != Focus.Apparatus && lateGameChoices && !maskedEnemy.isOutside)
                     {
                         maskedFocusInt.Value = (int)Focus.Apparatus; //syncing variables
+                                                                     //maskedFocus = Focus.Apparatus;
+                        maskedActivityInt.Value = (int)Activity.None; //syncing variables
+                                                                      //maskedActivity = Activity.None;
+                        mustChangeActivity = true;
+                    }
+                    else if (maskedPersonality == Personality.Insane && lastMaskedFocus != Focus.Escape && lateGameChoices && completedApparatusFocus && maskedEnemy.isOutside)
+                    {
+                        maskedFocusInt.Value = (int)Focus.Escape; //syncing variables
                                                                      //maskedFocus = Focus.Apparatus;
                         maskedActivityInt.Value = (int)Activity.None; //syncing variables
                                                                       //maskedActivity = Activity.None;
@@ -3089,8 +3097,8 @@ namespace LethalIntelligence.Patches
             {
                 if (completedApparatusFocus)
                 {
-                    maskedFocusInt.Value = (int)Focus.Escape;
-                    maskedActivityInt.Value = (int)Activity.None;
+                    maskedFocusInt.Value = (int)Focus.None;
+                    maskedActivityInt.Value = (int)Activity.MainEntrance;
                 }
                 else
                 {
@@ -3100,87 +3108,91 @@ namespace LethalIntelligence.Patches
                 noMoreApparatus = true;
                 //mustChangeFocus = true;
             }
-                if (apparatusDistance < 40f)
+            if (apparatusDistance > 0f)
+            {
+                dropItem.Value = true;
+                if (!isUsingApparatus && !noMoreApparatus && !__instance.isEnemyDead)
                 {
-                    dropItem.Value = true;
-                    if (!isUsingApparatus && !noMoreApparatus && !__instance.isEnemyDead)
+                    //apparatusReachable = __instance.SetDestinationToPosition(((Component)apparatus).transform.position, true);
+                    if (!apparatusReachable)
                     {
-                        //apparatusReachable = __instance.SetDestinationToPosition(((Component)apparatus).transform.position, true);
-                        if (!apparatusReachable)
-                        {
-                            return; //cant reach apparatus
-                        }
-                        maskedGoal = "walking to apparatus (" + apparatusPosition.ToString() + ")";
-                        __instance.SetDestinationToPosition(apparatusPosition, true);
-                        //Plugin.mls.LogDebug("ApparatusDistance = " + apparatusDistance);
-                        __instance.moveTowardsDestination = true;
+                        return; //cant reach apparatus
                     }
-                    if ((Object)(object)apparatus != (Object)null && !apparatus.isLungDocked)
-                    {
+                    maskedGoal = "walking to apparatus (" + apparatusPosition.ToString() + ")";
+                    __instance.SetDestinationToPosition(apparatusPosition, false);
+                    //Plugin.mls.LogDebug("ApparatusDistance = " + apparatusDistance);
+                    __instance.moveTowardsDestination = true;
+                }
+                if ((Object)(object)apparatus != (Object)null && !apparatus.isLungDocked)
+                {
                     //noMoreApparatus = true;
-                        return; //apparatus has been taken
-                    }
-                    if (apparatusDistance < 10f && isHoldingObject)
+                    return; //apparatus has been taken
+                }
+                if (apparatusDistance < 10f && isHoldingObject)
+                {
+                    DropItem(); //drop item before taking the apparatus
+                }
+                /*if (apparatusDistance < 10f)
+                {
+                    Plugin.mls.LogError("ApparatusDistance = " + apparatusDistance); //for debugging distance issues
+                }*/
+                if (!isUsingApparatus && !noMoreApparatus && apparatusDistance < 5.5f) //5.046259 is the biggest distance ive found
+                {
+                    //pull apparatus here, maybe insane masked should EAT the apparatus???
+                    isUsingApparatus = true;
+                }
+                //isCrouched.Value = false;
+                //creatureAnimator.ResetTrigger("Crouching"); //temp fix for crouching animation issue
+                if (isUsingApparatus)
+                {
+                    maskedGoal = "sabotaging apparatus";
+                    __instance.inSpecialAnimation = true;
+                    __instance.movingTowardsTargetPlayer = false;
+                    __instance.targetPlayer = null;
+                    ((Component)maskedEnemy.headTiltTarget).gameObject.SetActive(false);
+                    agent.speed = 0f;
+                    //apparatus.GrabItemFromEnemy(__instance);
+                    //SpawningUtils.SpawnScrapServerRpc("LungApparatus", itemHolder.transform.position, itemHolder.transform);
+                    //SpawningUtils.SpawnInactiveItemServerRpc("LungApparatusTurnedOff", maskedEnemy.transform.position);
+                    completedApparatusFocus = true;
+                    apparatus.EquipItem();
+                    apparatus.isLungPowered = false;
+                    apparatus.lungDeviceLightIntensity = 0f;
+                    apparatus.GetComponent<GrabbableObject>().SetScrapValue(0); //tainted by the masked
+                    NetworkObject netObj = apparatus.GetComponent<NetworkObject>();
+                    if (netObj != null)
                     {
-                        DropItem(); //drop item before taking the apparatus
+                        var scanNode = netObj.GetComponentInChildren<ScanNodeProperties>();
+                        scanNode.headerText = "SabotagedApparatus";
+                        scanNode.scrapValue = 0;
+                        scanNode.subText = $"Value: ${0}";
+                        var lights = netObj.GetComponentsInChildren<Light>().ToList();
+                        lights.Do(l => l.enabled = false);
                     }
-                    if (!isUsingApparatus && !noMoreApparatus && apparatusDistance < 3.5f)
+                    apparatus.isLungDocked = false;
+                    apparatus.isLungDockedInElevator = false;
+                    apparatus.isLungPowered = false;
+                    apparatus.GetComponent<AudioSource>().Stop();
+                    //apparatus.GetComponent<NetworkObject>().Despawn(false); //allowing players to pick up the sabotaged apparatus
+                    /*foreach (GrabbableObject o in GlobalItemList.Instance.allitems)
                     {
-                        //pull apparatus here, maybe insane masked should EAT the apparatus???
-                        isUsingApparatus = true;
-                    }
-                    //isCrouched.Value = false;
-                    //creatureAnimator.ResetTrigger("Crouching"); //temp fix for crouching animation issue
-                    if (isUsingApparatus)
-                    {
-                        maskedGoal = "sabotaging apparatus";
-                        __instance.inSpecialAnimation = true;
-                        __instance.movingTowardsTargetPlayer = false;
-                        __instance.targetPlayer = null;
-                        ((Component)maskedEnemy.headTiltTarget).gameObject.SetActive(false);
-                        agent.speed = 0f;
-                        //apparatus.GrabItemFromEnemy(__instance);
-                        //SpawningUtils.SpawnScrapServerRpc("LungApparatus", itemHolder.transform.position, itemHolder.transform);
-                        //SpawningUtils.SpawnInactiveItemServerRpc("LungApparatusTurnedOff", maskedEnemy.transform.position);
-                        completedApparatusFocus = true;
-                        apparatus.EquipItem();
-                        apparatus.isLungPowered = false;
-                        apparatus.lungDeviceLightIntensity = 0f;
-                        apparatus.GetComponent<GrabbableObject>().SetScrapValue(0); //tainted by the masked
-                        NetworkObject netObj = apparatus.GetComponent<NetworkObject>();
-                        if (netObj != null)
+                        if (o.name == "LungApparatusTurnedOff(Clone)" && Vector3.Distance(maskedEnemy.transform.position,o.transform.position)<5.0f)
                         {
-                            var scanNode = netObj.GetComponentInChildren<ScanNodeProperties>();
-                            scanNode.headerText = "SabotagedApparatus";
-                            scanNode.scrapValue = 0;
-                            scanNode.subText = $"Value: ${0}";
-                            var lights = netObj.GetComponentsInChildren<Light>().ToList();
-                            lights.Do(l => l.enabled = false);
+                                o.name = "BrokenApparatus";
+                                o.itemProperties.itemSpawnsOnGround = true;
+                                //o.itemProperties.itemSpawnsOnGround = true;
+                                //ManuelGrabItem(o);
                         }
-                        apparatus.isLungDocked = false;
-                        apparatus.isLungDockedInElevator = false;
-                        apparatus.isLungPowered = false;
-                        apparatus.GetComponent<AudioSource>().Stop();
-                        //apparatus.GetComponent<NetworkObject>().Despawn(false); //allowing players to pick up the sabotaged apparatus
-                        /*foreach (GrabbableObject o in GlobalItemList.Instance.allitems)
-                        {
-                            if (o.name == "LungApparatusTurnedOff(Clone)" && Vector3.Distance(maskedEnemy.transform.position,o.transform.position)<5.0f)
-                            {
-                                    o.name = "BrokenApparatus";
-                                    o.itemProperties.itemSpawnsOnGround = true;
-                                    //o.itemProperties.itemSpawnsOnGround = true;
-                                    //ManuelGrabItem(o);
-                            }
-                        }*/
-                        //grabbableApparatus.ItemActivate(false);
-                        //grabbableApparatus.GrabItemFromEnemy(__instance);
-                        //GrabDockedApparatus(grabbableApparatus);
-                        //ForceGrabCustomItem(grabbableApparatus);
-                        //pull apparatus here..
-                        isUsingApparatus = false;
-                        __instance.inSpecialAnimation = false;
-                        ((Component)maskedEnemy.headTiltTarget).gameObject.SetActive(true);
-                    }
+                    }*/
+                    //grabbableApparatus.ItemActivate(false);
+                    //grabbableApparatus.GrabItemFromEnemy(__instance);
+                    //GrabDockedApparatus(grabbableApparatus);
+                    //ForceGrabCustomItem(grabbableApparatus);
+                    //pull apparatus here..
+                    isUsingApparatus = false;
+                    __instance.inSpecialAnimation = false;
+                    ((Component)maskedEnemy.headTiltTarget).gameObject.SetActive(true);
+                }
             }
         }
 
@@ -3189,25 +3201,6 @@ namespace LethalIntelligence.Patches
         private void InsaneEscape()
         {
             //set running because wants to leave ASAP
-            //head to ship
-            if (!maskedEnemy.isOutside)
-            {
-                maskedGoal = "(escape) heading outside";
-                maskedEnemy.SetDestinationToPosition(maskedEnemy.mainEntrancePosition);
-                selectedEntrance = null;
-                selectedEntrance = selectClosestEntrance(maskedEnemy.isOutside, true, true);
-                if (selectedEntrance == null)
-                {
-                    maskedGoal = "No Entrance Found, Changing Focus";
-                    Plugin.mls.LogError("selectedEntrance was Null, if all entrances are null, this may lead to masked stopping from moving completely.");
-                    selectedEntrance = null;
-                    mustChangeFocus = true;
-                    mustChangeActivity = true;
-                }
-                useEntranceTeleport(selectedEntrance);
-            }
-            else
-            {
             if (!isTerminalEscaping && !isLeverEscaping)
             {
                 isTerminalEscaping = true;
@@ -3265,13 +3258,32 @@ namespace LethalIntelligence.Patches
                 isTerminalEscaping = false;
                 if (Plugin.maskedShipDeparture)
                 {
+                    //Plugin.mls.LogError("maskedShipDeparture = true");
                     //pull lever
                     StartMatchLever startMatchLever = GameNetworkManager.FindObjectOfType<StartMatchLever>();
-                    maskedGoal = "(escape) walking to ships lever (" + startMatchLever.transform.position.ToString() + ")";
-                    if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) > 0.5f)
+                    if (startMatchLever == null)
                     {
-                        maskedEnemy.SetDestinationToPosition(startMatchLever.transform.position);
+                        Plugin.mls.LogError("startMatchLever is NULL");
+                        return;
                     }
+                    /*float startLeverDistance = 1000f;
+                    NavMeshHit hitStartLever;
+                    Vector3 startLeverPosition = new Vector3();
+
+                    if (NavMesh.SamplePosition(startMatchLever.transform.position, out hitStartLever, 3.0f, -1))
+                    {
+                        //startLeverReachable = agent.CalculatePath(hitStartLever.position, nmpStartLever);
+                        startLeverDistance = Vector3.Distance(maskedEnemy.transform.position, hitStartLever.position);
+                        //startLeverClosestPoint = Vector3.Distance(hitApparatus.position, apparatus.transform.position);
+                        startLeverPosition = hitStartLever.position;
+                    }*/
+                    Plugin.mls.LogError("(escape) walking to ships lever (" + startMatchLever.transform.position.ToString() + ")");
+                    maskedGoal = "(escape) walking to ships lever (" + startMatchLever.transform.position.ToString() + ")";
+                    //if (startLeverDistance > 0.5f)
+                    //{
+                    maskedEnemy.SetDestinationToPosition(startMatchLever.transform.position, false);
+                    maskedEnemy.moveTowardsDestination = true;
+                    //}
                     if (startMatchLever == null)
                     {
                         Plugin.mls.LogError("StartMatchLever cannot be found so cannot be used by InsaneMasked!");
@@ -3283,6 +3295,10 @@ namespace LethalIntelligence.Patches
                     //creatureAnimator.SetTrigger("PushLever");
                     //creatureAnimator.SetTrigger("PressStopButton");
                     //Plugin.mls.LogError("distance=" + Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position));
+                    /*if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) < 20f)
+                    {
+                        Plugin.mls.LogError("Distance = " + Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position)); //for debugging distance issues
+                    }*/
                     if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) < 3f)
                     {
                         startMatchLever.LeverAnimation();
@@ -3382,7 +3398,6 @@ namespace LethalIntelligence.Patches
                       }
                   }
               }*/
-        }
         }
 
         //terminal
@@ -4739,8 +4754,8 @@ namespace LethalIntelligence.Patches
         private void findRandomItem()
         {
             //find where an item is, but dont pick it up.
-            List<GrabbableObject> allItems = GlobalItemList.Instance.allitems;
-            List<GrabbableObject> items = (List<GrabbableObject>)allItems.Where(x => x.isInFactory == !maskedEnemy.isOutside);
+            List<GrabbableObject> allItems = GlobalItemList.Instance.allitems.ToList();
+            List<GrabbableObject> items = allItems.Where(x => x.isInFactory == !maskedEnemy.isOutside).ToList();
             GrabbableObject selectedItem = null;
             if (selectedItem == null)
             {
@@ -4787,7 +4802,7 @@ namespace LethalIntelligence.Patches
         }
 
         private float TimeSinceTeleporting { get; set; }
-        private float MaxTimeBeforeTeleporting = 15000;
+        private float MaxTimeBeforeTeleporting = 1f;
         private EntranceTeleport[] entrancesTeleportArray = null!;
         EntranceTeleport? selectedEntrance = null;
 
@@ -4873,18 +4888,18 @@ namespace LethalIntelligence.Patches
                 //System.Diagnostics.Debugger.Break();
                 //Vector3? entryPoint = entrance.entrancePoint.position;
                 Vector3? opposingTeleportPosition = getTeleportDestination(entrance);
-                //if (TimeSinceTeleporting > MaxTimeBeforeTeleporting)
+//                if (TimeSinceTeleporting > MaxTimeBeforeTeleporting)
                 {
                     maskedGoal = "using entrance (" + entrance.entranceId + "/" + entrance.entrancePoint.position.ToString() + ")";
                     TimeSinceTeleporting = 0;
                     //isBeingIdle = false;
                     //maskedEnemy.TeleportMaskedEnemyAndSync((Vector3)opposingTeleportPosition, !maskedEnemy.isOutside);
                     TeleportMaskedEnemyAndSync((Vector3)opposingTeleportPosition, !maskedEnemy.isOutside);
-                    if (maskedFocus != Focus.Escape)
-                    {
+                    //if (maskedFocus != Focus.Apparatus && maskedFocus != Focus.Escape)
+                    //{
                         mustChangeFocus = true;
                         mustChangeActivity = true;
-                    }
+                    //}
                 }
             }
         }
