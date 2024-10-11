@@ -1,5 +1,12 @@
 ## Changelog
 
+### 0.2.4
+- Fixed routing problems when Insane is doing "Sabotage/Escape" focus which led to them standing at the main entrance (or in the ship) weirdly.
+- Fixed "findRandomItem" invalid cast exception
+- removed some spammy debug logs
+- (debug)improved some "masked goal" messages in the status reports
+- force updated some distances that were causing delayed responses when masked performed certain actions.
+
 ### 0.2.3
 - Improved the walkie talkie audio so that only the person holding the walkie hears the voice of the masked
 - Added support for 'AlwaysHearActiveWalkies' mod when masked use walkies. (having "AlwaysHearActiveWalkies" installed makes the masked voice play out loud to all those around the walkie)
