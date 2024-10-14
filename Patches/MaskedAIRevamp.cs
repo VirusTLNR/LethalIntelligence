@@ -1386,7 +1386,7 @@ namespace LethalIntelligence.Patches
             }
             if ((Plugin.wendigosIntegrated || Plugin.skinWalkersIntegrated || Plugin.mirageIntegrated) && ((NetworkBehaviour)this).IsHost && (maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane || maskedPersonality == Personality.Stealthy))
             {
-                maskedGoal = "confirming WalkieTalkie usage! (Skinwalkers/Wendigos/Mirage integration)";
+                //maskedGoal = "confirming WalkieTalkie usage! (Skinwalkers/Wendigos/Mirage integration)"; //this overwrites many other goals, so we kinda need to not have this appearing unless issues start occuring with walkies
                 useWalkie.Value = true;
             }
             if ((Object)(object)creatureAnimator == (Object)null)
@@ -2194,6 +2194,7 @@ namespace LethalIntelligence.Patches
             }
         }
         GrabbableObject walkieToGrab = null;
+        int countOfNullWalkieError = 0;
         private void GrabWalkie()
         {
             if (((NetworkBehaviour)this).IsHost)
@@ -2219,9 +2220,13 @@ namespace LethalIntelligence.Patches
                 {
                     foreach (var walkie in walkieTalkies)
                     {
-                        if(walkie == null)
+                        if (walkie == null)
                         {
-                            Plugin.mls.LogError("walkie is Null (GrabWalkie)");
+                            if (countOfNullWalkieError < 1)
+                            {
+                                countOfNullWalkieError++;
+                                Plugin.mls.LogWarning("walkie is Null (GrabWalkie) - dont worry about this, its usually happening because the walkie is not on the navmesh");
+                            }
                             continue;
                         }
                         if(walkie.transform == null)
@@ -2241,7 +2246,10 @@ namespace LethalIntelligence.Patches
                             {
                                 continue; //this walkie is already held so you shouldent be trying to take it.
                             }
+                            maskedGoal = "spotted walkie talkie, going to go pick it up";
                             walkieToGrab = walkie;
+                            //Plugin.mls.LogError("walkie @ POS:-" + walkieToGrab.transform.position);
+                            //Plugin.mls.LogError("walkie @ FLO:-" + walkieToGrab.targetFloorPosition);
                             maskedFocusInt.Value = (int)Focus.None; //syncing variables
                             maskedActivityInt.Value = (int)Activity.WalkieTalkie; //syncing variables
                             break; //masked has chosen their walkie.
@@ -2267,6 +2275,7 @@ namespace LethalIntelligence.Patches
                 }
                 if (distance > 0.5f)
                 {
+                    maskedGoal = "walkiing to selected walkie @ " + walkieToGrab.transform.position;
                     __instance.SetDestinationToPosition(((Component)walkieToGrab).transform.position, true);
                     __instance.moveTowardsDestination = true;
                     __instance.movingTowardsTargetPlayer = false;
