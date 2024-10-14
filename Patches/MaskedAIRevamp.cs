@@ -4756,9 +4756,16 @@ namespace LethalIntelligence.Patches
         {
             //find where an item is, but dont pick it up. fixed this now, adding this comment so i can commit this as a seperate item (see 2 commits ago for what was changed)
             GrabbableObject selectedItem = null;
+            List<GrabbableObject> items = GlobalItemList.Instance.allitems.Where(x => Vector3.Distance(maskedEnemy.transform.position, x.transform.position) < 50f).ToList();
+            if(items.Count == 0)
+            {
+                mustChangeFocus = true;
+                mustChangeActivity = true;
+                return;
+            }
             if (selectedItem == null)
             {
-                foreach (GrabbableObject item in GlobalItemList.Instance.allitems.Where(x => Vector3.Distance(maskedEnemy.transform.position,x.transform.position)<50f).ToList())
+                foreach (GrabbableObject item in items)
                 {
 
                     if (item.isHeld || item.isHeldByEnemy)
