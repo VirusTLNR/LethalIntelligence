@@ -1,5 +1,10 @@
 ## Changelog
 
+### 0.2.5
+- Potentially fixed routing problems which led to them standing at the main entrance (or in the ship) weirdly. (again x.x)
+- fixed an issue with "randomitem" function throwing errors
+- improved some logging for debugging purposes
+
 ### 0.2.4
 - Fixed routing problems when Insane is doing "Sabotage/Escape" focus which led to them standing at the main entrance (or in the ship) weirdly.
 - Fixed "findRandomItem" invalid cast exception

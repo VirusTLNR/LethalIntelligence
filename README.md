@@ -69,6 +69,7 @@ If you have any of the above issues, or any other issue, dont hesitate to send m
 Not 100% Compatible (and how to get the best compatibility with these mods.. feel free to suggest other things that need adding to this list as i dont use every mod!):
 + General Improvements - Disable all settings related to the masked, if you turn some on and get no issues, do let me know which ones so i can add them here as "fine". The "map dot" should be a 100% turn off as its part of this mod too.
 + TooManyEmotes - Turn off "stop and stare duration override"? on, or off, one or the other, this may make masked look weird!
++ Welcome to Ooblaterra - the ghost masked on this moon are seemingly causing errors.. i d k why yet.
  
 
 ## Thanks to...
