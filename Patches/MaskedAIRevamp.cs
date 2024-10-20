@@ -862,7 +862,7 @@ namespace LethalIntelligence.Patches
                     {
                         try
                         {
-                            if (NavMesh.SamplePosition(apparatus.transform.position, out hitApparatus, 3.0f, -1))
+                            if (NavMesh.SamplePosition(apparatus.transform.position, out hitApparatus, 10f, -1))
                             {
                                 apparatusReachable = agent.CalculatePath(hitApparatus.position, nmpApparatus);
                                 //Plugin.mls.LogError("Reachable=" + apparatusReachable);
@@ -910,7 +910,7 @@ namespace LethalIntelligence.Patches
                     {
                         try
                         {
-                            if (NavMesh.SamplePosition(breakerBox.transform.position, out hitBreaker, 3.0f, -1))
+                            if (NavMesh.SamplePosition(breakerBox.transform.position, out hitBreaker, 10f, -1))
                             {
                                 breakerBoxReachable = agent.CalculatePath(hitBreaker.position, nmpBreaker);
                                 //breakerBoxDistance = Vector3.Distance(((Component)this).transform.position, hitBreaker.position);
@@ -956,7 +956,7 @@ namespace LethalIntelligence.Patches
                     {
                         try
                         {
-                            if (NavMesh.SamplePosition(terminal.transform.position, out hitTerminal, 3.0f, -1))
+                            if (NavMesh.SamplePosition(terminal.transform.position, out hitTerminal, 10f, -1))
                             {
                                 terminalReachable = agent.CalculatePath(hitTerminal.position, nmpTerminal);
                                 terminalDistance = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position);
@@ -1758,7 +1758,7 @@ namespace LethalIntelligence.Patches
 
                 num = num2;
                 nearestGrabbable = allitem;
-                if (NavMesh.SamplePosition(nearestGrabbable.transform.position, out hitGrabbable, 10, -1))
+                if (NavMesh.SamplePosition(nearestGrabbable.transform.position, out hitGrabbable, 10f, -1))
                 {
                     //closestGrabbableReachable = agent.CalculatePath(hitGrabbable.position, nmpGrabbable);
                     nearestGrabbableReachable = agent.CalculatePath(nearestGrabbable.transform.position, nmpNearGrabbable);
