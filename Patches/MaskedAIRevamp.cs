@@ -179,11 +179,11 @@ namespace LethalIntelligence.Patches
 
         private void TestConfig()
         {
-            maskedPersonality = Personality.Insane; //for testing a specific personality
+            maskedPersonality = Personality.Cunning; //for testing a specific personality
             SelectPersonalityInt.Value = 0; //for testing a specific personality
-            lastMaskedPersonality = Personality.Insane;
-            maskedFocusInt.Value = (int)Focus.None;
-            maskedActivityInt.Value = (int)Activity.RandomItem;
+            lastMaskedPersonality = Personality.Cunning;
+            maskedFocusInt.Value = (int)Focus.BreakerBox;
+            maskedActivityInt.Value = (int)Activity.None;
             mustChangeFocus = false;
         }
 
@@ -691,6 +691,7 @@ namespace LethalIntelligence.Patches
             {
                 Plugin.mls.LogError(entrancesTeleportArray[i].name + "|" + entrancesTeleportArray[i].entranceId + "|" + entrancesTeleportArray[i].entrancePoint.position.ToString() + "|" + entrancesTeleportArray[i].transform.position.ToString() + "|" + entrancesTeleportArray[i].isEntranceToBuilding + "|" + entrancesTeleportArray[i].isActiveAndEnabled);
             }*/
+            //TestConfig();
         }
 
         float updateFrequency = 0.02f;
