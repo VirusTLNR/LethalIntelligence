@@ -910,11 +910,11 @@ namespace LethalIntelligence.Patches
                     {
                         try
                         {
-                            if (NavMesh.SamplePosition(breakerBox.transform.position, out hitBreaker, 10f, -1))
+                            if (NavMesh.SamplePosition(breakerBox.transform.position+breakerBox.transform.forward * 2, out hitBreaker, 10f, -1))
                             {
                                 breakerBoxReachable = agent.CalculatePath(hitBreaker.position, nmpBreaker);
                                 //breakerBoxDistance = Vector3.Distance(((Component)this).transform.position, hitBreaker.position);
-                                breakerBoxDistance = Vector3.Distance(((Component)this).transform.position, ((Component)breakerBox).transform.position);
+                                breakerBoxDistance = Vector3.Distance(((Component)this).transform.position, hitBreaker.position);
                                 breakerClosestPoint = Vector3.Distance(hitBreaker.position, breakerBox.transform.position);
                                 breakerPosition = hitBreaker.position;
                             }
@@ -2614,11 +2614,19 @@ namespace LethalIntelligence.Patches
             }
             else if (maskedFocus == Focus.BreakerBox)
             {
+                if(seenCheckNum <= 0)
+                {
+                    Plugin.mls.LogWarning("BreakerBox was seen, but could not be reached! Not Critical, but please report this!");
+                    mustChangeFocus = true;
+                    mustChangeActivity = true;
+                    noMoreBreakerBox = true;
+                }
                 if (breakerBoxDistance < 15f && breakerBoxDistance > 3.5f && Plugin.isBreakerBoxBeingUsed)
                 {
                     Plugin.mls.LogDebug("BreakerBox is being used by another entity");
                     noMoreBreakerBox = true;
                     mustChangeFocus = true;
+                    mustChangeActivity = true;
                     return;
                 }
                 if (!noMoreBreakerBox)
@@ -2634,7 +2642,9 @@ namespace LethalIntelligence.Patches
                         maskedEnemy.SetDestinationToPosition(breakerBox.transform.position);
                         maskedEnemy.moveTowardsDestination = true;
 
-                        if (breakerBoxDistance < 3.5f && !isUsingBreakerBox)
+                        breakerBoxDistance = Vector3.Distance(__instance.transform.position, breakerPosition);
+                        //Plugin.mls.LogError(breakerBoxDistance);
+                        if ((breakerBoxDistance < 3.5f || objectInLOSCheck(__instance,breakerBox.gameObject) == 2) && !isUsingBreakerBox)
                         {
                             Plugin.isBreakerBoxBeingUsed = true;
                             maskedGoal = "using breaker box";
@@ -3099,9 +3109,47 @@ namespace LethalIntelligence.Patches
         }
 
 
+        int seenCheckNum = 200;
+
+        private int objectInLOSCheck(EnemyAI ent, GameObject gameObj, int proxyDist = -1, int moveCheckForwardDistance = 0) //0 = fail, 1 = seen, 2 = succeed
+        {
+            if (ent.CheckLineOfSightForPosition(gameObj.transform.position+(gameObj.transform.forward*moveCheckForwardDistance), 60f, 2,proxyDist))
+            {
+                //Plugin.mls.LogError("LOSCheck-Pass");
+                seenCheckNum = 200;
+                return 2;
+            }
+            int proxyDistModified = -1;
+            if(proxyDist != -1)
+            {
+
+                proxyDistModified = proxyDist * 2;
+            }
+            if (ent.CheckLineOfSightForPosition(gameObj.transform.position + (gameObj.transform.forward*moveCheckForwardDistance), 60f, 4, proxyDistModified))
+            {
+                //Plugin.mls.LogError("LOSCheck-Seen");
+                seenCheckNum--;
+                return 1;
+            }
+            else if(seenCheckNum < 200)
+            {
+                seenCheckNum--;
+            }
+            //Plugin.mls.LogError("LOSCheck-Fail");
+            seenCheckNum = 200;
+            return 0;
+        }
+
         //apparatus
         private void SabotageApparatus()
         {
+            if(seenCheckNum <= 0)
+            {
+                Plugin.mls.LogWarning("Apparatus was seen, but could not be reached! Not Critical, but please report this!");
+                mustChangeFocus = true;
+                mustChangeActivity = true;
+                noMoreApparatus = true;
+            }
             if (!apparatus.isLungPowered)
             {
                 if (completedApparatusFocus)
@@ -3130,7 +3178,7 @@ namespace LethalIntelligence.Patches
                     }
                     maskedGoal = "walking to apparatus (" + apparatusPosition.ToString() + ")";
                     __instance.SetDestinationToPosition(apparatusPosition, false);
-                    //Plugin.mls.LogDebug("ApparatusDistance = " + apparatusDistance);
+                    Plugin.mls.LogDebug("ApparatusDistance = " + apparatusDistance);
                     __instance.moveTowardsDestination = true;
                 }
                 if ((Object)(object)apparatus != (Object)null && !apparatus.isLungDocked)
@@ -3146,7 +3194,7 @@ namespace LethalIntelligence.Patches
                 {
                     Plugin.mls.LogError("ApparatusDistance = " + apparatusDistance); //for debugging distance issues
                 }*/
-                if (!isUsingApparatus && !noMoreApparatus && apparatusDistance < 3.5f)
+                if (!isUsingApparatus && !noMoreApparatus && (objectInLOSCheck(__instance,apparatus.gameObject,6) == 2 || apparatusDistance < 3.5f))
                 {
                     //pull apparatus here, maybe insane masked should EAT the apparatus???
                     isUsingApparatus = true;
