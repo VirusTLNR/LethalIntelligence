@@ -4803,7 +4803,7 @@ namespace LethalIntelligence.Patches
                 mustChangeActivity = true;
             }
             //}
-            if (breakerBoxDistance <= 5f)
+            if (breakerBoxDistance <= 10f)
             {
                 mustChangeFocus = true;
                 mustChangeActivity = true;
@@ -4859,7 +4859,7 @@ namespace LethalIntelligence.Patches
             {
                 mustChangeActivity = true;
             }
-            if (apparatusDistance <= 5f)
+            if (apparatusDistance <= 10f)
             {
                 mustChangeFocus = true;
                 mustChangeActivity = true;
