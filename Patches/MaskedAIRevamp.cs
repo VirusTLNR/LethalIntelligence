@@ -4884,6 +4884,11 @@ namespace LethalIntelligence.Patches
             float dist = 1000;
             for (int i = 0; i < entrancesTeleportArray.Length; i++)
             {
+                if (currentInterior == "LiminalPoolRoomsFlow" && entrancesTeleportArray[i].entranceId == 0)
+                {
+                    //you cant use the main entrance on liminal pools as the offnavmeshlinks are missing. Drako will fix this soon so soon this if statement can be commented out.
+                    continue;
+                }
                 if ((entrancesTeleportArray[i].entranceId == 0 && MainEntranceAllowed) || (entrancesTeleportArray[i].entranceId > 0 && FireExitsAllowed))
                 {
                     //Plugin.mls.LogError(String.Format("{0}/{1}/{2}/{3}", entrancesTeleportArray[i].entranceId, entrancesTeleportArray[i].transform.position, entrancesTeleportArray[i].entrancePoint.position, entrancesTeleportArray[i].isEntranceToBuilding));
@@ -5300,7 +5305,7 @@ namespace LethalIntelligence.Patches
             if(selectedEntrance == null)
             {
                 maskedGoal = "No Entrance Found, Changing Focus";
-                Plugin.mls.LogError("selectedEntrance was Null, if all entrances are null, this may lead to masked stopping from moving completely.");
+                Plugin.mls.LogWarning("selectedEntrance was Null, if all entrances are null, this may lead to masked stopping from moving completely.");
                 selectedEntrance = null;
                 mustChangeFocus = true;
                 mustChangeActivity = true;
@@ -5327,7 +5332,7 @@ namespace LethalIntelligence.Patches
             if (selectedEntrance == null)
             {
                 maskedGoal = "No Entrance Found, Changing Focus";
-                Plugin.mls.LogError("selectedEntrance was Null, if all entrances are null, this may lead to masked stopping from moving completely.");
+                Plugin.mls.LogWarning("selectedEntrance was Null, if all entrances are null, this may lead to masked stopping from moving completely.");
                 selectedEntrance = null;
                 mustChangeFocus = true;
                 mustChangeActivity = true;
