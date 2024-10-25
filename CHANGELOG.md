@@ -1,5 +1,10 @@
 ## Changelog
 
+### 0.2.6
+- temporarily fixed an issue with the main entrance when using the "LiminalPools" interior (v1.0.12) as this causes masked to bug out due to a missing NavMeshLink, once LiminalPools is updated, this issue should be resolved. Please note, this fix ignores the main entrance in this scenario.
+- improved how masked "react" to arriving at their destination for some focus's (breakerbox/apparatus) to hopefully prevent them from bugging out due to bad configuration.
+- lowered the proximity requirement for masked activities (breaker/apparatus) to potentially stop them bugging out when they cant reach close enough. (this may need revisiting as im not sure it has fixed it and is most likely the reason they bug out now)
+
 ### 0.2.5
 - Potentially fixed routing problems which led to them standing at the main entrance (or in the ship) weirdly. (again x.x)
 - fixed an issue with "randomitem" function throwing errors

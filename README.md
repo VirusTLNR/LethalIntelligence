@@ -53,6 +53,7 @@ if this is on.. OR Imperium is installed.. debug mode will be turned on, this wi
 - masked "ignoring players" is sometimes way too much, and sometimes way too little, a rework of the system will occur soon.
 - if you try to use the terminal while a masked is on it you can get softlocked on it. (trying to fix this currently)
 - pathing to objects behind doors/walls will cause "stuck motion" (as does any route to which the masked cannot reach the destination) - working on a solution to this
+- on LiminalPools interior, the fire exit up on a ledge will likely caused masked to bug out - fix being worked on, if there are other fire exits on other interiors or moons, let me know please, i need to build a list!
 
 If you have any of the above issues, or any other issue, dont hesitate to send me the full log file after your session has ended (either on discord, or as an issue on github)
 
@@ -70,7 +71,6 @@ Not 100% Compatible (and how to get the best compatibility with these mods.. fee
 + General Improvements - Disable all settings related to the masked, if you turn some on and get no issues, do let me know which ones so i can add them here as "fine". The "map dot" should be a 100% turn off as its part of this mod too.
 + TooManyEmotes - Turn off "stop and stare duration override"? on, or off, one or the other, this may make masked look weird!
 + Welcome to Ooblaterra - the ghost masked on this moon are seemingly causing errors.. i d k why yet.
- 
 
 ## Thanks to...
 
@@ -79,7 +79,8 @@ Not 100% Compatible (and how to get the best compatibility with these mods.. fee
 - MattyMatty for the LobbyCompatibility softdependency class.
 - Kite (on discord) for the Masked joining/leaving terminal fixes.
 - WhiteSpike (on discord) for help and suggestions regarding the breaker box.
-- Tim_Shaw for help on trying to make their mod compatible.
+- Tim_Shaw for help on trying to make their mod compatible and integrated.
 - XuXiaolan for help/advice/tips with spawning items as well as many other things (soon to be too many things to mention).
 - Szumi57 for inspiration on how to fix EntranceTeleports.
 - qwbarch for all the help on integrating Mirage and LethalIntelligence!
+- Fandovec03 for suggesting LOS as a fix to "distance related issues" I was having.
