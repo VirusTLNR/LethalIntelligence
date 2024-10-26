@@ -3509,13 +3509,13 @@ namespace LethalIntelligence.Patches
                 }
                 if (!terminal.terminalInUse && !noMoreTerminal && !__instance.isEnemyDead)
                 {
-                    terminalReachable = __instance.SetDestinationToPosition(((Component)terminal).transform.position, true);
+                    terminalReachable = __instance.SetDestinationToPosition(((Component)terminal).transform.position - (terminal.transform.right*0.8f), true);
                     if (!terminalReachable)
                     {
                         return; //cant reach terminal
                     }
                     maskedGoal = "walking to terminal (" + terminal.transform.position.ToString() + ")";
-                    __instance.SetDestinationToPosition(((Component)terminal).transform.position, false);
+                    //__instance.SetDestinationToPosition(((Component)terminal).transform.position + terminal.transform.forward, false);
                     __instance.moveTowardsDestination = true;
                     //noMoreItems = true;
                     this.ignoringPersonality = true;
@@ -3536,8 +3536,11 @@ namespace LethalIntelligence.Patches
                 ((Component)maskedEnemy.headTiltTarget).gameObject.SetActive(false);
                 agent.speed = 0f;
                 creatureAnimator.ResetTrigger("IsMoving");
-                ((Component)this).transform.LookAt(new Vector3(((Component)terminal).transform.position.x, ((Component)this).transform.position.y, ((Component)terminal).transform.position.z));
-                ((Component)this).transform.localPosition = new Vector3(((Component)terminal).transform.localPosition.x + 7f, ((Component)terminal).transform.localPosition.y + 0.25f, ((Component)terminal).transform.localPosition.z + -14.8f);
+                this.transform.LookAt(terminal.transform);
+                this.transform.localPosition = terminal.transform.position - (terminal.transform.right*0.8f);
+                //this.transform.localPosition = terminal.transform.localPosition + new Vector3(7f, 0.25f, -14.8f);
+                //((Component)this).transform.LookAt(new Vector3(((Component)terminal).transform.position.x, ((Component)this).transform.position.y, ((Component)terminal).transform.position.z));
+                //((Component)this).transform.localPosition = new Vector3(((Component)terminal).transform.localPosition.x + 7f, ((Component)terminal).transform.localPosition.y + 0.25f, ((Component)terminal).transform.localPosition.z + -14.8f);
                 if (maskedPersonality == Personality.Cunning)
                 {
                     if (terminal.numberOfItemsInDropship <= 0 && !dropship.shipLanded && dropship.shipTimer <= 0f && !isDeliverEmptyDropship && !noMoreTerminal)
