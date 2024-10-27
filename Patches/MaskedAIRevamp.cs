@@ -1070,14 +1070,14 @@ namespace LethalIntelligence.Patches
                                                                       //maskedActivity = Activity.None;
                         mustChangeActivity = true;
                     }
-                    else if (maskedPersonality == Personality.Stealthy && __instance.targetPlayer != null && lastMaskedFocus != Focus.Hiding)
+                    /*else if (maskedPersonality == Personality.Stealthy && __instance.targetPlayer != null && lastMaskedFocus != Focus.Hiding)
                     {
                         maskedFocusInt.Value = (int)Focus.Hiding; //syncing variables
                                                                   //maskedFocus = Focus.Hiding;
                         maskedActivityInt.Value = (int)Activity.None; //syncing variables
                                                                       //maskedActivity = Activity.None;
                         mustChangeActivity = true;
-                    }
+                    }*/
                     else if (maskedPersonality == Personality.Stealthy && __instance.targetPlayer != null && lastMaskedFocus != Focus.Mimicking)
                     {
                         maskedFocusInt.Value = (int)Focus.Mimicking; //syncing variables
@@ -2449,6 +2449,126 @@ namespace LethalIntelligence.Patches
             walkie.target.PlayOneShot(SkinwalkerModPersistent.Instance.GetSample()); //fixing some dumb error with skin walkers not being present.
         }
 
+        private Transform farthestNodeFromTargetPlayer;
+
+        private float currentRotation, lastRotation;
+
+        private PlayerControllerB playerHidingFrom;
+
+        private int cornersRan = 0, cornersToRun = 0;
+
+        private Vector3 hidingPosition;
+
+        private bool hasRotatedInHiding = false;
+
+        private float waitingInHiding;
+
+        public void hideFromPlayer()
+        {
+            __instance.targetPlayer = null;
+            /*if (playerHidingFrom == null)
+            {
+                playerHidingFrom = __instance.targetPlayer;
+            }*/
+            //run away from player when seen
+            if (this.farthestNodeFromTargetPlayer == null)
+            {
+                if (__instance.isOutside)
+                {
+                    if (__instance.isInsidePlayerShip)
+                    {
+                        //there is nowhere realistic to hide!
+                        mustChangeFocus = true;
+                        mustChangeActivity = true;
+                    }
+                    else
+                    {
+                        Transform shipHidingTransform = new Transform();
+                        shipHidingTransform.position = maskedEnemy.shipHidingSpot;
+                        this.farthestNodeFromTargetPlayer = shipHidingTransform;
+                    }
+                }
+                else
+                {
+                    this.farthestNodeFromTargetPlayer = __instance.ChooseFarthestNodeFromPosition(playerHidingFrom.transform.position, true, 0, true, 100, true);
+                }
+            }
+
+            //not hidden yet
+            if (!hasRotatedInHiding)
+            {
+                //once player has lost sight of you.. run a bit more.. until you pass a corner or 2
+                if (!playerHidingFrom.HasLineOfSightToPosition(__instance.transform.position))
+                {
+                    /*if(cornersToRun == 0)
+                    {
+                        cornersToRun = Random.RandomRangeInt(1, 3);
+                        cornersRan = 0;
+                    }
+                    this.currentRotation = __instance.agent.transform.rotation.y; //this should be the direction of the next node, not the rotation of the masked, as masked often turn..)
+                    if (this.lastRotation == null || this.lastRotation == float.NaN)
+                    {
+                        this.lastRotation = currentRotation;
+                    }
+                    //checking the new rotation vs the original rotation
+                    if(this.lastRotation < (currentRotation - 80f) || this.lastRotation > (currentRotation + 80f))
+                    {
+                        this.lastRotation = float.NaN;
+                        cornersRan++;
+                    }*/
+
+                    //stop once around a corner, and turn 180, and wait x time
+                    if (__instance.isOutside)
+                    {
+                        hidingPosition = maskedEnemy.shipHidingSpot;
+                    }
+                    else
+                    {
+                        hidingPosition = agent.nextPosition;
+                    }
+                    agent.SetDestination(hidingPosition);
+                    if (__instance.transform.position == hidingPosition)
+                    {
+                        __instance.transform.Rotate(0f, 180f, 0f);
+                        __instance.agent.enabled = false;
+                        hasRotatedInHiding = true;
+                    }
+
+                }
+            }
+            //is in hiding spot
+            else
+            {
+                //if player arrives before x time.. enter "killing player" mode.
+                PlayerControllerB closestPlayer = __instance.CheckLineOfSightForClosestPlayer(60f, 100);
+                if (closestPlayer != null)
+                {
+                    __instance.targetPlayer = closestPlayer;
+                    playerHidingFrom = closestPlayer;
+                    hasRotatedInHiding = false;
+                    waitingInHiding = 0f;
+                    mustChangeFocus = true;
+                    mustChangeActivity = true;
+                }
+                //if player does not arrive before x time... stop hiding and do something else.
+                else
+                {
+                    //wait a period of time
+                    waitingInHiding += updateFrequency;
+                    if (waitingInHiding > 30f)
+                    {
+                        //30 seconds has passed.. do something else
+                        __instance.targetPlayer = null;
+                        playerHidingFrom = null;
+                        hasRotatedInHiding = false;
+                        waitingInHiding = 0f;
+                        mustChangeFocus = true;
+                        mustChangeActivity = true;
+                    }
+                }
+            }
+        }
+
         public void AwayFromPlayer()
         {
             maskedGoal = "awayfromplayer() method";
@@ -2870,17 +2990,18 @@ namespace LethalIntelligence.Patches
                 if (((NetworkBehaviour)this).IsHost)
                 {
                     maskedGoal = "going AwayFromPlayer()";
-                    AwayFromPlayer();
+                    //AwayFromPlayer();
+                    hideFromPlayer();
                 }
             }
-            else if (maskedFocus == Focus.Mimicking)
+            /*else if (maskedFocus == Focus.Mimicking)
             {
                 if (((NetworkBehaviour)this).IsHost)
                 {
                     maskedGoal = "doing PlayerLikeAction()";
                     PlayerLikeAction();
                 }
-            }
+            }*/
         }
 
         public void MaskedAggressive() //aggressives special ability
@@ -2975,6 +3096,14 @@ namespace LethalIntelligence.Patches
 
         private void TargetAndKillPlayer()
         {
+            if(maskedPersonality == Personality.Stealthy && !hasRotatedInHiding)
+            {
+                maskedFocusInt.Value = (int)Focus.Hiding;
+                maskedActivityInt.Value = (int)Activity.None;
+                playerHidingFrom = __instance.targetPlayer;
+                __instance.targetPlayer = null;
+                return; //stealthy should only kill once he has hidden.
+            }
             if ((Object)(object)__instance.targetPlayer == (Object)null && isHoldingObject)
             {
                 maskedGoal = "not targeting player, holding object";
@@ -2982,6 +3111,10 @@ namespace LethalIntelligence.Patches
             }
             if (__instance.targetPlayer != null)
             {
+                /*if (maskedPersonality == Personality.Stealthy && playerHidingFrom != __instance.targetPlayer)
+                {
+                    return; //not the player you hid from, so you should be running away instead.
+                }*/
                 maskedFocus = Focus.Player;
 
                 if ((Object)(object)__instance.targetPlayer != (Object)null && isHoldingObject && !(closestGrabbable is Shovel) && !(closestGrabbable is ShotgunItem) && maskedPersonality == Personality.Aggressive)

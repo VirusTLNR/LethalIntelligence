@@ -51,4 +51,24 @@ namespace LethalIntelligence.Patches
             return false;
         }
     }
+
+    [HarmonyPatch(typeof(EnemyAI))]
+    internal class EnemyAIPatch
+    {
+        [HarmonyPatch("SetMovingTowardsTargetPlayer")]
+        [HarmonyPrefix]
+        private static bool SetMovingTowardsTargetPlayer(EnemyAI __instance)
+        {
+            if(__instance.GetScriptClassName() == "MaskedPlayerEnemy")
+            {
+                Plugin.mls.LogError("THIS IS A MASKED");
+                return false;
+            }
+            else
+            {
+                Plugin.mls.LogError("THIS IS NOT A MASKED");
+                return true;
+            }
+        }
+    }
 }
