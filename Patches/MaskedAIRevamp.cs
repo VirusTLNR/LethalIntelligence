@@ -182,7 +182,7 @@ namespace LethalIntelligence.Patches
             maskedPersonality = Personality.Cunning; //for testing a specific personality
             SelectPersonalityInt.Value = 0; //for testing a specific personality
             lastMaskedPersonality = Personality.Cunning;
-            maskedFocusInt.Value = (int)Focus.BreakerBox;
+            maskedFocusInt.Value = (int)Focus.Terminal;
             maskedActivityInt.Value = (int)Activity.None;
             mustChangeFocus = false;
         }
@@ -611,9 +611,8 @@ namespace LethalIntelligence.Patches
             selectAvailablePersonalities();
             if (RoundManager.Instance.currentLevel != null && !RoundManager.Instance.currentLevel.ToString().Contains("Gordion"))
             {
-            currentMoon = RoundManager.Instance.currentLevel.PlanetName;
-            currentInterior = RoundManager.Instance.dungeonGenerator.Generator.DungeonFlow.name.ToString();
-
+                currentMoon = RoundManager.Instance.currentLevel.PlanetName;
+                currentInterior = RoundManager.Instance.dungeonGenerator.Generator.DungeonFlow.name.ToString();
             }
             else if(RoundManager.Instance.currentLevel.ToString().Contains("Gordion"))
             {
