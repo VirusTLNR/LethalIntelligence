@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.2.7 - Hotfix
+- fixed the issue with masked routing to and getting stuck at the main entrance
+- 99% fixed masked positioning when using the terminal (may see some levitation with 2story ship and may see some sinking in the vanilla ship, this is down to the navmesh, not my mod), but at least masked should be at the terminal now. - please do send pictures of bad positions/levitating/sinking/etc though so I can maybe look into making a fix.
+
 ### 0.2.6
 - temporarily fixed an issue with the main entrance when using the "LiminalPools" interior (v1.0.12) as this causes masked to bug out due to a missing NavMeshLink, once LiminalPools is updated, this issue should be resolved. Please note, this fix ignores the main entrance in this scenario.
 - improved how masked "react" to arriving at their destination for some focus's (breakerbox/apparatus) to hopefully prevent them from bugging out due to bad configuration.
