@@ -179,10 +179,10 @@ namespace LethalIntelligence.Patches
 
         private void TestConfig()
         {
-            maskedPersonality = Personality.Cunning; //for testing a specific personality
+            maskedPersonality = Personality.Stealthy; //for testing a specific personality
             SelectPersonalityInt.Value = 0; //for testing a specific personality
-            lastMaskedPersonality = Personality.Cunning;
-            maskedFocusInt.Value = (int)Focus.Terminal;
+            lastMaskedPersonality = Personality.Stealthy;
+            maskedFocusInt.Value = (int)Focus.Hiding;
             maskedActivityInt.Value = (int)Activity.None;
             mustChangeFocus = false;
         }
