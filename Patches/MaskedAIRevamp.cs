@@ -1314,8 +1314,10 @@ namespace LethalIntelligence.Patches
                 ((Behaviour)agent).enabled = false;
                 if (isUsingTerminal == true)
                 {
+                    isUsingTerminal = false;
                     Plugin.isTerminalBeingUsed = false; //attempting to fix a killed/despawned mask locking out others from the terminal
                     terminal.SetTerminalNoLongerInUse(); //makes it so terminal is useable after they die
+                    terminalAccess(true);
                 }
                 return; //stops them doing anything if they are dead?
             }
@@ -3472,6 +3474,12 @@ namespace LethalIntelligence.Patches
 
         //terminal
         #region terminal
+
+        private void terminalAccess(bool enabled)
+        {
+            Plugin.mls.LogDebug("Terminal Access Enabled = " + enabled);
+            terminal.terminalTrigger.interactable = enabled;
+        }
         private void UsingTerminal()
         {
             //IL_0007: Unknown result type (might be due to invalid IL or missing references)
@@ -3511,12 +3519,13 @@ namespace LethalIntelligence.Patches
 
                 if (!terminal.terminalInUse && !noMoreTerminal && num < 3.5f)
                 {
-                    Plugin.isTerminalBeingUsed = true;
                     if (!isUsingTerminal)
                     {
                         terminal.terminalAudio.PlayOneShot(terminal.enterTerminalSFX);
-                    }
-                    isUsingTerminal = true;
+                        Plugin.isTerminalBeingUsed = true;
+                        terminalAccess(false);
+                        isUsingTerminal = true;
+                    }                    
                 }
                 if (!terminal.terminalInUse && !noMoreTerminal && !__instance.isEnemyDead)
                 {
@@ -3590,6 +3599,8 @@ namespace LethalIntelligence.Patches
                         //__instance.SetDestinationToPosition(GameObject.Find("ItemShip").transform.position, false); //doesnt actually route to the item ship, just uses it as a hook to get off i guess.
                         isUsingTerminal = false;
                         noMoreTerminal = true;
+                        Plugin.isTerminalBeingUsed = false;
+                        terminalAccess(true);
                         dropShipTimer = 0;
                     }
                 }
@@ -3611,6 +3622,7 @@ namespace LethalIntelligence.Patches
                         isUsingTerminal = false;
                         noMoreTerminal = true;
                         Plugin.isTerminalBeingUsed = false;
+                        terminalAccess(true);
                         isTerminalEscaping = false;
                         //isLeverEscaping = true; // why is this commented out???
                         return;
@@ -3660,6 +3672,7 @@ namespace LethalIntelligence.Patches
                         }
                         //isLeverEscaping = true;
                         Plugin.isTerminalBeingUsed = false;
+                        terminalAccess(true);
                     }
 
                 }
@@ -3680,6 +3693,7 @@ namespace LethalIntelligence.Patches
                         isUsingTerminal = false;
                         noMoreTerminal = true;
                         Plugin.isTerminalBeingUsed = false;
+                        terminalAccess(true);
                         return;
                     }
                     float num2 = Random.Range(0.2f, 1.5f);
@@ -3717,6 +3731,7 @@ namespace LethalIntelligence.Patches
                         isUsingTerminal = false;
                         noMoreTerminal = true;
                         Plugin.isTerminalBeingUsed = false;
+                        terminalAccess(true);
                     }
                 }
             }
