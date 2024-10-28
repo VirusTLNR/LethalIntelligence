@@ -1831,7 +1831,10 @@ namespace LethalIntelligence.Patches
                     }
                     else
                     {
-                        __instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
+                        maskedFocusInt.Value = (int)Focus.None;
+                        maskedActivityInt.Value = (int)Activity.MainEntrance;
+                        //have to disable this as it potentially leads to masked standing at the main entrance unable to go through it
+                        //__instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
                         __instance.moveTowardsDestination = false;
                     }
                 }
@@ -2506,7 +2509,10 @@ namespace LethalIntelligence.Patches
                         }
                         else
                         {
-                            __instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
+                            maskedFocusInt.Value = (int)Focus.None;
+                            maskedActivityInt.Value = (int)Activity.MainEntrance;
+                            //have to disable this as it potentially leads to masked standing at the main entrance unable to go through it
+                            //__instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
                         }
                         originTimer = 0f;
                     }
@@ -2564,7 +2570,10 @@ namespace LethalIntelligence.Patches
                     }
                     else
                     {
-                        __instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
+                        maskedFocusInt.Value = (int)Focus.None;
+                        maskedActivityInt.Value = (int)Activity.MainEntrance;
+                        //have to disable this as it potentially leads to masked standing at the main entrance unable to go through it
+                        //__instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
                     }
                     originTimer = 0f;
                 }
@@ -3064,7 +3073,10 @@ namespace LethalIntelligence.Patches
                     }
                     else
                     {
-                        __instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, false); //i really wish there was less sections of code doing this sort of thing :D
+                        maskedFocusInt.Value = (int)Focus.None;
+                        maskedActivityInt.Value = (int)Activity.MainEntrance;
+                        //have to disable this as it potentially leads to masked standing at the main entrance unable to go through it
+                        //__instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, false); //i really wish there was less sections of code doing this sort of thing :D
                     }
                 }
                 if ((Object)(object)__instance.targetPlayer != (Object)null)
@@ -4498,7 +4510,10 @@ namespace LethalIntelligence.Patches
                     }
                     else
                     {
-                        __instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
+                        maskedFocusInt.Value = (int)Focus.None;
+                        maskedActivityInt.Value = (int)Activity.MainEntrance;
+                        //have to disable this as it potentially leads to masked standing at the main entrance unable to go through it
+                        //__instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
                         __instance.moveTowardsDestination = false;
                     }
                 }
@@ -4648,7 +4663,10 @@ namespace LethalIntelligence.Patches
                     }
                     else
                     {
-                        __instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
+                        maskedFocusInt.Value = (int)Focus.None;
+                        maskedActivityInt.Value = (int)Activity.MainEntrance;
+                        //have to disable this as it potentially leads to masked standing at the main entrance unable to go through it
+                        //__instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
                         __instance.moveTowardsDestination = false;
                     }
                 }
@@ -4726,7 +4744,10 @@ namespace LethalIntelligence.Patches
                     }
                     else
                     {
-                        __instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
+                        maskedFocusInt.Value = (int)Focus.None;
+                        maskedActivityInt.Value = (int)Activity.MainEntrance;
+                        //have to disable this as it potentially leads to masked standing at the main entrance unable to go through it
+                        //__instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
                         __instance.moveTowardsDestination = false;
                     }
                 }
