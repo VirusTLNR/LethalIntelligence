@@ -3765,7 +3765,7 @@ namespace LethalIntelligence.Patches
                         enterTermianlSpecialCodeTime--;
                         enterTermianlCodeTimer = 0f;
                     }
-                    if (enterTermianlSpecialCodeTime == 0)
+                    if (enterTermianlSpecialCodeTime == 0 || StartOfRound.Instance.shipIsLeaving)
                     {
                         terminal.terminalAudio.PlayOneShot(terminal.leaveTerminalSFX);
                         __instance.inSpecialAnimation = false;
