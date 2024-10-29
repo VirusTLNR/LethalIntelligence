@@ -608,25 +608,26 @@ namespace LethalIntelligence.Patches
 
         public void Start()
         {
-            selectAvailablePersonalities();
-            if (RoundManager.Instance.currentLevel != null && !RoundManager.Instance.currentLevel.ToString().Contains("Gordion"))
-            {
-                currentMoon = RoundManager.Instance.currentLevel.PlanetName;
-                currentInterior = RoundManager.Instance.dungeonGenerator.Generator.DungeonFlow.name.ToString();
-            }
-            else if(RoundManager.Instance.currentLevel.ToString().Contains("Gordion"))
-            {
-                currentMoon = RoundManager.Instance.currentLevel.PlanetName;
-                currentInterior = "null";
-            }
-            else
-            {
-                //agent.Stop();
-            }
             //IL_00ed: Unknown result type (might be due to invalid IL or missing references)
             //IL_00f7: Expected O, but got Unknown
             //IL_0169: Unknown result type (might be due to invalid IL or missing references)
             //IL_018e: Unknown result type (might be due to invalid IL or missing references)
+            selectAvailablePersonalities();
+            if (RoundManager.Instance.currentLevel == null)
+            {//no moon, should be in orbit.. but this isnt correct, this should only occur when masked are SPAWNED in the ship anyway, so not a big deal
+                return;
+            }
+            else if(RoundManager.Instance.currentLevel.name.ToString() == "CompanyBuildingLevel")
+            {//company moon (no interior)
+                currentMoon = RoundManager.Instance.currentLevel.PlanetName;
+                currentInterior = "null";
+            }
+            else
+            {//normal moon with interior
+                Plugin.mls.LogError(RoundManager.Instance.currentLevel.name.ToString());
+                currentMoon = RoundManager.Instance.currentLevel.PlanetName;
+                currentInterior = RoundManager.Instance.dungeonGenerator.Generator.DungeonFlow.name.ToString();
+            }
             if (GameNetworkManager.Instance.isHostingGame)
             {
                 maskedId = this.GetInstanceID().ToString();
