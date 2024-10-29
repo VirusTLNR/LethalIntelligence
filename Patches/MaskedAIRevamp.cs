@@ -3530,7 +3530,7 @@ namespace LethalIntelligence.Patches
             //IL_022c: Unknown result type (might be due to invalid IL or missing references)
             //IL_023c: Unknown result type (might be due to invalid IL or missing references)
             //IL_00de: Unknown result type (might be due to invalid IL or missing references)
-            float num = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position);
+            float num = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position - (terminal.transform.right * 0.8f));
             if (num < 40f)
             //if (num < 60)
             {
@@ -3554,7 +3554,7 @@ namespace LethalIntelligence.Patches
                     DropItem(); //drop inside the ship if you will use the terminal
                 }
 
-                if (!terminal.terminalInUse && !noMoreTerminal && num < 3.5f)
+                if (!terminal.terminalInUse && !noMoreTerminal && num < 1.5f)
                 {
                     if (!isUsingTerminal)
                     {
