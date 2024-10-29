@@ -3506,8 +3506,17 @@ namespace LethalIntelligence.Patches
             }
             if (kad <= 0 && !terminal.terminalAudio.isPlaying)
             {
-                kad = terminal.keyboardClips[seed].length + randomAddTime;
-                terminal.terminalAudio.PlayOneShot(terminal.keyboardClips[seed]);
+                int typoSeed = Random.RandomRangeInt(0, 50);
+                if (typoSeed == 0)
+                {
+                    kad = terminal.syncedAudios[1].length + randomAddTime; //2 is the bestiary image loading screen sound
+                    terminal.PlayTerminalAudioServerRpc(1); //play typo error audio
+                }
+                else
+                {
+                    kad = terminal.keyboardClips[seed].length + randomAddTime;
+                    terminal.terminalAudio.PlayOneShot(terminal.keyboardClips[seed]);
+                }
             }
             if (!terminal.terminalAudio.isPlaying)
             {
