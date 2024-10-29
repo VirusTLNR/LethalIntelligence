@@ -1,5 +1,11 @@
 ## Changelog
 
+### 0.2.8
+- prevented softlocks relating to masked using the terminal (if you find yourself unable to use the terminal when no masked is there or similar, do let me know! shouldent happen though as i have tested all live game scenarios i think..)
+- added audio cues for when masked is typing on the terminal keyboard, as well as an audio cue for cunning "purchasing items"
+- improved walking to the terminal so it looks a bit less "snappy" when the masked turns.
+- (for debugging only) modified some start variables which were previously wrong. (didnt affect anything luckily but nice to get them correct :))
+
 ### 0.2.7 - Hotfix
 - fixed the issue with masked routing to and getting stuck at the main entrance
 - 99% fixed masked positioning when using the terminal (may see some levitation with 2story ship and may see some sinking in the vanilla ship, this is down to the navmesh, not my mod), but at least masked should be at the terminal now. - please do send pictures of bad positions/levitating/sinking/etc though so I can maybe look into making a fix.

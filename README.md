@@ -51,14 +51,14 @@ if this is on.. OR Imperium is installed.. debug mode will be turned on, this wi
 
 ## Known Issues
 - masked "ignoring players" is sometimes way too much, and sometimes way too little, a rework of the system will occur soon.
-- if you try to use the terminal while a masked is on it you can get softlocked on it. (trying to fix this currently)
 - pathing to objects behind doors/walls will cause "stuck motion" (as does any route to which the masked cannot reach the destination) - working on a solution to this
 - on LiminalPools interior, the fire exit up on a ledge will likely caused masked to bug out - fix being worked on, if there are other fire exits on other interiors or moons, let me know please, i need to build a list!
+- if you despawn a masked (using a mod to remove them from the game) while it is on the terminal, the terminal is unusable and the lobby must be restarted - not planning to fix as shouldent occur in an actual game.
 
 If you have any of the above issues, or any other issue, dont hesitate to send me the full log file after your session has ended (either on discord, or as an issue on github)
 
 ## Mods
-100% Compatible (and good to use with this mod):
+100% Compatible:
 + 'MaskedEnemyOverhaulFork' mod by Coppertiel
 + 'Skinwalkers' by RedbugRedfern
 + 'Mirage' by qwbarch
