@@ -86,3 +86,4 @@ Not 100% Compatible (and how to get the best compatibility with these mods.. fee
 - Szumi57 for inspiration on how to fix EntranceTeleports.
 - qwbarch for all the help on integrating Mirage and LethalIntelligence!
 - Fandovec03 for suggesting LOS as a fix to "distance related issues" I was having.
+- darmuh for help with "synced audios" for the terminal audio improvements
