@@ -3480,6 +3480,43 @@ namespace LethalIntelligence.Patches
             Plugin.mls.LogDebug("Terminal Access Enabled = " + enabled);
             terminal.terminalTrigger.interactable = enabled;
         }
+
+        float kad = 1f; //keyboardAudioDelay
+        private void playKeyboardAudio()
+        {//this is currently SPAMMING KEYS.. need to find a way to slow this down lmao.
+            int coc = terminal.keyboardClips.Length;
+            int seed = Random.RandomRangeInt(0, coc);
+            float randomAddTime;
+            if (maskedPersonality == Personality.Deceiving && enterTermianlCodeTimer > terminalTimeFloat.Value && enterTermianlSpecialCodeTime > 0)
+            {
+                randomAddTime = terminalTimeFloat.Value;
+            }
+            else if (maskedPersonality == Personality.Cunning && dropShipTimer > 11.5f)
+            {
+                randomAddTime = 10f; //cunning only types into the terminal for a one off time to fake order items so after that is done.. type no more!
+            }
+            else if (maskedPersonality == Personality.Insane && transmitMessageTimer >= terminalTimeFloat.Value && transmitPauseTimer >= delayMaxTime.Value)
+            {
+                randomAddTime = delayMaxTime.Value;
+            }
+            else
+            {
+                randomAddTime = updateFrequency * Random.RandomRangeInt(1, 7); //0.02 to 0.2 in keys speed
+            }
+            if (kad <= 0 && !terminal.terminalAudio.isPlaying)
+            {
+                kad = terminal.keyboardClips[seed].length + randomAddTime;
+                terminal.terminalAudio.PlayOneShot(terminal.keyboardClips[seed]);
+            }
+            if (!terminal.terminalAudio.isPlaying)
+            {
+                //Plugin.mls.LogError("KAD Time is = " + kad.ToString());
+                kad -= updateFrequency;
+            }
+        }
+
+        bool purchasedStuff = false;
+
         private void UsingTerminal()
         {
             //IL_0007: Unknown result type (might be due to invalid IL or missing references)
@@ -3558,6 +3595,7 @@ namespace LethalIntelligence.Patches
                 creatureAnimator.ResetTrigger("IsMoving");
                 this.transform.LookAt(terminal.transform);
                 this.transform.localPosition = terminal.transform.position - (terminal.transform.right*0.8f);
+                playKeyboardAudio();
                 //this.transform.localPosition = terminal.transform.localPosition + new Vector3(7f, 0.25f, -14.8f);
                 //((Component)this).transform.LookAt(new Vector3(((Component)terminal).transform.position.x, ((Component)this).transform.position.y, ((Component)terminal).transform.position.z));
                 //((Component)this).transform.localPosition = new Vector3(((Component)terminal).transform.localPosition.x + 7f, ((Component)terminal).transform.localPosition.y + 0.25f, ((Component)terminal).transform.localPosition.z + -14.8f);
@@ -3565,6 +3603,14 @@ namespace LethalIntelligence.Patches
                 {
                     if (terminal.numberOfItemsInDropship <= 0 && !dropship.shipLanded && dropship.shipTimer <= 0f && !isDeliverEmptyDropship && !noMoreTerminal)
                     {
+                        if(dropShipTimer > 6f && purchasedStuff == false)
+                        {
+                            if (IsHost)
+                            {
+                                terminal.PlayTerminalAudioServerRpc(0);
+                            };
+                            purchasedStuff = true;
+                        }
                         //dropShipTimer += Time.deltaTime;
                         dropShipTimer += updateFrequency; //fixing timing
                         if (dropShipTimer > 10f)
@@ -3602,6 +3648,7 @@ namespace LethalIntelligence.Patches
                         Plugin.isTerminalBeingUsed = false;
                         terminalAccess(true);
                         dropShipTimer = 0;
+                        purchasedStuff = false;
                     }
                 }
                 else if (maskedPersonality == Personality.Insane)
