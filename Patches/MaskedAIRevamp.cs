@@ -419,6 +419,42 @@ namespace LethalIntelligence.Patches
         Vector3 destination;
         float distanceToDestination;
 
+        private void CheckForEntrancesNearby()
+        {
+            //check for exits regularly..
+            TimeSinceTeleporting += updateFrequency; //tick up for 3f after using an entrance
+            //check distance to destination
+
+            if(Vector3.Distance(maskedEnemy.transform.position, agent.pathEndPosition) < 5f)
+            {
+                //get a list of exits and loop through them
+                foreach (EntranceTeleport et in entrancesTeleportArray)
+                {
+                    Vector3 headStraightPositon = new Vector3(((Component)et).transform.position.x, ((Component)this).transform.position.y, ((Component)et).transform.position.z);
+                    
+                    LookAtPos(headStraightPositon);
+                    //check LOS for each exit
+                    if(objectInLOSCheck(maskedEnemy,et.gameObject) == 2)
+                    {
+                        if (TimeSinceTeleporting < 3f)
+                        {
+                            maskedGoal = "waiting to use entrance (" + et.entranceId + "/" + et.entrancePoint.position.ToString() + ") (less than 3 seconds)";
+                            return;
+                        }
+                        //if exit is in LOS.. use exit.. this should prevent masked from standing at exits.
+                        Vector3? opposingTeleportPosition = getTeleportDestination(et);
+                        maskedGoal = "using entrance (" + et.entranceId + "/" + et.entrancePoint.position.ToString() + ")";
+                        TimeSinceTeleporting = 0;
+                        TeleportMaskedEnemyAndSync((Vector3)opposingTeleportPosition, !maskedEnemy.isOutside);
+                        //changing focus and activity will also break the cycle of entities being stuck at the main entrance... UNLESS this code doesnt run when they get stuck there
+                        mustChangeFocus = true;
+                        mustChangeActivity = true;
+                        break;
+                    }
+                }
+            }
+        }
+
         int delayNumber = 0;
         int delayMax = Plugin.debugStatusDelay;
 
@@ -1412,7 +1448,7 @@ namespace LethalIntelligence.Patches
             CalculatingVariables();
             DetectAndSelectRandomPlayer();
             TargetAndKillPlayer(); //potentially, this should change the focus to NONE and "Activity" to killing the player..depending on the personality, this should cancel current activity as well.
-
+            CheckForEntrancesNearby(); //use entrances here
             //host only (set in function) - setting variables of masked choices
             SetFocus();
             //all clients (including host) - receiving variables
@@ -5052,7 +5088,7 @@ namespace LethalIntelligence.Patches
                 //do teleport, then set destination AWAY from the teleport, maybe look and run randomly?
                 //System.Diagnostics.Debugger.Break();
                 //Vector3? entryPoint = entrance.entrancePoint.position;
-                Vector3? opposingTeleportPosition = getTeleportDestination(entrance);
+ /*               Vector3? opposingTeleportPosition = getTeleportDestination(entrance);
 //                if (TimeSinceTeleporting > MaxTimeBeforeTeleporting)
                 {
                     maskedGoal = "using entrance (" + entrance.entranceId + "/" + entrance.entrancePoint.position.ToString() + ")";
@@ -5065,7 +5101,7 @@ namespace LethalIntelligence.Patches
                         mustChangeFocus = true;
                         mustChangeActivity = true;
                     //}
-                }
+                }*/
             }
         }
 
