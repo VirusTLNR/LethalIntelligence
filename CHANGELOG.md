@@ -1,5 +1,8 @@
 ## Changelog
 
+### 0.2.9 - Hotfix
+- changed Main Entrance/Fire Exit usage by the LI masked to be like vanilla masked usage (passive, used when the masked are at the door itself) so even if they bug out and stand at the entrance, they should use the entrance and change what they are doing to stop them lingering there too long.
+
 ### 0.2.8
 - prevented softlocks relating to masked using the terminal (if you find yourself unable to use the terminal when no masked is there or similar, do let me know! shouldent happen though as i have tested all live game scenarios i think..)
 - added audio cues for when masked is typing on the terminal keyboard, as well as an audio cue for cunning "purchasing items"
