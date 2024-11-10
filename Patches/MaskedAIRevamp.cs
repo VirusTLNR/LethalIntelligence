@@ -434,7 +434,7 @@ namespace LethalIntelligence.Patches
                     
                     LookAtPos(headStraightPositon);
                     //check LOS for each exit
-                    if(objectInLOSCheck(maskedEnemy,et.gameObject) == 2)
+                    if (objectInLOSCheck(maskedEnemy, et.gameObject) == 2 || Vector3.Distance(maskedEnemy.transform.position, et.entrancePoint.position) < 1f) //re-adding distance as an alternative option for deciding if masked use the entrance.
                     {
                         if (TimeSinceTeleporting < 3f)
                         {
@@ -655,13 +655,13 @@ namespace LethalIntelligence.Patches
             }
             else if(RoundManager.Instance.currentLevel.name.ToString() == "CompanyBuildingLevel")
             {//company moon (no interior)
-                currentMoon = RoundManager.Instance.currentLevel.PlanetName;
+                currentMoon = RoundManager.Instance.currentLevel.name;
                 currentInterior = "null";
             }
             else
             {//normal moon with interior
-                Plugin.mls.LogError(RoundManager.Instance.currentLevel.name.ToString());
-                currentMoon = RoundManager.Instance.currentLevel.PlanetName;
+                Plugin.mls.LogDebug("NormalMoonWithInteriorFound:- " + RoundManager.Instance.currentLevel.name.ToString());
+                currentMoon = RoundManager.Instance.currentLevel.name;
                 currentInterior = RoundManager.Instance.dungeonGenerator.Generator.DungeonFlow.name.ToString();
             }
             if (GameNetworkManager.Instance.isHostingGame)
@@ -5076,32 +5076,36 @@ namespace LethalIntelligence.Patches
             //maskedGoal = "looking and running randomly near entranceTeleport (" + entrance.entranceId + ")";
             Vector3 tPos = entrance.transform.position;
             float distanceToEntrance = Vector3.Distance(maskedEnemy.transform.position, tPos);
-            if (distanceToEntrance > 2f)
+            if (distanceToEntrance > 4f)
             {
-                maskedGoal = "Walking to entrance (" + entrance.entranceId + "/" + tPos.ToString() + ")";
+                maskedGoal = "going to entrance (" + entrance.entranceId + "/" + tPos.ToString() + ")";
                 maskedEnemy.SetDestinationToPosition(tPos, true);
+            }
+            if (distanceToEntrance < 4f)
+            {
+                maskedGoal = "nearing entrance (" + entrance.entranceId + "/" + tPos.ToString() + ")";
+                maskedEnemy.running = false; 
             }
             if (distanceToEntrance < 2f)
             {
                 maskedGoal = "reached entrance (" + entrance.entranceId + "/" + tPos.ToString() + ")";
-                maskedEnemy.running = false;
                 //do teleport, then set destination AWAY from the teleport, maybe look and run randomly?
                 //System.Diagnostics.Debugger.Break();
                 //Vector3? entryPoint = entrance.entrancePoint.position;
- /*               Vector3? opposingTeleportPosition = getTeleportDestination(entrance);
-//                if (TimeSinceTeleporting > MaxTimeBeforeTeleporting)
-                {
-                    maskedGoal = "using entrance (" + entrance.entranceId + "/" + entrance.entrancePoint.position.ToString() + ")";
-                    TimeSinceTeleporting = 0;
-                    //isBeingIdle = false;
-                    //maskedEnemy.TeleportMaskedEnemyAndSync((Vector3)opposingTeleportPosition, !maskedEnemy.isOutside);
-                    TeleportMaskedEnemyAndSync((Vector3)opposingTeleportPosition, !maskedEnemy.isOutside);
-                    //if (maskedFocus != Focus.Apparatus && maskedFocus != Focus.Escape)
-                    //{
-                        mustChangeFocus = true;
-                        mustChangeActivity = true;
-                    //}
-                }*/
+                /*               Vector3? opposingTeleportPosition = getTeleportDestination(entrance);
+               //                if (TimeSinceTeleporting > MaxTimeBeforeTeleporting)
+                               {
+                                   maskedGoal = "using entrance (" + entrance.entranceId + "/" + entrance.entrancePoint.position.ToString() + ")";
+                                   TimeSinceTeleporting = 0;
+                                   //isBeingIdle = false;
+                                   //maskedEnemy.TeleportMaskedEnemyAndSync((Vector3)opposingTeleportPosition, !maskedEnemy.isOutside);
+                                   TeleportMaskedEnemyAndSync((Vector3)opposingTeleportPosition, !maskedEnemy.isOutside);
+                                   //if (maskedFocus != Focus.Apparatus && maskedFocus != Focus.Escape)
+                                   //{
+                                       mustChangeFocus = true;
+                                       mustChangeActivity = true;
+                                   //}
+                               }*/
             }
         }
 
