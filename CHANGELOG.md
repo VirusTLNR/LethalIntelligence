@@ -1,5 +1,8 @@
 ## Changelog
 
+### 0.3.0 - Hotfix
+- fixed an issue with moons/interiors that dont use the actual door as the EntranceTeleport game object leading to masked standing at the doors.
+
 ### 0.2.9 - Hotfix
 - changed Main Entrance/Fire Exit usage by the LI masked to be like vanilla masked usage (passive, used when the masked are at the door itself) so even if they bug out and stand at the entrance, they should use the entrance and change what they are doing to stop them lingering there too long.
 
