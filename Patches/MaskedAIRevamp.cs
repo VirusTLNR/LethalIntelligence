@@ -899,7 +899,7 @@ namespace LethalIntelligence.Patches
                     {
                         try
                         {
-                            if (NavMesh.SamplePosition(apparatus.transform.position, out hitApparatus, 10f, -1))
+                            if (NavMesh.SamplePosition(apparatus.transform.position + -apparatus.transform.forward, out hitApparatus, 10f, -1))
                             {
                                 apparatusReachable = agent.CalculatePath(hitApparatus.position, nmpApparatus);
                                 //Plugin.mls.LogError("Reachable=" + apparatusReachable);
@@ -3231,7 +3231,8 @@ namespace LethalIntelligence.Patches
                     }
                     maskedGoal = "walking to apparatus (" + apparatusPosition.ToString() + ")";
                     __instance.SetDestinationToPosition(apparatusPosition, false);
-                    Plugin.mls.LogDebug("ApparatusDistance = " + apparatusDistance);
+                    //Plugin.mls.LogError("ApparatusDistance = " + apparatusDistance);
+                    //Plugin.mls.LogError("ApparatusPosition = " + apparatusPosition);
                     __instance.moveTowardsDestination = true;
                 }
                 if ((Object)(object)apparatus != (Object)null && !apparatus.isLungDocked)
@@ -3247,7 +3248,7 @@ namespace LethalIntelligence.Patches
                 {
                     Plugin.mls.LogError("ApparatusDistance = " + apparatusDistance); //for debugging distance issues
                 }*/
-                if (!isUsingApparatus && !noMoreApparatus && (objectInLOSCheck(__instance,apparatus.gameObject,6) == 2 || apparatusDistance < 3.5f))
+                if (!isUsingApparatus && !noMoreApparatus && apparatusDistance < 0.5f)
                 {
                     //pull apparatus here, maybe insane masked should EAT the apparatus???
                     isUsingApparatus = true;
