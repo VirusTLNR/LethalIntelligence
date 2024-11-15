@@ -430,13 +430,18 @@ namespace LethalIntelligence.Patches
                 //get a list of exits and loop through them
                 foreach (EntranceTeleport et in entrancesTeleportArray)
                 {
-                    Vector3 headStraightPositon = new Vector3(((Component)et).transform.position.x, ((Component)this).transform.position.y, ((Component)et).transform.position.z);
-                    
-                    LookAtPos(headStraightPositon);
+                    if (Vector3.Distance(maskedEnemy.transform.position, et.entrancePoint.position) < 4f)
+                        {
+                        Vector3 headStraightPositon = new Vector3(((Component)et).transform.position.x, ((Component)this).transform.position.y, ((Component)et).transform.position.z);
+                        LookAtPos(headStraightPositon);
+                        //not working
+                        //Vector3 headStraightPositon = new Vector3(((Component)et).transform.position.x, ((Component)this).transform.position.y - 1, ((Component)et).transform.position.z);
+                        //LookAtPos(headStraightPositon, 0.5f, false);
+                    }
                     //check LOS for each exit
                     if (objectInLOSCheck(maskedEnemy, et.gameObject) == 2 || Vector3.Distance(maskedEnemy.transform.position, et.entrancePoint.position) < 1f) //re-adding distance as an alternative option for deciding if masked use the entrance.
                     {
-                        if (TimeSinceTeleporting < 3f)
+                            if (TimeSinceTeleporting < 3f)
                         {
                             maskedGoal = "waiting to use entrance (" + et.entranceId + "/" + et.entrancePoint.position.ToString() + ") (less than 3 seconds)";
                             return;
@@ -1634,9 +1639,9 @@ namespace LethalIntelligence.Patches
             }*/
         }
 
-        public void LookAtPos(Vector3 pos, float lookAtTime = 1f)
+        public void LookAtPos(Vector3 pos, float lookAtTime = 1f, bool needsToSeePosition = true)
         {
-            maskedGoal = "Looking at where player was last seen";
+            maskedGoal = "Looking at Position for " + lookAtTime;
             //IL_0006: Unknown result type (might be due to invalid IL or missing references)
             //IL_0023: Unknown result type (might be due to invalid IL or missing references)
             //IL_0024: Unknown result type (might be due to invalid IL or missing references)
@@ -5077,12 +5082,12 @@ namespace LethalIntelligence.Patches
                 return;
             }*/
             //maskedGoal = "looking and running randomly near entranceTeleport (" + entrance.entranceId + ")";
-            Vector3 tPos = entrance.transform.position;
+            Vector3 tPos = entrance.entrancePoint.position;
             float distanceToEntrance = Vector3.Distance(maskedEnemy.transform.position, tPos);
+            maskedEnemy.SetDestinationToPosition(tPos, false);
             if (distanceToEntrance > 4f)
             {
                 maskedGoal = "going to entrance (" + entrance.entranceId + "/" + tPos.ToString() + ")";
-                maskedEnemy.SetDestinationToPosition(tPos, true);
             }
             if (distanceToEntrance < 4f)
             {
