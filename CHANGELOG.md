@@ -1,5 +1,10 @@
 ## Changelog
 
+### 0.3.1 - Hotfix
+- fixed issues with routing to the Apparatus
+- fixed issues with routing to the BreakerBox
+- fixed issues with routing to the MainEntrance and FireExits
+
 ### 0.3.0 - Hotfix
 - fixed an issue with moons/interiors that dont use the actual door as the EntranceTeleport game object leading to masked standing at the doors.
 
