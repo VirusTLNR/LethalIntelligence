@@ -15,6 +15,10 @@ namespace LethalIntelligence.Patches
             if (Plugin.enableMaskedFeatures)
             {
                 vd = ((Component)__instance).gameObject.AddComponent<MaskedAIRevamp>();
+                if (Plugin.imperiumFound)
+                {
+                    ImperiumPatches.maskedVisualization();
+                }
             }
             else if ((Object)(object)((Component)((Component)__instance).transform.GetChild(3).GetChild(0)).GetComponent<Animator>().runtimeAnimatorController != (Object)(object)Plugin.MapDotRework)
             {

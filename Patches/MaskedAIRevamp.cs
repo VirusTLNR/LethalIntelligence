@@ -1315,22 +1315,6 @@ namespace LethalIntelligence.Patches
 
         public void FixedUpdate()
         {
-            if (Plugin.imperiumFound)
-            {
-                try
-                {
-                    ImperiumPatches.maskedVisualization(maskedPersonality, maskedActivity, maskedFocus);
-                }
-                catch (MissingMethodException mme)
-                {
-                    //v50 error.. just ignore. (imperium 0.1.9 and before only)
-                    Plugin.mls.LogWarning("Imperium Visualisers Integeration has an (MME)xception...\n\r" + mme.Message);
-                }
-                catch (Exception e)
-                {
-                    Plugin.mls.LogWarning("Imperium Visualisers Integeration has an (E)xception...\n\r" + e.Message);
-                }
-            }
             if (currentMoon == null || currentInterior == null)
             {
                 if (!(currentMoon == null && currentInterior == null))
