@@ -421,6 +421,20 @@ namespace LethalIntelligence.Patches
 
         private void CheckForEntrancesNearby()
         {
+            if(maskedEnemy == null)
+            {
+                Plugin.mls.LogError("MaskedEnemy is NULL (CheckForEntrancesNearby)");
+                mustChangeFocus = true;
+                mustChangeActivity = true;
+                return;
+            }
+            if(agent == null)
+            {
+                Plugin.mls.LogError("Agent is NULL (CheckForEntrancesNearby)");
+                mustChangeFocus = true;
+                mustChangeActivity = true;
+
+            }
             //check for exits regularly..
             TimeSinceTeleporting += updateFrequency; //tick up for 3f after using an entrance
             //check distance to destination
@@ -430,6 +444,37 @@ namespace LethalIntelligence.Patches
                 //get a list of exits and loop through them
                 foreach (EntranceTeleport et in entrancesTeleportArray)
                 {
+                    if(et == null)
+                    {
+                        Plugin.mls.LogWarning("An EntranceTeleport was found to be NULL on " + currentMoon + " (" + currentInterior + ")");
+                        continue;
+                    }
+                    if (et.entrancePoint == null)
+                    {
+                        if (et.isEntranceToBuilding)
+                        {
+                            Plugin.mls.LogWarning("An Outside EntranceTeleport.entrancePoint for entrance " + et.entranceId + " was found to be NULL on " + currentMoon + "(" + currentInterior + ")");
+                        }
+                        else
+                        {
+                            Plugin.mls.LogWarning("An Inside EntranceTeleport.entrancePoint for entrance " + et.entranceId + " was found to be NULL on " + currentMoon + "(" + currentInterior + ")");
+
+                        }
+                        continue;
+                    }
+                    if (et.entrancePoint.position == null)
+                    {
+                        if (et.isEntranceToBuilding)
+                        {
+                            Plugin.mls.LogWarning("An Outside EntranceTeleport.entrancePoint.position for entrance " + et.entranceId + " was found to be NULL on " + currentMoon + "(" + currentInterior + ")");
+                        }
+                        else
+                        {
+                            Plugin.mls.LogWarning("An Inside EntranceTeleport.entrancePoint.position for entrance " + et.entranceId + " was found to be NULL on " + currentMoon + "(" + currentInterior + ")");
+
+                        }
+                        continue;
+                    }
                     if (Vector3.Distance(maskedEnemy.transform.position, et.entrancePoint.position) < 4f)
                         {
                         Vector3 headStraightPositon = new Vector3(((Component)et).transform.position.x, ((Component)this).transform.position.y, ((Component)et).transform.position.z);
