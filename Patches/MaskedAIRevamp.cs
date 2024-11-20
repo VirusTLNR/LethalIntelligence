@@ -1330,10 +1330,11 @@ namespace LethalIntelligence.Patches
             if (((EnemyAI)maskedEnemy).isEnemyDead && isHoldingObject)
             {
                 maskedGoal = "died, dropping objects!";
-                closestGrabbable.parentObject = null;
+                DropItem(); //using dropitem function to drop the items
+                /*closestGrabbable.parentObject = null;
                 closestGrabbable.isHeld = false;
                 closestGrabbable.isHeldByEnemy = false;
-                isHoldingObject = false;
+                isHoldingObject = false;*/
             }
             if (__instance.isEnemyDead)
             {
