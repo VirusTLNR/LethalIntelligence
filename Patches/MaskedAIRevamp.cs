@@ -476,9 +476,9 @@ namespace LethalIntelligence.Patches
                         continue;
                     }
                     if (Vector3.Distance(maskedEnemy.transform.position, et.entrancePoint.position) < 4f)
-                        {
-                        Vector3 headStraightPositon = new Vector3(((Component)et).transform.position.x, ((Component)this).transform.position.y, ((Component)et).transform.position.z);
-                        LookAtPos(headStraightPositon);
+                    {
+                        //Vector3 headStraightPositon = new Vector3(((Component)et).transform.position.x, ((Component)this).transform.position.y, ((Component)et).transform.position.z);
+                        //LookAtPos(headStraightPositon);
                         //not working
                         //Vector3 headStraightPositon = new Vector3(((Component)et).transform.position.x, ((Component)this).transform.position.y - 1, ((Component)et).transform.position.z);
                         //LookAtPos(headStraightPositon, 0.5f, false);
@@ -1480,6 +1480,7 @@ namespace LethalIntelligence.Patches
                 return;
             }
             MovementAnimationSelector(creatureAnimator, maskedEnemy);
+            HeadPositionSelector(creatureAnimator, maskedEnemy);
             ItemAnimationSelector(creatureAnimator, __instance);
             CalculatingVariables();
             DetectAndSelectRandomPlayer();
@@ -1981,6 +1982,39 @@ namespace LethalIntelligence.Patches
         }
 
         //pre-focus methods that should always run
+        public void HeadPositionSelector(Animator creatureAnimator, MaskedPlayerEnemy maskedEnemy)
+        {
+            if (maskedEnemy.stopAndStareTimer == 0f && maskedEnemy.lookAtPositionTimer == 0f)
+            {
+                //trying to add tilting of the head up and down (minor adjustments) and failing
+                //int cornersToLook = 1;
+                //if(agent.path.corners.Length <= cornersToLook + 1)
+                //{
+                //    cornersToLook = agent.path.corners.Length;
+                //}
+                ////default head position for when they arent staring at something
+                //if (agent.path.corners.Length > cornersToLook + 1)
+                //{
+                //    Vector3 futurePathPosition = agent.path.corners.ElementAt(cornersToLook - 1);
+                //    if (futurePathPosition.y != agent.transform.position.y)
+                //    {
+                //        float diff = futurePathPosition.y - agent.transform.position.y;
+                //        Vector3 lookDirection = this.transform.position + (this.transform.forward * 5) + (this.transform.up * -(diff*10));
+                //        LookAtPos(lookDirection);
+                //        //LookAtPos(new Vector3(((Component)this).transform.forward.x, ((Component)this).transform.forward.y, ((Component)this).transform.forward.z),0.1f,false);
+                //        Plugin.mls.LogError("HeadPositionSelected is Tilted=" + -diff);
+                //    }
+                //    else
+                //    {//straight position
+                //        LookAtPos(new Vector3(((Component)this).transform.forward.x, ((Component)this).transform.forward.y, ((Component)this).transform.forward.z));
+                //    }
+                //}
+                //else
+                {//straight position
+                    LookAtPos(new Vector3(((Component)this).transform.forward.x, ((Component)this).transform.forward.y, ((Component)this).transform.forward.z));
+                }
+            }
+        }
 
         public void MovementAnimationSelector(Animator creatureAnimator, MaskedPlayerEnemy maskedEnemy)
         {
@@ -1995,7 +2029,7 @@ namespace LethalIntelligence.Patches
                 isDancing.Value = false;
                 creatureAnimator.ResetTrigger("Dancing");
                 isRunning.Value = false;
-                //maskedEnemy.running = false; //not needed once isRunning.Value is added?
+                maskedEnemy.running = false; //to stop the vanilla code making a weird run?
                 creatureAnimator.ResetTrigger("Running");
                 creatureAnimator.SetTrigger("Crouching");
                 agent.speed = 1.9f;
@@ -2008,6 +2042,7 @@ namespace LethalIntelligence.Patches
                 creatureAnimator.ResetTrigger("Crouching");
                 isDancing.Value = false;
                 creatureAnimator.ResetTrigger("Dancing");
+                maskedEnemy.running = true; //so vanilla code does running so there isnt some weird speed difference.
                 creatureAnimator.SetTrigger("Running");
                 //maskedEnemy.staminaTimer -= Time.deltaTime * 0.05f;
                 maskedEnemy.staminaTimer -= updateFrequency * 0.05f; //fixing timing
@@ -2018,7 +2053,7 @@ namespace LethalIntelligence.Patches
                 //dancing
                 isCrouched.Value = false;
                 creatureAnimator.ResetTrigger("Crouching");
-                //maskedEnemy.running = false; //not needed once isRunning.Value is added?
+                maskedEnemy.running = false; //to stop the vanilla code making a weird run?
                 isRunning.Value = false;
                 creatureAnimator.ResetTrigger("Running");
                 creatureAnimator.SetTrigger("Dancing");
@@ -2033,7 +2068,7 @@ namespace LethalIntelligence.Patches
                 creatureAnimator.ResetTrigger("Crouching");
                 isDancing.Value = false;
                 creatureAnimator.ResetTrigger("Dancing");
-                //maskedEnemy.running = false; //not needed once isRunning.Value is added?
+                maskedEnemy.running = false; //to stop the vanilla code making a weird run?
                 isRunning.Value = false;
                 creatureAnimator.ResetTrigger("Running");
                 agent.speed = 3.8f;
@@ -2049,13 +2084,14 @@ namespace LethalIntelligence.Patches
                 {
                     creatureAnimator.ResetTrigger("FakeJump");
                 }
-                //maskedEnemy.running = true; //not needed once isRunning.Value is added?
+                maskedEnemy.running = true; //so vanilla code does running so there isnt some weird speed difference.
                 isRunning.Value = true;
             }
+            //this code is required.. vanilla "LookAndRunRandomly" doesnt lead to running like we desire.
             if (maskedEnemy.staminaTimer < 0f)
             {
                 isStaminaDowned = true;
-                //maskedEnemy.running = false; //not needed once isRunning.Value is added?
+                maskedEnemy.running = false; //to stop the vanilla code making a weird run?
                 isRunning.Value = false;
                 ((EnemyAI)maskedEnemy).creatureAnimator.SetTrigger("Tired");
             }
