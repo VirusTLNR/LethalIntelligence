@@ -1,5 +1,14 @@
 ## Changelog
 
+### 0.3.2
+- (dev/debug) fixed and modified Visualisers for masked when using imperium
+- fixed item dropping when masked die carrying an item
+- added some null checks to masked using entrances passivly
+- disabled vanilla "random turning" for masked so they hopefully look more "player" like in how they move. (this should also reduce instances of them "looking upwards".. maybe even prevents it)
+- updated entranceteleport filters to mitigate against masked using "unusable" entrances due to missing navmesh/offnavmeshlinks from how moons/interiors are designed.
+- prevented a softlock if you pull the ships lever while a masked is using the terminal
+- fixed an error where no obj codes were found when deceiving was using the terminal
+
 ### 0.3.1 - Hotfix
 - fixed issues with routing to the Apparatus
 - fixed issues with routing to the BreakerBox
