@@ -5089,9 +5089,14 @@ namespace LethalIntelligence.Patches
             float dist = 1000;
             for (int i = 0; i < entrancesTeleportArray.Length; i++)
             {
-                if (currentInterior == "LiminalPoolRoomsFlow" && entrancesTeleportArray[i].entranceId == 0)
+                if (currentMoon == "OffenseLevel" && entrancesTeleportArray[i].entranceId == 1)
                 {
-                    //you cant use the main entrance on liminal pools as the offnavmeshlinks are missing. Drako will fix this soon so soon this if statement can be commented out.
+                    //you cant use the fire exit on offense because of the cliff not having any navmesh/links up/down
+                    continue;
+                }
+                if (currentInterior == "LiminalPoolRoomsFlow" && entrancesTeleportArray[i].entranceId != 0)
+                {
+                    //you cant use fire exits with liminal pools as one has no navmesh due to design (offnavmeshlinks are missing).
                     continue;
                 }
                 if ((entrancesTeleportArray[i].entranceId == 0 && MainEntranceAllowed) || (entrancesTeleportArray[i].entranceId > 0 && FireExitsAllowed))
