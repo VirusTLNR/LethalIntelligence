@@ -1381,9 +1381,9 @@ namespace LethalIntelligence.Patches
                 closestGrabbable.isHeldByEnemy = false;
                 isHoldingObject = false;*/
             }
-            if (__instance.isEnemyDead)
+            if (__instance.isEnemyDead || StartOfRound.Instance.shipIsLeaving || StartOfRound.Instance.shipLeftAutomatically) //masked died or ship is leaving.
             {
-                maskedGoal = "none, he died!";
+                maskedGoal = "none (dead or ship is leaving)!";
                 ((Behaviour)agent).enabled = false;
                 if (isUsingTerminal == true)
                 {
