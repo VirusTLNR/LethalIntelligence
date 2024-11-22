@@ -3872,13 +3872,21 @@ namespace LethalIntelligence.Patches
                         {
                             terminalTimeFloat.Value = Random.Range(2.2f, 8.5f);
                         }
-                        TerminalAccessibleObject obj = terminalAccessibleObject[Random.Range(0, terminalAccessibleObject.Length)];
-                        string code = obj.objectCode;
-                        if (obj != null)
+                        if (terminalAccessibleObject.Length != 0) //masked should sit on the terminal and do nothing when no codes exist
                         {
-                            Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + "' and broadcasting a terminal code");
-                            terminal.CallFunctionInAccessibleTerminalObject(code);
-                            Plugin.mls.LogDebug("Code broadcasted is " + code + " (" + enterTermianlSpecialCodeTime + " code entries remaining)");
+                            TerminalAccessibleObject obj = terminalAccessibleObject[Random.Range(0, terminalAccessibleObject.Length)];
+                            string code = obj.objectCode;
+                            if (obj != null)
+                            {
+                                Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + "' and broadcasting a terminal code");
+                                terminal.CallFunctionInAccessibleTerminalObject(code);
+                                Plugin.mls.LogDebug("Code broadcasted is " + code + " (" + enterTermianlSpecialCodeTime + " code entries remaining)");
+                                terminal.terminalAudio.PlayOneShot(terminal.codeBroadcastSFX);
+                            }
+                        }
+                        else
+                        {
+                            //there is no code to use.. so just broadcast the sound.
                             terminal.terminalAudio.PlayOneShot(terminal.codeBroadcastSFX);
                         }
                         enterTermianlSpecialCodeTime--;
