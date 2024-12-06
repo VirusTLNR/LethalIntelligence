@@ -5380,7 +5380,6 @@ namespace LethalIntelligence.Patches
                             break;
                         case Tags.AudioReceivedEvent:
                             var receivedEvent = audioEvent.audioReceivedEvent;
-                            Console.WriteLine("samples received: " + receivedEvent.samples.data);
                             walkieTalkie.target.clip.SetData(receivedEvent.samples.data, receivedEvent.sampleIndex);
                             //Plugin.mls.LogInfo("ReceivedEvent.Samples.Count = " + receivedEvent.samples.Count());
                             if (!walkieTalkie.target.isPlaying)
