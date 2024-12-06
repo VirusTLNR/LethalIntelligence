@@ -12,6 +12,8 @@ using Random = UnityEngine.Random;
 using System.Linq;
 using System.Threading.Tasks;
 using static Mirage.Unity.AudioStream;
+using static Mirage.Unity.AudioStream.AudioStreamEvent;
+using System.Buffers;
 
 namespace LethalIntelligence.Patches
 {
@@ -5305,7 +5307,7 @@ namespace LethalIntelligence.Patches
                         mirageClipAllowed = false;
                         return;
                     }
-                    var sEvent = (audioEvent as AudioStreamEvent.AudioStartEvent).Item;
+                    var sEvent = audioEvent.audioStartEvent;
                     /*double sof = (double)sEvent.lengthSamples / (double)sEvent.frequency;
                     double sofoc = (double)sof / (double)sEvent.channels;
                     audioLength = (double)sofoc * 1000; //milliseconds
@@ -5369,16 +5371,17 @@ namespace LethalIntelligence.Patches
                     }
                     //Plugin.mls.LogError(walkieTalkie.NetworkObjectId + "|player can hear this walkie");
 
-                    switch (audioEvent)
+                    switch (audioEvent.Tag)
                     {
-                        case AudioStreamEvent.AudioStartEvent:
-                            var startEvent = (audioEvent as AudioStreamEvent.AudioStartEvent).Item;
+                        case Tags.AudioStartEvent:
+                            var startEvent = audioEvent.audioStartEvent;
                             walkieTalkie.target.clip = AudioClip.Create("maskedClip", startEvent.lengthSamples, startEvent.channels, startEvent.frequency, false);
                             //Plugin.mls.LogInfo("StartEvent.LengthSamples = " + startEvent.lengthSamples);
                             break;
-                        case AudioStreamEvent.AudioReceivedEvent:
-                            var receivedEvent = (audioEvent as AudioStreamEvent.AudioReceivedEvent).Item;
-                            walkieTalkie.target.clip.SetData(receivedEvent.samples, receivedEvent.sampleIndex);
+                        case Tags.AudioReceivedEvent:
+                            var receivedEvent = audioEvent.audioReceivedEvent;
+                            Console.WriteLine("samples received: " + receivedEvent.samples.data);
+                            walkieTalkie.target.clip.SetData(receivedEvent.samples.data, receivedEvent.sampleIndex);
                             //Plugin.mls.LogInfo("ReceivedEvent.Samples.Count = " + receivedEvent.samples.Count());
                             if (!walkieTalkie.target.isPlaying)
                             {
