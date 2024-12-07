@@ -756,10 +756,10 @@ namespace LethalIntelligence.Patches
             if (GameNetworkManager.Instance.isHostingGame)
             {
                 maxDanceCount.Value = Random.Range(2, 4);
-                if (Plugin.mirageIntegrated)
-                {
-                    enableMirageAudio();
-                }
+            }
+            if (Plugin.mirageIntegrated)
+            {
+                enableMirageAudio();
             }
             if ((Object)(object)creatureAnimator.runtimeAnimatorController != (Object)(object)Plugin.MaskedAnimController)
             {
@@ -5283,13 +5283,12 @@ namespace LethalIntelligence.Patches
             }
         }
 
-        public void OnAudioStreamHandler(object _, AudioStreamEventArgs eventArgs)
+        public void OnAudioStreamHandler(object _, AudioStreamEvent audioEvent)
         {
             if (Plugin.mirageIntegrated && heldGrabbable is WalkieTalkie)
             {
                 List<WalkieTalkie> allWalkieTalkies = GlobalItemList.Instance.allWalkieTalkies;
-                var audioEvent = eventArgs.EventData;
-                double audioLength = -1;
+                double audioLength;
                 
                 if(endMirageClipTime==null)
                 {
