@@ -5202,7 +5202,6 @@ namespace LethalIntelligence.Patches
         //none of the code in this region should be run UNLESS Plugin.mirageIntegrated = true!
         int mirageAudioClipsPlayedInARow;
         int randomMirageAllowedAudioClipsInARow;
-        DateTime endMirageClipTime;
         bool mirageClipAllowed;
 
         // Subscribe to the event.
@@ -5288,12 +5287,7 @@ namespace LethalIntelligence.Patches
             if (Plugin.mirageIntegrated && heldGrabbable is WalkieTalkie)
             {
                 List<WalkieTalkie> allWalkieTalkies = GlobalItemList.Instance.allWalkieTalkies;
-                double audioLength;
                 
-                if(endMirageClipTime==null)
-                {
-                    endMirageClipTime = DateTime.Now.AddYears(1);
-                }
                 if (audioEvent.IsAudioStartEvent)
                 {
                     if (mirageShouldUseWalkies()) //50%+ activation rate
@@ -5317,7 +5311,7 @@ namespace LethalIntelligence.Patches
                     Plugin.mls.LogWarning(String.Format("Channels = {0}", sEvent.channels.ToString()));
 
                     Plugin.mls.LogWarning(String.Format("{0}, {1}", sof.ToString(), sofoc.ToString()));*/
-                    audioLength = ((double)sEvent.lengthSamples / (double)sEvent.frequency) / (double)sEvent.channels * 1000; //milliseconds
+                    int audioLength = (int) (((double)sEvent.lengthSamples / (double)sEvent.frequency) / (double)sEvent.channels * 1000); //milliseconds
                     //Plugin.mls.LogError(audioLength + " = (" + (double)sEvent.lengthSamples + " / " + (double)sEvent.frequency + ") / " + (double)sEvent.channels + " * 1000");
                     if (audioLength == 0)
                     {
@@ -5331,15 +5325,14 @@ namespace LethalIntelligence.Patches
                         //miragePressWalkieButton
                         mirageActivateWalkieSpeaking();
 
-                        endMirageClipTime = DateTime.Now.AddMilliseconds(audioLength); //remove 0.5% of the audio length to ensure the clip plays and the masked end the transmission
                         /*Plugin.mls.LogError("audioLength = " + audioLength.ToString());
                         Plugin.mls.LogError("startTime = " + DateTime.Now.ToString("dd/MM/yyyy hh:mm:ss.fff"));
                         Plugin.mls.LogError("endTime = " + endMirageClipTime.ToString("dd/MM/yyyy hh:mm:ss.fff"));*/
-                        mirageDeactivateWalkieSpeaking(endMirageClipTime);
+                        mirageDeactivateWalkieSpeaking(audioLength);
 
                         //mirageTurnOffWalkie
                         //new WaitForSeconds(2.5f);
-                        mirageTurnOffWalkie(endMirageClipTime);
+                        mirageTurnOffWalkie(audioLength);
                     }
                 }
                 //Plugin.mls.LogError("mirageClipAllowed = " + mirageClipAllowed);
@@ -5448,45 +5441,33 @@ namespace LethalIntelligence.Patches
             creatureAnimator.SetTrigger("UseWalkie");
         }
 
-        private async void mirageDeactivateWalkieSpeaking(DateTime endTime)
+        private async void mirageDeactivateWalkieSpeaking(int delay)
         {
-            await Task.Run(() =>
+            await Task.Delay(delay + 1500);
+            Plugin.mls.LogDebug("Masked Stopped Pressing Speaking Button!");
+            creatureAnimator.ResetTrigger("UseWalkie");
+            foreach (WalkieTalkie allWalkieTalky2 in GlobalItemList.Instance.allWalkieTalkies)
             {
-                do
+                if (((GrabbableObject)allWalkieTalky2).isBeingUsed)
                 {
-
-                } while (endTime.AddSeconds(1.5f) > DateTime.Now);
-                Plugin.mls.LogDebug("Masked Stopped Pressing Speaking Button!");
-                creatureAnimator.ResetTrigger("UseWalkie");
-                foreach (WalkieTalkie allWalkieTalky2 in GlobalItemList.Instance.allWalkieTalkies)
-                {
-                    if (((GrabbableObject)allWalkieTalky2).isBeingUsed)
-                    {
-                        allWalkieTalky2.thisAudio.PlayOneShot(allWalkieTalky2.stopTransmissionSFX[Random.Range(0, allWalkieTalky2.stopTransmissionSFX.Length)]);
-                    }
+                    allWalkieTalky2.thisAudio.PlayOneShot(allWalkieTalky2.stopTransmissionSFX[Random.Range(0, allWalkieTalky2.stopTransmissionSFX.Length)]);
                 }
-            });
+            }
         }
 
-        private async void mirageTurnOffWalkie(DateTime endTime)
+        private async void mirageTurnOffWalkie(int delay)
         {
-            await Task.Run(() =>
+            await Task.Delay(delay + 2000);
+            WalkieTalkie component = ((Component)heldGrabbable).GetComponent<WalkieTalkie>();
+            if (((GrabbableObject)component).isBeingUsed)
             {
-                do
-                {
-
-                } while (endTime.AddSeconds(2f) > DateTime.Now);
-                WalkieTalkie component = ((Component)heldGrabbable).GetComponent<WalkieTalkie>();
-                if (((GrabbableObject)component).isBeingUsed)
-                {
-                    ((GrabbableObject)component).isBeingUsed = false;
-                    component.EnableWalkieTalkieListening(false);
-                    ((Renderer)((GrabbableObject)component).mainObjectRenderer).sharedMaterial = component.offMaterial;
-                    ((Behaviour)component.walkieTalkieLight).enabled = false;
-                    component.thisAudio.PlayOneShot(component.switchWalkieTalkiePowerOff);
-                    Plugin.mls.LogDebug("Masked Turned Walkie Off!");
-                }
-            });
+                ((GrabbableObject)component).isBeingUsed = false;
+                component.EnableWalkieTalkieListening(false);
+                ((Renderer)((GrabbableObject)component).mainObjectRenderer).sharedMaterial = component.offMaterial;
+                ((Behaviour)component.walkieTalkieLight).enabled = false;
+                component.thisAudio.PlayOneShot(component.switchWalkieTalkiePowerOff);
+                Plugin.mls.LogDebug("Masked Turned Walkie Off!");
+            }
         }
         #endregion mirageRequired
 
