@@ -1461,7 +1461,7 @@ namespace LethalIntelligence.Patches
             {
                 agent = ((Component)this).GetComponent<NavMeshAgent>();
             }
-            if ((Plugin.wendigosIntegrated || Plugin.skinWalkersIntegrated || Plugin.mirageIntegrated) && ((NetworkBehaviour)this).IsHost && (maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane || maskedPersonality == Personality.Stealthy))
+            if ((((Plugin.wendigosIntegrated || Plugin.skinWalkersIntegrated) && ((NetworkBehaviour)this).IsHost) || Plugin.mirageIntegrated) && (maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane || maskedPersonality == Personality.Stealthy))
             {
                 //maskedGoal = "confirming WalkieTalkie usage! (Skinwalkers/Wendigos/Mirage integration)"; //this overwrites many other goals, so we kinda need to not have this appearing unless issues start occuring with walkies
                 useWalkie.Value = true;
@@ -5284,12 +5284,15 @@ namespace LethalIntelligence.Patches
 
         public void OnAudioStreamHandler(object _, AudioStreamEvent audioEvent)
         {
+            //Console.WriteLine("StartingAudioStreamHandler!");
             if (Plugin.mirageIntegrated && heldGrabbable is WalkieTalkie)
             {
+                //Console.WriteLine("mirage integrated and holding a walkie!");
                 List<WalkieTalkie> allWalkieTalkies = GlobalItemList.Instance.allWalkieTalkies;
                 
                 if (audioEvent.IsAudioStartEvent)
                 {
+                    //Console.WriteLine("this is a start audio event!");
                     if (mirageShouldUseWalkies()) //50%+ activation rate
                     //if(true) //bypassing the walkie check for testing
                     {
@@ -5373,7 +5376,7 @@ namespace LethalIntelligence.Patches
                         case Tags.AudioReceivedEvent:
                             var receivedEvent = audioEvent.audioReceivedEvent;
                             walkieTalkie.target.clip.SetData(receivedEvent.samples.data, receivedEvent.sampleIndex);
-                            //Plugin.mls.LogInfo("ReceivedEvent.Samples.Count = " + receivedEvent.samples.Count());
+                            //Plugin.mls.LogInfo("ReceivedEvent.Samples.Length = " + receivedEvent.samples.length);
                             if (!walkieTalkie.target.isPlaying)
                             {
                                 walkieTalkie.target.Play();
