@@ -1,4 +1,8 @@
 ## Changelog
+Please Note:- in the current version and previous versions... Insane/Cunning/Deceiving may all show variances between client/host (breaker, terminal, picking up items).. Likewise Walkies may not appear to be picked up on client's while host will see masked holding a walkie. Beyond this masked should behave as normal. If you want no issues, then either disable the masked features, or turn off all personalities except "aggressive". Will fix this asap. If playing solo, all masked should be working fine as its a networking issue.
+
+### 0.3.3 - Hotfix
+- Fixed (hopefully) compatibility with the new version (1.14) of Mirage.
 
 ### 0.3.2
 - (dev/debug) fixed and modified Visualisers for masked when using imperium
