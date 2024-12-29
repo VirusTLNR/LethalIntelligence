@@ -180,10 +180,10 @@ namespace LethalIntelligence.Patches
 
         private void TestConfig()
         {
-            maskedPersonality = Personality.Stealthy; //for testing a specific personality
+            maskedPersonality = Personality.Cunning; //for testing a specific personality
             maskedPersonalityInt.Value = 0; //for testing a specific personality
-            lastMaskedPersonality = Personality.Stealthy;
-            maskedFocusInt.Value = (int)Focus.Hiding;
+            lastMaskedPersonality = Personality.Cunning;
+            maskedFocusInt.Value = (int)Focus.BreakerBox;
             maskedActivityInt.Value = (int)Activity.None;
             mustChangeFocus = false;
         }
@@ -348,9 +348,9 @@ namespace LethalIntelligence.Patches
 
         private float nearestGrabbableDistance = 1000f;
 
-        private bool apparatusReachable;
+        //private bool apparatusReachable;
 
-        private bool breakerBoxReachable;
+        //private bool breakerBoxReachable;
 
         private float bushDistance = 1000f;
 
@@ -559,12 +559,12 @@ namespace LethalIntelligence.Patches
                     }
                     if (breakerBox != null)
                     {
-                        bbr = breakerBoxReachable.ToString();
+                        bbr = breakerBoxReachable.Value.ToString();
                         bbo = breakerBox.isPowerOn.ToString();
                     }
                     if (apparatus != null)
                     {
-                        ar = apparatusReachable.ToString();
+                        ar = apparatusReachable.Value.ToString();
                         caf = completedApparatusFocus.ToString();
                     }
                     if (currentMoon != null)
@@ -622,6 +622,7 @@ namespace LethalIntelligence.Patches
                     string debugMsg =
                     "\n===== MaskedStatusReport() Start =====" +
                     "\nMaskedID = " + maskedId +
+                    "\nHostTimeStamp = " + hostTimeStamp.Value.ToString("dd/MM/yyyy @ hh:mm:ss") +
                     "\nMaskedPersonality = " + maskedPersonality.ToString() +
                     "\nMaskedFocus = " + maskedFocus.ToString() +
                     "\nMustChangeFocus = " + mustChangeFocus.ToString() +
@@ -664,6 +665,7 @@ namespace LethalIntelligence.Patches
         }
 
         public LNetworkVariable<Vector3>? maskedPosition;
+        public LNetworkVariable<float>? currentDestinationDistance;
         public LNetworkVariable<Quaternion>? maskedRotation;
         public LNetworkVariable<int>? maskedPersonalityInt, maskedFocusInt, maskedActivityInt;
         public LNetworkVariable<bool>? useWalkie;
@@ -675,13 +677,28 @@ namespace LethalIntelligence.Patches
         //public LNetworkVariable<bool> isUsingTerminal;
         public LNetworkVariable<int>? maxDanceCount;
         public LNetworkVariable<bool>? dropItem;
-        public LNetworkVariable<bool> terminalReachable;
+        public LNetworkVariable<bool> terminalReachable, breakerBoxReachable, apparatusReachable;
+        public LNetworkVariable<DateTime>? hostTimeStamp;
+
+        public LNetworkVariable<Vector3>? terminalPosition, breakerPosition, lockerPosition, apparatusPosition, fireExitPosition, mainEntrancePosition; //positions to save
 
         private void setupLNAPIvariables(string id)
         {
+            //host time
+            hostTimeStamp = LNetworkVariable<DateTime>.Connect("hostTimeStamp" + id, DateTime.FromBinary(-1), LNetworkVariableWritePerms.Server);
+
+            //positions of objects masked may use
+            terminalPosition = LNetworkVariable<Vector3>.Connect("terminalPosition" + id, Vector3.negativeInfinity, LNetworkVariableWritePerms.Everyone);
+            breakerPosition = LNetworkVariable<Vector3>.Connect("breakerPosition" + id, Vector3.negativeInfinity, LNetworkVariableWritePerms.Everyone);
+            lockerPosition = LNetworkVariable<Vector3>.Connect("lockerPosition" + id, Vector3.negativeInfinity, LNetworkVariableWritePerms.Everyone);
+            apparatusPosition = LNetworkVariable<Vector3>.Connect("apparatusPosition" + id, Vector3.negativeInfinity, LNetworkVariableWritePerms.Everyone);
+            fireExitPosition = LNetworkVariable<Vector3>.Connect("fireExitPosition" + id, Vector3.negativeInfinity, LNetworkVariableWritePerms.Everyone);
+            mainEntrancePosition = LNetworkVariable<Vector3>.Connect("mainEntrancePosition" + id, Vector3.negativeInfinity, LNetworkVariableWritePerms.Everyone);
+
             //basic masked variables.
             maskedPosition = LNetworkVariable<Vector3>.Connect("maskedPosition" + id, Vector3.negativeInfinity, LNetworkVariableWritePerms.Everyone); //probably should be server only.
             maskedRotation = LNetworkVariable<Quaternion>.Connect("maskedRotation" + id, new Quaternion(), LNetworkVariableWritePerms.Everyone); //probably should be server only.
+            currentDestinationDistance = LNetworkVariable<float>.Connect("currentDestinationDistance" + id, -1,LNetworkVariableWritePerms.Everyone); //probably should be server only.
             maskedPersonalityInt = LNetworkVariable<int>.Connect("maskedPersonalityInt" + id, -1 , LNetworkVariableWritePerms.Everyone);
             maskedFocusInt = LNetworkVariable<int>.Connect("maskedFocusInt" + id, -1, LNetworkVariableWritePerms.Everyone);
             maskedActivityInt = LNetworkVariable<int>.Connect("maskedActivityInt" + id, -1, LNetworkVariableWritePerms.Everyone);
@@ -709,6 +726,8 @@ namespace LethalIntelligence.Patches
 
             //bools for checking if something is reachable
             terminalReachable = LNetworkVariable<bool>.Connect("terminalReachable" + id, false, LNetworkVariableWritePerms.Everyone);
+            breakerBoxReachable = LNetworkVariable<bool>.Connect("breakerBoxReachable" + id, false, LNetworkVariableWritePerms.Everyone);
+            apparatusReachable = LNetworkVariable<bool>.Connect("apparatusReachable" + id, false, LNetworkVariableWritePerms.Everyone);
         }
 
 
@@ -835,7 +854,7 @@ namespace LethalIntelligence.Patches
             {
                 Plugin.mls.LogError(entrancesTeleportArray[i].name + "|" + entrancesTeleportArray[i].entranceId + "|" + entrancesTeleportArray[i].entrancePoint.position.ToString() + "|" + entrancesTeleportArray[i].transform.position.ToString() + "|" + entrancesTeleportArray[i].isEntranceToBuilding + "|" + entrancesTeleportArray[i].isActiveAndEnabled);
             }*/
-            //TestConfig();
+            TestConfig();
         }
 
         float updateFrequency = 0.02f;
@@ -905,7 +924,7 @@ namespace LethalIntelligence.Patches
             enterTermianlSpecialCodeTime = num;
         }
 
-        Vector3 terminalPosition, breakerPosition, lockerPosition, apparatusPosition, fireExitPosition, mainEntrancePosition; //positions to save
+        //Vector3 terminalPosition, breakerPosition, lockerPosition, apparatusPosition, fireExitPosition, mainEntrancePosition; //positions to save
 
         float lockerDistance;
 
@@ -999,7 +1018,7 @@ namespace LethalIntelligence.Patches
                     if (apparatus == null)
                     {
                         Plugin.mls.LogDebug("Apparatus is Null");
-                        apparatusReachable = false;
+                        apparatusReachable.Value = false;
                         apparatusDistance = 1000f;
                         noMoreApparatus = true;
                     }
@@ -1009,20 +1028,20 @@ namespace LethalIntelligence.Patches
                         {
                             if (NavMesh.SamplePosition(apparatus.transform.position + -apparatus.transform.forward, out hitApparatus, 10f, -1))
                             {
-                                apparatusReachable = agent.CalculatePath(hitApparatus.position, nmpApparatus);
+                                apparatusReachable.Value = agent.CalculatePath(hitApparatus.position, nmpApparatus);
                                 //Plugin.mls.LogError("Reachable=" + apparatusReachable);
                                 //breakerBoxDistance = Vector3.Distance(((Component)this).transform.position, hitBreaker.position);
                                 //apparatusDistance = Vector3.Distance(maskedEnemy.transform.position, hitApparatus.position);
                                 apparatusDistance = Vector3.Distance(maskedPosition.Value, hitApparatus.position);
                                 //Plugin.mls.LogError("dis:- " + apparatusDistance);
                                 apparatusClosestPoint = Vector3.Distance(hitApparatus.position, apparatus.transform.position);
-                                apparatusPosition = hitApparatus.position;
+                                apparatusPosition.Value = hitApparatus.position;
                             }
                             else
                             {
-                                apparatusReachable = false;
+                                apparatusReachable.Value = false;
                             }
-                            if (!apparatusReachable)
+                            if (!apparatusReachable.Value)
                             {
                                 apparatusDistance = 1000f;
                             }
@@ -1030,13 +1049,13 @@ namespace LethalIntelligence.Patches
                         catch (NullReferenceException nre)
                         {
                             Plugin.mls.LogDebug("Apparatus NullReferenceException() Caught!\n" + nre.Message);
-                            apparatusReachable = false;
+                            apparatusReachable.Value = false;
                             noMoreApparatus = true;
                         }
                         catch (Exception e)
                         {
                             Plugin.mls.LogDebug("Apparatus Exception() Caught!\n" + e.Message);
-                            apparatusReachable = false;
+                            apparatusReachable.Value = false;
                             noMoreApparatus = true;
                         }
                     }
@@ -1048,7 +1067,7 @@ namespace LethalIntelligence.Patches
                     if (breakerBox == null)
                     {
                         Plugin.mls.LogDebug("BreakerBox is Null");
-                        breakerBoxReachable = false;
+                        breakerBoxReachable.Value = false;
                         breakerBoxDistance = 1000f;
                         noMoreBreakerBox = true;
                     }
@@ -1059,17 +1078,17 @@ namespace LethalIntelligence.Patches
                             //-up = the forward for the breaker box... thanks zeekers.. :)
                             if (NavMesh.SamplePosition(breakerBox.transform.position + -breakerBox.transform.up, out hitBreaker, 10f, -1))
                             {
-                                breakerBoxReachable = agent.CalculatePath(hitBreaker.position, nmpBreaker);
+                                breakerBoxReachable.Value = agent.CalculatePath(hitBreaker.position, nmpBreaker);
                                 //breakerBoxDistance = Vector3.Distance(((Component)this).transform.position, hitBreaker.position);
                                 breakerBoxDistance = Vector3.Distance(maskedPosition.Value, hitBreaker.position);
                                 breakerClosestPoint = Vector3.Distance(hitBreaker.position, breakerBox.transform.position);
-                                breakerPosition = hitBreaker.position;
+                                breakerPosition.Value = hitBreaker.position;
                             }
                             else
                             {
-                                breakerBoxReachable = false;
+                                breakerBoxReachable.Value = false;
                             }
-                            if (!breakerBoxReachable)
+                            if (!breakerBoxReachable.Value)
                             {
                                 breakerBoxDistance = 1000f;
                             }
@@ -1077,13 +1096,13 @@ namespace LethalIntelligence.Patches
                         catch (NullReferenceException nre)
                         {
                             Plugin.mls.LogDebug("BreakerBox NullReferenceException() Caught!\n" + nre.Message);
-                            breakerBoxReachable = false;
+                            breakerBoxReachable.Value = false;
                             noMoreBreakerBox = true;
                         }
                         catch (Exception e)
                         {
                             Plugin.mls.LogDebug("BreakerBox Exception() Caught!\n" + e.Message);
-                            breakerBoxReachable = false;
+                            breakerBoxReachable.Value = false;
                             noMoreBreakerBox = true;
                         }
                     }
@@ -1109,7 +1128,7 @@ namespace LethalIntelligence.Patches
                                 //terminalDistance = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position);
                                 terminalDistance = Vector3.Distance(maskedPosition.Value, ((Component)terminal).transform.position);
                                 terminalClosestPoint = Vector3.Distance(hitTerminal.position, terminal.transform.position);
-                                terminalPosition = hitTerminal.position;
+                                terminalPosition.Value = hitTerminal.position;
                             }
                             else
                             {
@@ -1147,7 +1166,7 @@ namespace LethalIntelligence.Patches
                     {
                         try
                         {
-                            lockerPosition = GameObject.Find("LockerAudio").transform.position; // so use this for now
+                            lockerPosition.Value = GameObject.Find("LockerAudio").transform.position; // so use this for now
                                                                                                 //this isnt working right now.. it routes the masked on to above the ship..
                             /*if (NavMesh.SamplePosition(GameObject.Find("LockerAudio").transform.position,out hitLocker,10,-1))
                             {
@@ -1183,7 +1202,7 @@ namespace LethalIntelligence.Patches
                     lastMaskedFocus = maskedFocus;
 
                     //new line
-                    if (maskedPersonality == Personality.Cunning && breakerBoxDistance < 40f && lastMaskedFocus != Focus.BreakerBox && breakerBoxReachable && !noMoreBreakerBox)
+                    if (maskedPersonality == Personality.Cunning && breakerBoxDistance < 40f && lastMaskedFocus != Focus.BreakerBox && breakerBoxReachable.Value && !noMoreBreakerBox)
                     //this was a cunning only line
                     //if (breakerBoxDistance < terminalDistance && breakerBoxDistance < closestGrabbableDistance && lastMaskedFocus != Focus.BreakerBox && breakerBoxReachable && !noMoreBreakerBox && maskedPersonality==Personality.Cunning)
                     {
@@ -1420,8 +1439,10 @@ namespace LethalIntelligence.Patches
 
         private void updateSyncedVariables()
         {
+            hostTimeStamp.Value = DateTime.Now;
             maskedPosition.Value = this.transform.position;
             maskedRotation.Value = this.transform.rotation;
+            currentDestinationDistance.Value = Vector3.Distance(maskedPosition.Value, agent.pathEndPosition);
         }
 
         public void FixedUpdate()
@@ -2847,6 +2868,8 @@ namespace LethalIntelligence.Patches
                 }
                 if (!noMoreBreakerBox)
                 {
+                    breakerBoxDistance = Vector3.Distance(maskedPosition.Value, breakerPosition.Value);
+                    //Plugin.mls.LogError("bbd=" + breakerBoxDistance + "||nmt = " + noMoreTerminal);
                     //breakerbox
                     if (breakerBoxDistance < 40f || noMoreTerminal) //add logic for breaker box being turned off so if breaker box is turned OFF, then do nothing.
                     {
@@ -2855,11 +2878,11 @@ namespace LethalIntelligence.Patches
                         //noMoreTerminal = true;
                         //noMoreItems = true;
                         //focusingPersonality = true;
-                        maskedEnemy.SetDestinationToPosition(breakerPosition);
+                        maskedEnemy.SetDestinationToPosition(breakerPosition.Value);
                         maskedEnemy.moveTowardsDestination = true;
 
                         //breakerBoxDistance = Vector3.Distance(__instance.transform.position, breakerPosition);
-                        breakerBoxDistance = Vector3.Distance(maskedPosition.Value, breakerPosition);
+                        //breakerBoxDistance = Vector3.Distance(maskedPosition.Value, breakerPosition);
                         //Plugin.mls.LogError("BB Forward * 2 = " + breakerBox.transform.position + -breakerBox.transform.up * 2);
                         if (breakerBoxDistance < 0.5f && !isUsingBreakerBox)
                         {
@@ -2881,7 +2904,7 @@ namespace LethalIntelligence.Patches
                             else
                             {
                                 breakerBoxSwitchLogic(breakerBoxDistance, true);
-                                maskedEnemy.SetDestinationToPosition(terminal.transform.position);
+                                //maskedEnemy.SetDestinationToPosition(terminal.transform.position); //shouldent be needed tbh
                             }
                             Plugin.isBreakerBoxBeingUsed = false;
                         }
@@ -3390,19 +3413,19 @@ namespace LethalIntelligence.Patches
                 //mustChangeFocus = true;
             }
             //apparatusDistance = Vector3.Distance(maskedEnemy.transform.position, apparatusPosition);
-            apparatusDistance = Vector3.Distance(maskedPosition.Value, apparatusPosition);
+            apparatusDistance = Vector3.Distance(maskedPosition.Value, apparatusPosition.Value);
             if (apparatusDistance > 0f)
             {
                 dropItem.Value = true;
                 if (!isUsingApparatus && !noMoreApparatus && !__instance.isEnemyDead)
                 {
                     //apparatusReachable = __instance.SetDestinationToPosition(((Component)apparatus).transform.position, true);
-                    if (!apparatusReachable)
+                    if (!apparatusReachable.Value)
                     {
                         return; //cant reach apparatus
                     }
                     maskedGoal = "walking to apparatus (" + apparatusPosition.ToString() + ")";
-                    __instance.SetDestinationToPosition(apparatusPosition, false);
+                    __instance.SetDestinationToPosition(apparatusPosition.Value, false);
                     //Plugin.mls.LogError("ApparatusDistance = " + apparatusDistance);
                     //Plugin.mls.LogError("ApparatusPosition = " + apparatusPosition);
                     __instance.moveTowardsDestination = true;
@@ -3493,7 +3516,7 @@ namespace LethalIntelligence.Patches
             {
                 //check if signal translator is enabled once in range
                 //if (Vector3.Distance(maskedEnemy.transform.position, terminalPosition) < 5f)
-                if (Vector3.Distance(maskedPosition.Value, terminalPosition) < 5f)
+                if (Vector3.Distance(maskedPosition.Value, terminalPosition.Value) < 5f)
                 {
                         if (!TerminalPatches.Transmitter.IsSignalTranslatorUnlocked())
                     {
@@ -3534,7 +3557,7 @@ namespace LethalIntelligence.Patches
                 else
                 {
                     maskedGoal = "(escape) heading to terminal in player ship";
-                    maskedEnemy.SetDestinationToPosition(terminalPosition);
+                    maskedEnemy.SetDestinationToPosition(terminalPosition.Value);
                 }
 
             }
@@ -5113,7 +5136,7 @@ namespace LethalIntelligence.Patches
             maskedGoal = "walking to ships locker (" + lockerPosition.ToString() + ")";
             maskedEnemy.lostLOSTimer = 0f;
             maskedEnemy.stopAndStareTimer = 0f;
-            bool reachable = ((EnemyAI)maskedEnemy).SetDestinationToPosition(lockerPosition, true);
+            bool reachable = ((EnemyAI)maskedEnemy).SetDestinationToPosition(lockerPosition.Value, true);
             if (!reachable)
             {
                 mustChangeActivity = true;
@@ -5121,7 +5144,7 @@ namespace LethalIntelligence.Patches
             //__instance.moveTowardsDestination = true;
             //}
             //float distanceToLockerAudio = Vector3.Distance(maskedEnemy.transform.position, lockerPosition);
-            float distanceToLockerAudio = Vector3.Distance(maskedPosition.Value, lockerPosition);
+            float distanceToLockerAudio = Vector3.Distance(maskedPosition.Value, lockerPosition.Value);
             if (distanceToLockerAudio <= 2f)
             {
                 mustChangeFocus = true;
@@ -5136,7 +5159,7 @@ namespace LethalIntelligence.Patches
             maskedGoal = "walking to breaker box (" + breakerPosition.ToString() + ")";
             maskedEnemy.lostLOSTimer = 0f;
             maskedEnemy.stopAndStareTimer = 0f;
-            bool reachable = ((EnemyAI)maskedEnemy).SetDestinationToPosition(breakerPosition, true);
+            bool reachable = ((EnemyAI)maskedEnemy).SetDestinationToPosition(breakerPosition.Value, true);
             //__instance.moveTowardsDestination = true;
             if (!reachable)
             {
@@ -5196,7 +5219,7 @@ namespace LethalIntelligence.Patches
             maskedGoal = "walking to apparatus (" + apparatusPosition.ToString() + ")";
             maskedEnemy.lostLOSTimer = 0f;
             maskedEnemy.stopAndStareTimer = 0f;
-            bool reachable = ((EnemyAI)maskedEnemy).SetDestinationToPosition(apparatusPosition, true);
+            bool reachable = ((EnemyAI)maskedEnemy).SetDestinationToPosition(apparatusPosition.Value, true);
             if (!reachable)
             {
                 mustChangeActivity = true;
