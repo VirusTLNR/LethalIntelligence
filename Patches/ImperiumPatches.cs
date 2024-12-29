@@ -1,4 +1,4 @@
-﻿using System;
+﻿ using System;
 using System.Collections.Generic;
 using System.Text;
 using Imperium.API;
@@ -22,8 +22,14 @@ namespace LethalIntelligence.Patches
                 //.RegisterInsight("Dancing?", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().isDancing.Value}")
                 //.RegisterInsight("Jumping?", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().isJumped.Value}")
                 //.RegisterInsight("ItemHeld", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().heldGrabbable}")
-                .RegisterInsight("Pos", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().transform.position.ToString().Replace(" ", "")}")
-                .RegisterInsight("CurrentAreaMask", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().agent.areaMask}")
+                /*.RegisterInsight("TPos", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().transform.rotation.ToString().Replace(" ", "")}")
+                .RegisterInsight("TRot", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().transform.position.ToString().Replace(" ", "")}")*/
+                .RegisterInsight("Pos", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().maskedPosition.Value.ToString().Replace(" ", "")}")
+                /*.RegisterInsight("RotX", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().maskedRotation.Value.x.ToString("f5").Replace(" ", "")}")
+                .RegisterInsight("RotY", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().maskedRotation.Value.y.ToString("f5").Replace(" ", "")}")
+                .RegisterInsight("RotZ", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().maskedRotation.Value.z.ToString("f5").Replace(" ", "")}")
+                .RegisterInsight("RotW", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().maskedRotation.Value.w.ToString("f5").Replace(" ", "")}")*/
+                //.RegisterInsight("CurrentAreaMask", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().agent.areaMask}")
                 .RegisterInsight("Dest", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().agent.pathEndPosition.ToString().Replace(" ", "")}");
                 //.RegisterInsight("D->", entity => $"{MaskedPlayerEnemyPatch.vd.agent.destination.ToString()}");
                 //.RegisterInsight("Goal", entity => $"{MaskedPlayerEnemyPatch.vd.maskedGoal}");
