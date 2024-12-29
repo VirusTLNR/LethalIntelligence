@@ -180,10 +180,10 @@ namespace LethalIntelligence.Patches
 
         private void TestConfig()
         {
-            maskedPersonality = Personality.Cunning; //for testing a specific personality
+            maskedPersonality = Personality.Stealthy; //for testing a specific personality
             maskedPersonalityInt.Value = 0; //for testing a specific personality
-            lastMaskedPersonality = Personality.Cunning;
-            maskedFocusInt.Value = (int)Focus.BreakerBox;
+            lastMaskedPersonality = Personality.Stealthy;
+            maskedFocusInt.Value = (int)Focus.None;
             maskedActivityInt.Value = (int)Activity.None;
             mustChangeFocus = false;
         }
@@ -854,7 +854,7 @@ namespace LethalIntelligence.Patches
             {
                 Plugin.mls.LogError(entrancesTeleportArray[i].name + "|" + entrancesTeleportArray[i].entranceId + "|" + entrancesTeleportArray[i].entrancePoint.position.ToString() + "|" + entrancesTeleportArray[i].transform.position.ToString() + "|" + entrancesTeleportArray[i].isEntranceToBuilding + "|" + entrancesTeleportArray[i].isActiveAndEnabled);
             }*/
-            TestConfig();
+            //TestConfig();
         }
 
         float updateFrequency = 0.02f;
@@ -3585,7 +3585,7 @@ namespace LethalIntelligence.Patches
                         //startLeverClosestPoint = Vector3.Distance(hitApparatus.position, apparatus.transform.position);
                         startLeverPosition = hitStartLever.position;
                     }*/
-                    Plugin.mls.LogError("(escape) walking to ships lever (" + startMatchLever.transform.position.ToString() + ")");
+                    //Plugin.mls.LogError("(escape) walking to ships lever (" + startMatchLever.transform.position.ToString() + ")");
                     maskedGoal = "(escape) walking to ships lever (" + startMatchLever.transform.position.ToString() + ")";
                     //if (startLeverDistance > 0.5f)
                     //{
