@@ -1,7 +1,14 @@
 ## Changelog
-Please Note:- in the current version and previous versions... Insane/Cunning/Deceiving may all show variances between client/host (breaker, terminal, picking up items).. Likewise Walkies may not appear to be picked up on client's while host will see masked holding a walkie. Beyond this masked should behave as normal. If you want no issues, then either disable the masked features, or turn off all personalities except "aggressive". Will fix this asap. If playing solo, all masked should be working fine as its a networking issue.
 
-### 0.3.3 - Hotfix
+### 0.3.4 - The Grand Re-Networking Patch #1 of 2
+- Positioning, Rotation and similar "basic" networking issues fixed.
+- Breakerbox networking issues fixed
+- Apparatus networking issues fixed
+- Terminal networking issues fixed
+- ShipLever networking issues fixed
+- items seem to not get picked up by masked, I will fix issues with items in the next patch just ran out of time today and wanted to get something out the door.
+
+### 0.3.3 - Hotfix (Please Note:- in this version and previous versions... networking was broken, i would reccommend only using for SOLO PLAY if for some reason you want an old version!)
 - Fixed (hopefully) compatibility with the new version (1.14) of Mirage.
 
 ### 0.3.2
