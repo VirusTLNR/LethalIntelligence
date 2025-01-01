@@ -1,5 +1,8 @@
 ## Changelog
 
+### 0.3.5 - Hotfix
+- fixed the change in 0.3.4 that made masked status reports spammy.
+
 ### 0.3.4 - The Grand Re-Networking Patch #1 of 2
 - Positioning, Rotation and similar "basic" networking issues fixed.
 - Breakerbox networking issues fixed
