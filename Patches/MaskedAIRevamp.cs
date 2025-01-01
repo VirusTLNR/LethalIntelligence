@@ -619,10 +619,14 @@ namespace LethalIntelligence.Patches
                         "\ntermianlSpecialCodeTime = " + enterTermianlSpecialCodeTime +
                         "\nisLeverEscaping = " + isLeverEscaping;
                     }
+
+                    string hostTimeStampPlaceholder = "ReplaceWithDateAndTimeNeverLogThis";
+                    string hostTimeStampReplacement = hostTimeStamp.Value.ToString("dd/MM/yyyy @ hh:mm:ss"); //add in time stamp AFTER it is checked to prevent spam.
+
                     string debugMsg =
                     "\n===== MaskedStatusReport() Start =====" +
                     "\nMaskedID = " + maskedId +
-                    "\nHostTimeStamp = " + hostTimeStamp.Value.ToString("dd/MM/yyyy @ hh:mm:ss") +
+                    "\nHostTimeStamp = " + hostTimeStampPlaceholder +
                     "\nMaskedPersonality = " + maskedPersonality.ToString() +
                     "\nMaskedFocus = " + maskedFocus.ToString() +
                     "\nMustChangeFocus = " + mustChangeFocus.ToString() +
@@ -649,7 +653,8 @@ namespace LethalIntelligence.Patches
                     if (debugMsg != lastDebugModeStatus)
                     {
                         lastDebugModeStatus = debugMsg;
-                        Plugin.mls.LogInfo(debugMsg);
+                        string fixedReport = debugMsg.Replace(hostTimeStampPlaceholder, hostTimeStampReplacement);
+                        Plugin.mls.LogInfo(fixedReport);
                     }
                     if (maskedEnemy.isEnemyDead)
                     {
