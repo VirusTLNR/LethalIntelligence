@@ -684,6 +684,8 @@ namespace LethalIntelligence.Patches
         public LNetworkVariable<bool>? dropItem;
         public LNetworkVariable<bool> terminalReachable, breakerBoxReachable, apparatusReachable;
         public LNetworkVariable<DateTime>? hostTimeStamp;
+        public LNetworkVariable<ulong>? maskedTargetId;
+        public LNetworkVariable<bool>? maskedInSpecialAnimation;
 
         public LNetworkVariable<Vector3>? terminalPosition, breakerPosition, lockerPosition, apparatusPosition, fireExitPosition, mainEntrancePosition; //positions to save
 
@@ -704,6 +706,8 @@ namespace LethalIntelligence.Patches
             maskedPosition = LNetworkVariable<Vector3>.Connect("maskedPosition" + id, Vector3.negativeInfinity, LNetworkVariableWritePerms.Everyone); //probably should be server only.
             maskedRotation = LNetworkVariable<Quaternion>.Connect("maskedRotation" + id, new Quaternion(), LNetworkVariableWritePerms.Everyone); //probably should be server only.
             currentDestinationDistance = LNetworkVariable<float>.Connect("currentDestinationDistance" + id, -1,LNetworkVariableWritePerms.Everyone); //probably should be server only.
+            maskedTargetId = LNetworkVariable<ulong>.Connect("maskedTarget" + id, 0 , LNetworkVariableWritePerms.Everyone); //probably should be server only.
+            maskedInSpecialAnimation = LNetworkVariable<bool>.Connect("maskedInSpecialAnimation" + id, false, LNetworkVariableWritePerms.Everyone); //probably should be server only.
             maskedPersonalityInt = LNetworkVariable<int>.Connect("maskedPersonalityInt" + id, -1 , LNetworkVariableWritePerms.Everyone);
             maskedFocusInt = LNetworkVariable<int>.Connect("maskedFocusInt" + id, -1, LNetworkVariableWritePerms.Everyone);
             maskedActivityInt = LNetworkVariable<int>.Connect("maskedActivityInt" + id, -1, LNetworkVariableWritePerms.Everyone);
@@ -1442,12 +1446,23 @@ namespace LethalIntelligence.Patches
             }
         }*/
 
-        private void updateSyncedVariables()
+        private void writeSyncedVariables() //update hosts network variables
         {
             hostTimeStamp.Value = DateTime.Now;
             maskedPosition.Value = this.transform.position;
             maskedRotation.Value = this.transform.rotation;
             currentDestinationDistance.Value = Vector3.Distance(maskedPosition.Value, agent.pathEndPosition);
+            maskedTargetId.Value = maskedEnemy.targetPlayer.GetClientId();
+            maskedInSpecialAnimation.Value = maskedEnemy.inSpecialAnimation;
+        }
+
+        private void readSyncedVariables() //update network variables (host + all clients).
+        {
+            //all clients (including host) - receiving variables
+            maskedFocus = (Focus)maskedFocusInt.Value;
+            maskedActivity = (Activity)maskedActivityInt.Value;
+            maskedEnemy.targetPlayer = maskedTargetId.Value.GetPlayerController();
+            maskedEnemy.inSpecialAnimation = maskedInSpecialAnimation.Value;
         }
 
         public void FixedUpdate()
@@ -1587,17 +1602,16 @@ namespace LethalIntelligence.Patches
             ItemAnimationSelector(creatureAnimator, __instance);
             if (IsHost)
             {
-                updateSyncedVariables(); //for syncing variables between host and client
                 CalculatingVariables();
-            }
+
             DetectAndSelectRandomPlayer();
             TargetAndKillPlayer(); //potentially, this should change the focus to NONE and "Activity" to killing the player..depending on the personality, this should cancel current activity as well.
             CheckForEntrancesNearby(); //use entrances here
             //host only (set in function) - setting variables of masked choices
             SetFocus();
-            //all clients (including host) - receiving variables
-            maskedFocus = (Focus)maskedFocusInt.Value;
-            maskedActivity = (Activity)maskedActivityInt.Value;
+                writeSyncedVariables(); //for syncing variables between host and client
+            }
+            readSyncedVariables(); //for syncing variables between host and client
 
             if (maskedFocus != Focus.None)
             {
