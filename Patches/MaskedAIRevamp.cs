@@ -180,10 +180,10 @@ namespace LethalIntelligence.Patches
 
         private void TestConfig()
         {
-            maskedPersonality = Personality.Stealthy; //for testing a specific personality
+            maskedPersonality = Personality.Deceiving; //for testing a specific personality
             maskedPersonalityInt.Value = 0; //for testing a specific personality
-            lastMaskedPersonality = Personality.Stealthy;
-            maskedFocusInt.Value = (int)Focus.None;
+            lastMaskedPersonality = Personality.Deceiving;
+            maskedFocusInt.Value = (int)Focus.Items;
             maskedActivityInt.Value = (int)Activity.None;
             mustChangeFocus = false;
         }
@@ -1459,7 +1459,7 @@ namespace LethalIntelligence.Patches
             currentDestinationDistance.Value = Vector3.Distance(maskedPosition.Value, agent.pathEndPosition);
             if (maskedEnemy.targetPlayer != null)
             {
-            maskedTargetId.Value = maskedEnemy.targetPlayer.GetClientId();
+                maskedTargetId.Value = maskedEnemy.targetPlayer.GetClientId();
             }
             else
             {
@@ -1469,7 +1469,7 @@ namespace LethalIntelligence.Patches
             if (closestGrabbable != null)
             {
                 closestGrabbableId.Value = closestGrabbable.NetworkObjectId;
-        }
+            }
             else
             {
                 closestGrabbableId.Value = ulong.MaxValue; //to make it null;
@@ -1487,13 +1487,13 @@ namespace LethalIntelligence.Patches
             }
             else
             {
-            maskedEnemy.targetPlayer = maskedTargetId.Value.GetPlayerController();
+                maskedEnemy.targetPlayer = maskedTargetId.Value.GetPlayerController();
             }
             maskedEnemy.inSpecialAnimation = maskedInSpecialAnimation.Value;
             if (closestGrabbableId.Value == ulong.MaxValue)
             {
                 closestGrabbable = null;
-        }
+            }
             else
             {
                 foreach (GrabbableObject go in GlobalItemList.Instance.allitems)
@@ -1649,11 +1649,11 @@ namespace LethalIntelligence.Patches
             {
                 CalculatingVariables();
 
-            DetectAndSelectRandomPlayer();
-            TargetAndKillPlayer(); //potentially, this should change the focus to NONE and "Activity" to killing the player..depending on the personality, this should cancel current activity as well.
-            CheckForEntrancesNearby(); //use entrances here
-            //host only (set in function) - setting variables of masked choices
-            SetFocus();
+                DetectAndSelectRandomPlayer();
+                TargetAndKillPlayer(); //potentially, this should change the focus to NONE and "Activity" to killing the player..depending on the personality, this should cancel current activity as well.
+                CheckForEntrancesNearby(); //use entrances here
+                //host only (set in function) - setting variables of masked choices
+                SetFocus();
                 writeSyncedVariables(); //for syncing variables between host and client
             }
             readSyncedVariables(); //for syncing variables between host and client
@@ -1883,149 +1883,149 @@ namespace LethalIntelligence.Patches
         {
             if (IsHost)
             {
-            NavMeshHit hitGrabbable;
+                NavMeshHit hitGrabbable;
                 NavMeshPath nmpClosestGrabbable = new NavMeshPath();
-            List<GrabbableObject> allItemsList;
-            float num = float.PositiveInfinity;
-            /*if (maskedPersonality == Personality.Cunning)
-            {
-                //cunning items
-                //filtering out only items cunning wants (in the ship, this doesnt work as "in the ship" only takes from items in the ship before the round starts.)
-                //allItemsList = GlobalItemList.Instance.allitems.FindAll(item => item.isInShipRoom == true).ToList();
-                //filtering out only items cunning wants (near the ship)
-                allItemsList = GlobalItemList.Instance.allitems.Where(item => (Vector3.Distance(item.transform.position, ((Component)terminal).transform.position) < 15f || item.name == "Walkie-talkie")).ToList();
-            }
-            else if (maskedPersonality == Personality.Deceiving)
-            {
-                allItemsList = GlobalItemList.Instance.allitems.Where(item => (Vector3.Distance(item.transform.position, ((Component)terminal).transform.position) > 30f || item.name=="Walkie-talkie")).ToList();
-            }
-            else
-            {*/
-            //all items
-            allItemsList = GlobalItemList.Instance.allitems;
-            //}
-
-            if (allItemsList.Count == 0)
-            {
-                Plugin.mls.LogDebug("allItemsList is empty so setting no more items=true");
-                noMoreItems = true;
-                mustChangeFocus = true;
-            }
-
-            //items to ignore because they shouldent be touched.
-            /*allItemsList.Remove(allItemsList.Find(cbm => cbm.name == "ClipboardManual")); //removing clipboard from the list
-            allItemsList.Remove(allItemsList.Find(sn => sn.name == "StickyNoteItem")); //removing sticky note on the wall from the list)
-            allItemsList.RemoveAll(rlh => rlh.name == "RedLocustHive");*/ //removing red locust bee hive as its held by an enemy by default and cunning just stands there looking at it
-                                                                          //allItemsList.Remove(allItemsList.Find(rlh => rlh.name == "RedLocustHive")); 
-                                                                          //closestGrabbable = null;
-                                                                          //allItemsList.OrderBy(x => x.scrapValue); // dont use but this allows sorting by scrap value in future.
-
-
-            //wont work.. needs a lot of recoding to make work i think but should be better going forward
-            //  closestGrabbable = allItemsList.Aggregate((curMin, x) => (
-            //    curMin == null ||
-            //    Vector3.Distance(this.transform.position, curMin.transform.position) > 20f ||
-            //    curMin.isHeld ||
-            //    curMin.isHeldByEnemy ||
-            //    //need to check it item is in a bush here.. needs some recoding..
-            //    (Vector3.Distance(this.transform.position, x.transform.position)) < Vector3.Distance(this.transform.position, curMin.transform.position)
-            //   ) ? x : curMin);
-            foreach (GrabbableObject allitem in allItemsList)
-            {
-                //Plugin.mls.LogDebug("allitem = "+allitem);
-                //null reference exception fix here
-                if ((Component)this == null)
+                List<GrabbableObject> allItemsList;
+                float num = float.PositiveInfinity;
+                /*if (maskedPersonality == Personality.Cunning)
                 {
-                    //Plugin.mls.LogDebug("SetNearestGrabbable() NullReferenceFix - Masked Entity was NULL");
-                    return;
+                    //cunning items
+                    //filtering out only items cunning wants (in the ship, this doesnt work as "in the ship" only takes from items in the ship before the round starts.)
+                    //allItemsList = GlobalItemList.Instance.allitems.FindAll(item => item.isInShipRoom == true).ToList();
+                    //filtering out only items cunning wants (near the ship)
+                    allItemsList = GlobalItemList.Instance.allitems.Where(item => (Vector3.Distance(item.transform.position, ((Component)terminal).transform.position) < 15f || item.name == "Walkie-talkie")).ToList();
                 }
-                else if (((Component)this).transform.position == null)
+                else if (maskedPersonality == Personality.Deceiving)
                 {
-                            //Plugin.mls.LogDebug("SetNearestGrabbable() NullReferenceFix - Masked Entity position was NULL");
-                            //Plugin.mls.LogDebug("this.name = " + ((Component)this).name.ToString());
-                            return;
-                }
-                if ((Component)allitem == null)
-                {
-                    //Plugin.mls.LogDebug("SetNearestGrabbable() NullReferenceFix - Item Entity was NULL");
-                    continue;
-                }
-                else if (((Component)allitem).transform.position == null)
-                {
-                    //Plugin.mls.LogDebug("SetNearestGrabbable() NullReferenceFix - Item Entity position was NULL");
-                    //Plugin.mls.LogDebug("allitem.name = " + ((Component)allitem).name.ToString());
-                    continue;
-                }
-                //null reference exception fix above
-
-
-                //Plugin.mls.LogError(allitem.ToString());
-
-                //ignore items from the list after checking if they are null.
-                if (allitem.name == "ClipboardManual" || allitem.name == "StickyNoteItem")
-                {
-                    continue;
-                }
-                if (allitem.name == "RedLocustHive")
-                {
-                    continue;
-                }
-
-                //ignore non-"cunning" items if cunning
-                if (maskedPersonality == Personality.Cunning && Vector3.Distance(allitem.transform.position, ((Component)terminal).transform.position) >= 15f)
-                {
-                    continue;
-                }
-
-                //ignore non-deceiving items if deceiving
-                if (maskedPersonality == Personality.Deceiving && Vector3.Distance(allitem.transform.position, ((Component)terminal).transform.position) <= 30f)
-                {
-                    continue;
-                }
-
-
-                //end removing items
-
-                //float num2 = Vector3.Distance(((Component)this).transform.position, ((Component)allitem).transform.position);
-                float num2 = Vector3.Distance(maskedPosition.Value, ((Component)allitem).transform.position);
-                if (allitem.GetComponent<CheckItemCollision>() != null)
-                {
-                    itemSystem = allitem.GetComponent<CheckItemCollision>();
-                }
-                if (itemSystem.hidedByMasked)
-                {
-                    //Plugin.mls.LogDebug("item was hidden by the masked, ignore this item");
-                    continue;
-                }
-                    bool isReachable = agent.CalculatePath(allitem.transform.position, nmpClosestGrabbable); //because we only want items from the FLOOR
-                if (!isReachable)
-                {
-                    //Plugin.mls.LogDebug("item is not reachable and closestgrabbable is null");
-                    continue;
-                }
-                if (!(num2 < num) || !(num2 <= 30f) || allitem.isHeld || allitem.isHeldByEnemy || notGrabClosestItem)
-                {
-                    //Plugin.mls.LogDebug("item is either, not closest, further than 30f away, is held, is held by an enemy, or told not to grab closest item");
-                    continue;
-                }
-
-                num = num2;
-                    closestGrabbable = allitem;
-                    if (NavMesh.SamplePosition(closestGrabbable.transform.position, out hitGrabbable, 10f, -1))
-                {
-                    //closestGrabbableReachable = agent.CalculatePath(hitGrabbable.position, nmpGrabbable);
-                        closestGrabbableReachable.Value = agent.CalculatePath(closestGrabbable.transform.position, nmpClosestGrabbable);
-                    //nearestGrabbableDistance = Vector3.Distance(((Component)this).transform.position, ((Component)nearestGrabbable).transform.position);
-                        closestGrabbableDistance.Value = Vector3.Distance(maskedPosition.Value, ((Component)closestGrabbable).transform.position);
-                    //grabbableClosestPoint = Vector3.Distance(hitGrabbable.position, nearestGrabbable.transform.position);
+                    allItemsList = GlobalItemList.Instance.allitems.Where(item => (Vector3.Distance(item.transform.position, ((Component)terminal).transform.position) > 30f || item.name=="Walkie-talkie")).ToList();
                 }
                 else
+                {*/
+                //all items
+                allItemsList = GlobalItemList.Instance.allitems;
+                //}
+
+                if (allItemsList.Count == 0)
                 {
+                    Plugin.mls.LogDebug("allItemsList is empty so setting no more items=true");
+                    noMoreItems = true;
+                    mustChangeFocus = true;
+                }
+
+                //items to ignore because they shouldent be touched.
+                /*allItemsList.Remove(allItemsList.Find(cbm => cbm.name == "ClipboardManual")); //removing clipboard from the list
+                allItemsList.Remove(allItemsList.Find(sn => sn.name == "StickyNoteItem")); //removing sticky note on the wall from the list)
+                allItemsList.RemoveAll(rlh => rlh.name == "RedLocustHive");*/ //removing red locust bee hive as its held by an enemy by default and cunning just stands there looking at it
+                                                                              //allItemsList.Remove(allItemsList.Find(rlh => rlh.name == "RedLocustHive")); 
+                                                                              //closestGrabbable = null;
+                                                                              //allItemsList.OrderBy(x => x.scrapValue); // dont use but this allows sorting by scrap value in future.
+
+
+                //wont work.. needs a lot of recoding to make work i think but should be better going forward
+                //  closestGrabbable = allItemsList.Aggregate((curMin, x) => (
+                //    curMin == null ||
+                //    Vector3.Distance(this.transform.position, curMin.transform.position) > 20f ||
+                //    curMin.isHeld ||
+                //    curMin.isHeldByEnemy ||
+                //    //need to check it item is in a bush here.. needs some recoding..
+                //    (Vector3.Distance(this.transform.position, x.transform.position)) < Vector3.Distance(this.transform.position, curMin.transform.position)
+                //   ) ? x : curMin);
+                foreach (GrabbableObject allitem in allItemsList)
+                {
+                    //Plugin.mls.LogDebug("allitem = "+allitem);
+                    //null reference exception fix here
+                    if ((Component)this == null)
+                    {
+                        //Plugin.mls.LogDebug("SetNearestGrabbable() NullReferenceFix - Masked Entity was NULL");
+                        return;
+                    }
+                    else if (((Component)this).transform.position == null)
+                    {
+                        //Plugin.mls.LogDebug("SetNearestGrabbable() NullReferenceFix - Masked Entity position was NULL");
+                        //Plugin.mls.LogDebug("this.name = " + ((Component)this).name.ToString());
+                        return;
+                    }
+                    if ((Component)allitem == null)
+                    {
+                        //Plugin.mls.LogDebug("SetNearestGrabbable() NullReferenceFix - Item Entity was NULL");
+                        continue;
+                    }
+                    else if (((Component)allitem).transform.position == null)
+                    {
+                        //Plugin.mls.LogDebug("SetNearestGrabbable() NullReferenceFix - Item Entity position was NULL");
+                        //Plugin.mls.LogDebug("allitem.name = " + ((Component)allitem).name.ToString());
+                        continue;
+                    }
+                    //null reference exception fix above
+
+
+                    //Plugin.mls.LogError(allitem.ToString());
+
+                    //ignore items from the list after checking if they are null.
+                    if (allitem.name == "ClipboardManual" || allitem.name == "StickyNoteItem")
+                    {
+                        continue;
+                    }
+                    if (allitem.name == "RedLocustHive")
+                    {
+                        continue;
+                    }
+
+                    //ignore non-"cunning" items if cunning
+                    if (maskedPersonality == Personality.Cunning && Vector3.Distance(allitem.transform.position, ((Component)terminal).transform.position) >= 15f)
+                    {
+                        continue;
+                    }
+
+                    //ignore non-deceiving items if deceiving
+                    if (maskedPersonality == Personality.Deceiving && Vector3.Distance(allitem.transform.position, ((Component)terminal).transform.position) <= 30f)
+                    {
+                        continue;
+                    }
+
+
+                    //end removing items
+
+                    //float num2 = Vector3.Distance(((Component)this).transform.position, ((Component)allitem).transform.position);
+                    float num2 = Vector3.Distance(maskedPosition.Value, ((Component)allitem).transform.position);
+                    if (allitem.GetComponent<CheckItemCollision>() != null)
+                    {
+                        itemSystem = allitem.GetComponent<CheckItemCollision>();
+                    }
+                    if (itemSystem.hidedByMasked)
+                    {
+                        //Plugin.mls.LogDebug("item was hidden by the masked, ignore this item");
+                        continue;
+                    }
+                    bool isReachable = agent.CalculatePath(allitem.transform.position, nmpClosestGrabbable); //because we only want items from the FLOOR
+                    if (!isReachable)
+                    {
+                        //Plugin.mls.LogDebug("item is not reachable and closestgrabbable is null");
+                        continue;
+                    }
+                    if (!(num2 < num) || !(num2 <= 30f) || allitem.isHeld || allitem.isHeldByEnemy || notGrabClosestItem)
+                    {
+                        //Plugin.mls.LogDebug("item is either, not closest, further than 30f away, is held, is held by an enemy, or told not to grab closest item");
+                        continue;
+                    }
+
+                    num = num2;
+                    closestGrabbable = allitem;
+                    if (NavMesh.SamplePosition(closestGrabbable.transform.position, out hitGrabbable, 10f, -1))
+                    {
+                        //closestGrabbableReachable = agent.CalculatePath(hitGrabbable.position, nmpGrabbable);
+                        closestGrabbableReachable.Value = agent.CalculatePath(closestGrabbable.transform.position, nmpClosestGrabbable);
+                        //nearestGrabbableDistance = Vector3.Distance(((Component)this).transform.position, ((Component)nearestGrabbable).transform.position);
+                        closestGrabbableDistance.Value = Vector3.Distance(maskedPosition.Value, ((Component)closestGrabbable).transform.position);
+                        //grabbableClosestPoint = Vector3.Distance(hitGrabbable.position, nearestGrabbable.transform.position);
+                    }
+                    else
+                    {
                         closestGrabbableReachable.Value = false;
                         closestGrabbableDistance.Value = 1000f;
+                    }
                 }
             }
-        }
         }
 
         private void DetectAndSelectRandomPlayer()
@@ -2581,72 +2581,72 @@ namespace LethalIntelligence.Patches
                             walkieToGrab = go;
                             //Plugin.mls.LogError("FOUND ITEM!:- " + go.name);
                             break;
+                        }
                     }
-                }
                 }
             }
             //walkieToGrab = maskedWalkie.Value;
-                if (walkieToGrab == null) //if still null...
-                {
-                    return; //there is no walkie to grab in sight.. so dont continue.
-                }
+            if (walkieToGrab == null) //if still null...
+            {
+                return; //there is no walkie to grab in sight.. so dont continue.
+            }
             if (walkieToGrab.isHeld || walkieToGrab.isHeldByEnemy)
+            {
+                walkieToGrab = null;
+                isCrouched.Value = false;
+                mustChangeFocus = true;
+                mustChangeActivity = true;
+                return; //sorry buddy, someone else got there first
+            }
+            //var distance = Vector3.Distance(__instance.transform.position, walkieToGrab.transform.position);
+            var distance = Vector3.Distance(maskedPosition.Value, walkieToGrab.transform.position);
+            if (distance < 1.0f && !isHoldingObject)
+            {
+                isCrouched.Value = true;
+            }
+            if (distance > 0.5f)
+            {
+                maskedGoal = "walkiing to selected walkie @ " + walkieToGrab.transform.position;
+                __instance.SetDestinationToPosition(((Component)walkieToGrab).transform.position, true);
+                __instance.moveTowardsDestination = true;
+                __instance.movingTowardsTargetPlayer = false;
+            }
+            if (distance > 0.5f && distance < 3f)
+            {
+                maskedEnemy.focusOnPosition = ((Component)walkieToGrab).transform.position;
+                maskedEnemy.lookAtPositionTimer = 1.5f;
+            }
+            if (distance < 0.9f)
+            {
+                if (isHoldingObject)
+                {
+                    return;
+                }
+                //NotGrabItemsTime(); //may not be a fix
+                float num3 = Vector3.Angle(((Component)__instance).transform.forward, ((Component)walkieToGrab).transform.position - ((Component)__instance).transform.position);
+                if (((Component)walkieToGrab).transform.position.y - maskedEnemy.headTiltTarget.position.y < 0f)
+                {
+                    num3 *= -1f;
+                }
+                maskedEnemy.verticalLookAngle = num3;
+                heldGrabbable = walkieToGrab;
+                walkieToGrab.parentObject = itemHolder.transform;
+                walkieToGrab.hasHitGround = false;
+                walkieToGrab.isHeld = true;
+                walkieToGrab.isHeldByEnemy = true;
+                walkieToGrab.grabbable = false;
+                isHoldingObject = true;
+                itemDroped = false;
+                walkieToGrab.GrabItemFromEnemy(__instance);
+                if (isHoldingObject)
                 {
                     walkieToGrab = null;
                     isCrouched.Value = false;
                     mustChangeFocus = true;
                     mustChangeActivity = true;
-                    return; //sorry buddy, someone else got there first
-                }
-                //var distance = Vector3.Distance(__instance.transform.position, walkieToGrab.transform.position);
-                var distance = Vector3.Distance(maskedPosition.Value, walkieToGrab.transform.position);
-                if (distance < 1.0f && !isHoldingObject)
-                {
-                    isCrouched.Value = true;
-                }
-                if (distance > 0.5f)
-                {
-                    maskedGoal = "walkiing to selected walkie @ " + walkieToGrab.transform.position;
-                    __instance.SetDestinationToPosition(((Component)walkieToGrab).transform.position, true);
-                    __instance.moveTowardsDestination = true;
-                    __instance.movingTowardsTargetPlayer = false;
-                }
-                if (distance > 0.5f && distance < 3f)
-                {
-                    maskedEnemy.focusOnPosition = ((Component)walkieToGrab).transform.position;
-                    maskedEnemy.lookAtPositionTimer = 1.5f;
-                }
-                if (distance < 0.9f)
-                {
-                    if (isHoldingObject)
-                    {
-                        return;
-                    }
-                    //NotGrabItemsTime(); //may not be a fix
-                    float num3 = Vector3.Angle(((Component)__instance).transform.forward, ((Component)walkieToGrab).transform.position - ((Component)__instance).transform.position);
-                    if (((Component)walkieToGrab).transform.position.y - maskedEnemy.headTiltTarget.position.y < 0f)
-                    {
-                        num3 *= -1f;
-                    }
-                    maskedEnemy.verticalLookAngle = num3;
-                    heldGrabbable = walkieToGrab;
-                    walkieToGrab.parentObject = itemHolder.transform;
-                    walkieToGrab.hasHitGround = false;
-                    walkieToGrab.isHeld = true;
-                    walkieToGrab.isHeldByEnemy = true;
-                    walkieToGrab.grabbable = false;
-                    isHoldingObject = true;
-                    itemDroped = false;
-                    walkieToGrab.GrabItemFromEnemy(__instance);
-                    if (isHoldingObject)
-                    {
-                        walkieToGrab = null;
-                        isCrouched.Value = false;
-                        mustChangeFocus = true;
-                        mustChangeActivity = true;
-                    }
                 }
             }
+        }
 
         private void HoldWalkie()
         {
@@ -2985,8 +2985,8 @@ namespace LethalIntelligence.Patches
                         //focusingPersonality = true;
                         if (IsHost)
                         {
-                        maskedEnemy.SetDestinationToPosition(breakerPosition.Value);
-                        maskedEnemy.moveTowardsDestination = true;
+                            maskedEnemy.SetDestinationToPosition(breakerPosition.Value);
+                            maskedEnemy.moveTowardsDestination = true;
                         }
 
                         //breakerBoxDistance = Vector3.Distance(__instance.transform.position, breakerPosition);
@@ -3171,8 +3171,8 @@ namespace LethalIntelligence.Patches
                                 //DropItem(); //shouldent be needed, dropItem.Value = true should be enough.
                             }
                         }
-                        }
                     }
+                }
                 else
                 {
                     mustChangeFocus = true;
@@ -4539,7 +4539,7 @@ namespace LethalIntelligence.Patches
             {
                 DropItem();
             }*/
-            }
+        }
 
         private async void NotGrabItemsTime()
         {
@@ -4881,7 +4881,7 @@ namespace LethalIntelligence.Patches
                     isCrouched.Value = true;
                 }*/
             }
-        }
+        } 
 
         public void GrabItemNewOne()
         {
@@ -5852,7 +5852,7 @@ namespace LethalIntelligence.Patches
         float followTime = 0f;
 
         private void findRandomPlayer()
-        {
+        {   
             if (__instance.targetPlayer == null)
             {
                 mustChangeFocus = true;
