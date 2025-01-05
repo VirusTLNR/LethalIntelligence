@@ -552,7 +552,7 @@ namespace LethalIntelligence.Patches
                     if (closestGrabbable != null)
                     {
                         cg = closestGrabbable.name.ToString();
-                        cgd = closestGrabbableDistance.ToString();
+                        cgd = closestGrabbableDistance.Value.ToString();
                     }
                     if (breakerBox != null)
                     {
@@ -586,7 +586,7 @@ namespace LethalIntelligence.Patches
                     if (maskedFocus == Focus.Items || (maskedFocus == Focus.None && maskedActivity == Activity.RandomItem))
                     {
                         focusDetails = focusStart +
-                            "\nclosestGrabbableReachable = " + closestGrabbableReachable +
+                            "\nclosestGrabbableReachable = " + closestGrabbableReachable.Value +
                             //"\nclosestGrabbableDistance = " + cgd + //disabled because its spammy
                             "\nclosestGrabbable = " + cg;
                     }
@@ -2978,7 +2978,7 @@ namespace LethalIntelligence.Patches
                     //breakerbox
                     if (breakerBoxDistance < 40f || noMoreTerminal) //add logic for breaker box being turned off so if breaker box is turned OFF, then do nothing.
                     {
-                        maskedGoal = "walking to breaker box (" + breakerBox.transform.position.ToString() + ")";
+                        maskedGoal = "walking to breaker box (" + breakerPosition.Value.ToString() + ")";
                         //turn off the breaker box.
                         //noMoreTerminal = true;
                         //noMoreItems = true;
@@ -3535,7 +3535,7 @@ namespace LethalIntelligence.Patches
                     {
                         return; //cant reach apparatus
                     }
-                    maskedGoal = "walking to apparatus (" + apparatusPosition.ToString() + ")";
+                    maskedGoal = "walking to apparatus (" + apparatusPosition.Value.ToString() + ")";
                     __instance.SetDestinationToPosition(apparatusPosition.Value, false);
                     //Plugin.mls.LogError("ApparatusDistance = " + apparatusDistance);
                     //Plugin.mls.LogError("ApparatusPosition = " + apparatusPosition);
@@ -5306,7 +5306,7 @@ namespace LethalIntelligence.Patches
             //now only if outside, not in player ship, and not dead)
             //if (__instance.isOutside && !__instance.isInsidePlayerShip && !__instance.isEnemyDead)
             //{
-            maskedGoal = "walking to ships locker (" + lockerPosition.ToString() + ")";
+            maskedGoal = "walking to ships locker (" + lockerPosition.Value.ToString() + ")";
             maskedEnemy.lostLOSTimer = 0f;
             maskedEnemy.stopAndStareTimer = 0f;
             bool reachable = ((EnemyAI)maskedEnemy).SetDestinationToPosition(lockerPosition.Value, true);
@@ -5329,7 +5329,7 @@ namespace LethalIntelligence.Patches
         {
             //if (!__instance.isOutside && !__instance.isEnemyDead)
             //{
-            maskedGoal = "walking to breaker box (" + breakerPosition.ToString() + ")";
+            maskedGoal = "walking to breaker box (" + breakerPosition.Value.ToString() + ")";
             maskedEnemy.lostLOSTimer = 0f;
             maskedEnemy.stopAndStareTimer = 0f;
             bool reachable = ((EnemyAI)maskedEnemy).SetDestinationToPosition(breakerPosition.Value, true);
@@ -5389,7 +5389,7 @@ namespace LethalIntelligence.Patches
 
         private void findApparatus()
         {
-            maskedGoal = "walking to apparatus (" + apparatusPosition.ToString() + ")";
+            maskedGoal = "walking to apparatus (" + apparatusPosition.Value.ToString() + ")";
             maskedEnemy.lostLOSTimer = 0f;
             maskedEnemy.stopAndStareTimer = 0f;
             bool reachable = ((EnemyAI)maskedEnemy).SetDestinationToPosition(apparatusPosition.Value, true);
