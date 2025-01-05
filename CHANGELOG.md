@@ -1,5 +1,12 @@
 ## Changelog
 
+### 0.3.6 - The Grand Re-Networking Patch #2 of 2
+- TargetPlayer networking issues fixed
+- item pickup networking issues fixed
+- item dropping networking issues fixed
+- fixed some bad logging since 0.3.4 (mostly the output of some logs was wrong due to variable changes not being correctly displayed in the logs)
+- simplified entrance teleport coding.
+
 ### 0.3.5 - Hotfix
 - fixed the change in 0.3.4 that made masked status reports spammy.
 

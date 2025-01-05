@@ -50,7 +50,6 @@ if this is on.. OR Imperium is installed.. debug mode will be turned on, this wi
  </details>
 
 ## Known Issues
-- Items will likely not be picked up as its bugged, havent had a chance to look into why yet. masked should switch focus away from items. (v0.3.4 only)
 - masked "ignoring players" is sometimes way too much, and sometimes way too little, a rework of the system will occur soon.
 - pathing to objects behind doors/walls will cause "stuck motion" (as does any route to which the masked cannot reach the destination) - working on a solution to this
 - if you despawn a masked (using a mod to remove them from the game) while it is on the terminal, the terminal is unusable and the lobby must be restarted - not planning to fix as shouldent occur in an actual game. (if you kill them before you despawn them, this wont happen).
