@@ -666,7 +666,6 @@ namespace LethalIntelligence.Patches
         public LNetworkVariable<Quaternion>? maskedRotation;
         public LNetworkVariable<int>? maskedPersonalityInt, maskedFocusInt, maskedActivityInt;
         public LNetworkVariable<bool>? useWalkie;
-        public LNetworkVariable<GrabbableObject>? maskedWalkie;
         public LNetworkVariable<bool>? isCrouched, isDancing, isRunning, isJumped;
         //public LNetworkVariable<int>? enterTermianlSpecialCodeInt;
         public LNetworkVariable<float>? terminalTimeFloat, delayMaxTime;
