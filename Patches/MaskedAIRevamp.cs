@@ -1710,14 +1710,14 @@ namespace LethalIntelligence.Patches
                 else if (maskedActivity == Activity.MainEntrance)
                 {
                     maskedGoal = "pathing to main entrance";
-                    findMainEntrance();
+                    //findMainEntrance();
+                    findEntranceTeleports(true, false);
                 }
                 else if (maskedActivity == Activity.FireExit)
                 {
                     maskedGoal = "pathing to closest fire exit";
-                    //not done this yet
-                    maskedActivity = Activity.FireExit;
-                    findFireExit();
+                    //findFireExit();
+                    findEntranceTeleports(false, true);
                 }
                 else if (maskedActivity == Activity.BreakerBox)
                 {
