@@ -983,7 +983,7 @@ namespace LethalIntelligence.Patches
 
         int calculationDelay = 0;
         bool lateGameChoices = false;
-
+        bool firstRun = true;
         private void CalculatingVariables()
         {
             NavMeshPath nmpBreaker = new NavMeshPath(), nmpTerminal = new NavMeshPath(), nmpLocker = new NavMeshPath(), nmpApparatus = new NavMeshPath();
@@ -1009,7 +1009,7 @@ namespace LethalIntelligence.Patches
                 {
                     lateGameChoices = true;
                 }
-                if (mustChangeFocus || maskedFocus == Focus.Items)
+                if (firstRun || mustChangeFocus || maskedFocus == Focus.Items)
                 {
                     setNearestGrabbable();
                     //findRandomItem();
@@ -1019,7 +1019,7 @@ namespace LethalIntelligence.Patches
                         nearestGrabbableDistance = 1000f;
                     }*/
                 }
-                if (mustChangeFocus || maskedFocus == Focus.Apparatus || maskedActivity == Activity.Apparatus)
+                if (firstRun || mustChangeFocus || maskedFocus == Focus.Apparatus || maskedActivity == Activity.Apparatus)
                 {
                     //not working for now use original code
                     //DetectObject(breakerBox, ref breakerBoxReachable, ref noMoreBreakerBox, ref breakerBoxDistance, ref breakerClosestPoint, ref breakerPosition);
@@ -1068,7 +1068,7 @@ namespace LethalIntelligence.Patches
                         }
                     }
                 }
-                if (mustChangeFocus || maskedFocus == Focus.BreakerBox || maskedActivity == Activity.BreakerBox)
+                if (firstRun || mustChangeFocus || maskedFocus == Focus.BreakerBox || maskedActivity == Activity.BreakerBox)
                 {
                     //not working for now use original code
                     //DetectObject(breakerBox, ref breakerBoxReachable, ref noMoreBreakerBox, ref breakerBoxDistance, ref breakerClosestPoint, ref breakerPosition);
@@ -1115,7 +1115,7 @@ namespace LethalIntelligence.Patches
                         }
                     }
                 }
-                if (mustChangeFocus || maskedFocus == Focus.Terminal || maskedFocus == Focus.Escape)
+                if (firstRun || mustChangeFocus || maskedFocus == Focus.Terminal || maskedFocus == Focus.Escape)
                 {
                     //not working for now use original code
                     //DetectObject(terminal, ref terminalReachable, ref noMoreTerminal, ref terminalDistance, ref terminalClosestPoint, ref terminalPosition);
@@ -1161,7 +1161,7 @@ namespace LethalIntelligence.Patches
                         }
                     }
                 }
-                if (mustChangeFocus || maskedActivity == Activity.ItemLocker)
+                if (firstRun || mustChangeFocus || maskedActivity == Activity.ItemLocker)
                 {
                     if (GameObject.Find("LockerAudio") == null)
                     {
@@ -1198,6 +1198,7 @@ namespace LethalIntelligence.Patches
                         }
                     }
                 }
+                firstRun = false;
             }
         }
 
