@@ -5831,37 +5831,10 @@ namespace LethalIntelligence.Patches
             return null;
         }
 
-        private void findMainEntrance()
+        private void findEntranceTeleports(bool useMainEntrance, bool useFireExits)
         {
             selectedEntrance = null;
-            selectedEntrance = selectClosestEntrance(maskedEnemy.isOutside, true, false);
-            if(selectedEntrance == null)
-            {
-                maskedGoal = "No Entrance Found, Changing Focus";
-                Plugin.mls.LogWarning("selectedEntrance was Null, if all entrances are null, this may lead to masked stopping from moving completely.");
-                selectedEntrance = null;
-                mustChangeFocus = true;
-                mustChangeActivity = true;
-            }
-            useEntranceTeleport(selectedEntrance);
-            /*
-            maskedGoal = "going to main entrance";
-            //maskedEnemy.LookAndRunRandomly(true, true);
-            ((EnemyAI)maskedEnemy).SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
-            //__instance.moveTowardsDestination = true;
-            if (Vector3.Distance(maskedEnemy.transform.position, maskedEnemy.mainEntrancePosition) < 1f)
-            {
-                //maskedEnemy.running = false; //to stop them running. //not needed once isRunning.Value is added?
-                isRunning.Value = false;
-                mustChangeFocus = true;
-                mustChangeActivity = true;
-            }*/
-        }
-
-        private void findFireExit()
-        {
-            selectedEntrance = null;
-            selectedEntrance = selectClosestEntrance(maskedEnemy.isOutside,false,true);
+            selectedEntrance = selectClosestEntrance(maskedEnemy.isOutside, useMainEntrance, useFireExits);
             if (selectedEntrance == null)
             {
                 maskedGoal = "No Entrance Found, Changing Focus";
@@ -5871,17 +5844,6 @@ namespace LethalIntelligence.Patches
                 mustChangeActivity = true;
             }
             useEntranceTeleport(selectedEntrance);
-            /*maskedGoal = "going to a random fire exit";
-            //maskedEnemy.LookAndRunRandomly(true, true);
-            ((EnemyAI)maskedEnemy).SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true); // for now this still heads to the main entrance, need to set variable to find fire exits!
-            //__instance.moveTowardsDestination = true;
-            if (Vector3.Distance(maskedEnemy.transform.position, maskedEnemy.mainEntrancePosition) < 1f)
-            {
-                //maskedEnemy.running = false; //to stop them running. //not needed once isRunning.Value is added?
-                isRunning.Value = false;
-                mustChangeFocus = true;
-                mustChangeActivity = true;
-            }*/
         }
 
         float followTime = 0f;
