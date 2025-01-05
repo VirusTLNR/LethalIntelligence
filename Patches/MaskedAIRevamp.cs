@@ -1452,7 +1452,14 @@ namespace LethalIntelligence.Patches
             maskedPosition.Value = this.transform.position;
             maskedRotation.Value = this.transform.rotation;
             currentDestinationDistance.Value = Vector3.Distance(maskedPosition.Value, agent.pathEndPosition);
+            if (maskedEnemy.targetPlayer != null)
+            {
             maskedTargetId.Value = maskedEnemy.targetPlayer.GetClientId();
+            }
+            else
+            {
+                maskedTargetId.Value = 99999; //to make it null;
+            }
             maskedInSpecialAnimation.Value = maskedEnemy.inSpecialAnimation;
         }
 
@@ -1461,7 +1468,14 @@ namespace LethalIntelligence.Patches
             //all clients (including host) - receiving variables
             maskedFocus = (Focus)maskedFocusInt.Value;
             maskedActivity = (Activity)maskedActivityInt.Value;
+            if (maskedTargetId.Value == 99999)
+            {
+                maskedEnemy.targetPlayer = null;
+            }
+            else
+            {
             maskedEnemy.targetPlayer = maskedTargetId.Value.GetPlayerController();
+            }
             maskedEnemy.inSpecialAnimation = maskedInSpecialAnimation.Value;
         }
 
