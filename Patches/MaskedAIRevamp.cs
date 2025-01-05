@@ -234,13 +234,11 @@ namespace LethalIntelligence.Patches
 
         public GrabbableObject closestGrabbable;
 
-        public GrabbableObject nearestGrabbable, heldGrabbable; //only for status report!
+        public GrabbableObject heldGrabbable; //only for status report!
 
         private bool targetPlayerReachable;
 
-        private bool closestGrabbableReachable;
-
-        private bool nearestGrabbableReachable;
+        //private bool closestGrabbableReachable;
 
         private bool justPickedUpItem = false;
 
@@ -344,9 +342,9 @@ namespace LethalIntelligence.Patches
 
         private float apparatusDistance = 1000f;
 
-        private float closestGrabbableDistance = 1000f;
+        //private float closestGrabbableDistance = 1000f;
 
-        private float nearestGrabbableDistance = 1000f;
+        //private float nearestGrabbableDistance = 1000f;
 
         //private bool apparatusReachable;
 
@@ -533,9 +531,8 @@ namespace LethalIntelligence.Patches
             {
                 try
                 {
-                    string ng = "null";
                     string hg = "null";
-                    string ngd = "null";
+                    string cgd = "null";
                     string cg = "null";
                     string bbr = "null";
                     string bbo = "null";
@@ -543,12 +540,6 @@ namespace LethalIntelligence.Patches
                     string caf = "null";
                     string cm = "null";
                     string ci = "null";
-                    if (nearestGrabbable != null)
-                    {
-                        ng = nearestGrabbable.name.ToString();
-                        ngd = nearestGrabbableDistance.ToString();
-
-                    }
                     if (heldGrabbable != null)
                     {
                         hg = heldGrabbable.name.ToString();
@@ -556,6 +547,7 @@ namespace LethalIntelligence.Patches
                     if (closestGrabbable != null)
                     {
                         cg = closestGrabbable.name.ToString();
+                        cgd = closestGrabbableDistance.ToString();
                     }
                     if (breakerBox != null)
                     {
@@ -589,8 +581,8 @@ namespace LethalIntelligence.Patches
                     if (maskedFocus == Focus.Items || (maskedFocus == Focus.None && maskedActivity == Activity.RandomItem))
                     {
                         focusDetails = focusStart +
-                            "\nnearestGrabbableReachable = " + nearestGrabbableReachable +
-                            "\nnearestGrabbable = " + ng +
+                            "\nclosestGrabbableReachable = " + closestGrabbableReachable +
+                            //"\nclosestGrabbableDistance = " + cgd + //disabled because its spammy
                             "\nclosestGrabbable = " + cg;
                     }
                     else if (maskedFocus == Focus.BreakerBox || (maskedFocus == Focus.None && maskedActivity == Activity.BreakerBox))
@@ -686,6 +678,9 @@ namespace LethalIntelligence.Patches
         public LNetworkVariable<DateTime>? hostTimeStamp;
         public LNetworkVariable<ulong>? maskedTargetId;
         public LNetworkVariable<bool>? maskedInSpecialAnimation;
+        public LNetworkVariable<ulong> closestGrabbableId;
+        public LNetworkVariable<float> closestGrabbableDistance;
+        public LNetworkVariable<bool> closestGrabbableReachable;
 
         public LNetworkVariable<Vector3>? terminalPosition, breakerPosition, lockerPosition, apparatusPosition, fireExitPosition, mainEntrancePosition; //positions to save
 
@@ -729,6 +724,11 @@ namespace LethalIntelligence.Patches
             //for masked walkies
             useWalkie = LNetworkVariable<bool>.Connect("useWalkie" + id, false, LNetworkVariableWritePerms.Everyone);
             maskedWalkie = LNetworkVariable<GrabbableObject>.Connect("MaskedWalkie" + id, null, LNetworkVariableWritePerms.Everyone);
+
+            //for grabbing normal items
+            closestGrabbableId = LNetworkVariable<ulong>.Connect("closestGrabbableId" + id, 999999999, LNetworkVariableWritePerms.Everyone);
+            closestGrabbableDistance = LNetworkVariable<float>.Connect("closestGrabbableDistance" + id, -1, LNetworkVariableWritePerms.Everyone);
+            closestGrabbableReachable = LNetworkVariable<bool>.Connect("closestGrabbableReachable" + id, false, LNetworkVariableWritePerms.Everyone);
 
             //other
             dropItem = LNetworkVariable<bool>.Connect("dropItem" + id, false, LNetworkVariableWritePerms.Everyone);
@@ -1235,7 +1235,7 @@ namespace LethalIntelligence.Patches
                         mustChangeActivity = true;
                     }
                     //new line
-                    else if ((maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Aggressive) && nearestGrabbableDistance < 40f && lastMaskedFocus != Focus.Items && nearestGrabbableReachable && !noMoreItems)
+                    else if ((maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Aggressive) && closestGrabbableDistance.Value < 40f && lastMaskedFocus != Focus.Items && closestGrabbableReachable.Value && !noMoreItems)
                     //this was a cunning only line
                     //else if (closestGrabbableDistance < breakerBoxDistance && closestGrabbableDistance < terminalDistance && lastMaskedFocus != Focus.Items && closestGrabbableReachable && !noMoreItems)
                     {
@@ -1461,6 +1461,14 @@ namespace LethalIntelligence.Patches
                 maskedTargetId.Value = 99999; //to make it null;
             }
             maskedInSpecialAnimation.Value = maskedEnemy.inSpecialAnimation;
+            if (closestGrabbable != null)
+            {
+                closestGrabbableId.Value = closestGrabbable.NetworkObjectId;
+        }
+            else
+            {
+                closestGrabbableId.Value = ulong.MaxValue; //to make it null;
+            }
         }
 
         private void readSyncedVariables() //update network variables (host + all clients).
@@ -1477,6 +1485,23 @@ namespace LethalIntelligence.Patches
             maskedEnemy.targetPlayer = maskedTargetId.Value.GetPlayerController();
             }
             maskedEnemy.inSpecialAnimation = maskedInSpecialAnimation.Value;
+            if (closestGrabbableId.Value == ulong.MaxValue)
+            {
+                closestGrabbable = null;
+        }
+            else
+            {
+                foreach (GrabbableObject go in GlobalItemList.Instance.allitems)
+                {
+                    if(go.NetworkObjectId == closestGrabbableId.Value)
+                    {
+                        closestGrabbable = go;
+                        //Plugin.mls.LogError("FOUND ITEM!:- " + go.name);
+                        break;
+                    }
+                }
+            }
+            //Plugin.mls.LogError(closestGrabbableId.Value);
         }
 
         public void FixedUpdate()
@@ -1584,6 +1609,7 @@ namespace LethalIntelligence.Patches
                     SyncTermianlInt(10);
                 }
                 Plugin.mls.LogInfo("Masked '" + maskedId + "' personality changed to '" + maskedPersonality.ToString() + "'");
+                setNearestGrabbable();
                 mustChangeFocus = true;
                 mustChangeActivity = true;
             }
@@ -1626,6 +1652,13 @@ namespace LethalIntelligence.Patches
                 writeSyncedVariables(); //for syncing variables between host and client
             }
             readSyncedVariables(); //for syncing variables between host and client
+
+            ///////////////////////////////
+            //for testing only, do not use
+            /*agent.transform.position = maskedPosition.Value;
+            agent.speed = 0f;
+            return;/**/
+            //////////////////////////////
 
             if (maskedFocus != Focus.None)
             {
@@ -1843,8 +1876,10 @@ namespace LethalIntelligence.Patches
 
         private void setNearestGrabbable()
         {
+            if (IsHost)
+            {
             NavMeshHit hitGrabbable;
-            NavMeshPath nmpNearGrabbable = new NavMeshPath();
+                NavMeshPath nmpClosestGrabbable = new NavMeshPath();
             List<GrabbableObject> allItemsList;
             float num = float.PositiveInfinity;
             /*if (maskedPersonality == Personality.Cunning)
@@ -1957,7 +1992,7 @@ namespace LethalIntelligence.Patches
                     //Plugin.mls.LogDebug("item was hidden by the masked, ignore this item");
                     continue;
                 }
-                bool isReachable = agent.CalculatePath(allitem.transform.position, nmpNearGrabbable); //because we only want items from the FLOOR
+                    bool isReachable = agent.CalculatePath(allitem.transform.position, nmpClosestGrabbable); //because we only want items from the FLOOR
                 if (!isReachable)
                 {
                     //Plugin.mls.LogDebug("item is not reachable and closestgrabbable is null");
@@ -1970,21 +2005,22 @@ namespace LethalIntelligence.Patches
                 }
 
                 num = num2;
-                nearestGrabbable = allitem;
-                if (NavMesh.SamplePosition(nearestGrabbable.transform.position, out hitGrabbable, 10f, -1))
+                    closestGrabbable = allitem;
+                    if (NavMesh.SamplePosition(closestGrabbable.transform.position, out hitGrabbable, 10f, -1))
                 {
                     //closestGrabbableReachable = agent.CalculatePath(hitGrabbable.position, nmpGrabbable);
-                    nearestGrabbableReachable = agent.CalculatePath(nearestGrabbable.transform.position, nmpNearGrabbable);
+                        closestGrabbableReachable.Value = agent.CalculatePath(closestGrabbable.transform.position, nmpClosestGrabbable);
                     //nearestGrabbableDistance = Vector3.Distance(((Component)this).transform.position, ((Component)nearestGrabbable).transform.position);
-                    nearestGrabbableDistance = Vector3.Distance(maskedPosition.Value, ((Component)nearestGrabbable).transform.position);
+                        closestGrabbableDistance.Value = Vector3.Distance(maskedPosition.Value, ((Component)closestGrabbable).transform.position);
                     //grabbableClosestPoint = Vector3.Distance(hitGrabbable.position, nearestGrabbable.transform.position);
                 }
                 else
                 {
-                    nearestGrabbableReachable = false;
-                    nearestGrabbableDistance = 1000f;
+                        closestGrabbableReachable.Value = false;
+                        closestGrabbableDistance.Value = 1000f;
                 }
             }
+        }
         }
 
         private void DetectAndSelectRandomPlayer()
@@ -2962,7 +2998,8 @@ namespace LethalIntelligence.Patches
                     //items
                     if (!isHoldingObject)
                     {
-                        if (nearestGrabbable == null)
+                        setNearestGrabbable();
+                        if (closestGrabbable == null && closestGrabbableReachable.Value == false)
                         {
                             maskedGoal = "cant find any grabbable items, switching focus";
                             noMoreItems = true;
@@ -2971,7 +3008,8 @@ namespace LethalIntelligence.Patches
                         else
                         {
                             maskedGoal = "grabbing item from inside ship";
-                            GrabItem();
+                            PickupItem();
+                            //GrabItem();
                         }
                     }
                     else
@@ -3055,16 +3093,18 @@ namespace LethalIntelligence.Patches
                     //items
                     if (!isHoldingObject)
                     {
-                        if (closestGrabbable == null)
+                        setNearestGrabbable();
+                        if (closestGrabbable == null && closestGrabbableReachable.Value == false)
                         {
                             maskedGoal = "locating new grabbable item";
-                            noMoreItems = true;
+                            //noMoreItems = true; //dont do this or items will always be unavailable
                             mustChangeFocus = true;
                         }
                         else
                         {
                             maskedGoal = "grabbing nearest item";
-                            GrabItem();
+                            PickupItem();
+                            //GrabItem();
                         }
                     }
                     else
@@ -4541,6 +4581,65 @@ namespace LethalIntelligence.Patches
 
 
         //this picks up multiple items if they are stacked on each other, maybe re-work to be like hoarder bug works..
+
+        public void PickupItem()
+        {
+            if (isHoldingObject || noMoreItems || notGrabItems || closestGrabbable == null)
+            {
+                return;
+            }
+            if (((NetworkBehaviour)this).IsHost)
+            {
+                if (closestGrabbableDistance.Value < 1.5f && !isHoldingObject)
+                {
+                    isCrouched.Value = true;
+                }
+                else
+                {
+                    isCrouched.Value = false;
+                }
+                if (closestGrabbableDistance.Value > 0.5f)
+                {
+                    __instance.SetDestinationToPosition(((Component)closestGrabbable).transform.position, true);
+                    __instance.moveTowardsDestination = true;
+                    __instance.movingTowardsTargetPlayer = false;
+                }
+                /*else
+                {
+                    __instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
+                    __instance.moveTowardsDestination = false;
+                }*/
+            }
+            if (closestGrabbableDistance.Value > 0.5f && closestGrabbableDistance.Value < 3f)
+            {
+                maskedEnemy.focusOnPosition = ((Component)closestGrabbable).transform.position;
+                maskedEnemy.lookAtPositionTimer = 1.5f;
+            }
+            if (closestGrabbableDistance.Value < 0.9f)
+            {
+                if (isHoldingObject)
+                {
+                    return;
+                }
+                //NotGrabItemsTime(); //may not be a fix
+                float num3 = Vector3.Angle(((Component)__instance).transform.forward, ((Component)closestGrabbable).transform.position - ((Component)__instance).transform.position);
+                if (((Component)closestGrabbable).transform.position.y - maskedEnemy.headTiltTarget.position.y < 0f)
+                {
+                    num3 *= -1f;
+                }
+                maskedEnemy.verticalLookAngle = num3;
+                heldGrabbable = closestGrabbable;
+                closestGrabbable.parentObject = itemHolder.transform;
+                closestGrabbable.hasHitGround = false;
+                closestGrabbable.isHeld = true;
+                closestGrabbable.isHeldByEnemy = true;
+                closestGrabbable.grabbable = false;
+                isHoldingObject = true;
+                itemDroped = false;
+                closestGrabbable.GrabItemFromEnemy(__instance);
+            }
+        }
+
         public void GrabItem()
         {
             //IL_0045: Unknown result type (might be due to invalid IL or missing references)
@@ -4670,8 +4769,8 @@ namespace LethalIntelligence.Patches
                 {
                     continue;
                 }
-                closestGrabbableReachable = agent.CalculatePath(allitem.transform.position, nmpGrabbable);
-                if (!closestGrabbableReachable)
+                closestGrabbableReachable.Value = agent.CalculatePath(allitem.transform.position, nmpGrabbable);
+                if (!closestGrabbableReachable.Value)
                 {
                     continue;
                 }
@@ -4759,10 +4858,10 @@ namespace LethalIntelligence.Patches
                 return;
             }
             //setClosestGrabbable();
-            if (!nearestGrabbableReachable || nearestGrabbable == null)
+            if (!closestGrabbableReachable.Value || closestGrabbable == null)
             {
                 //setNearestGrabbable();
-                if (nearestGrabbable == null)
+                if (closestGrabbable == null)
                 {
                     noMoreItems = true;
                     return;
@@ -4775,7 +4874,7 @@ namespace LethalIntelligence.Patches
             }*/
             if (((NetworkBehaviour)this).IsHost)
             {
-                if (closestGrabbableDistance < 1.5f && !isHoldingObject)
+                if (closestGrabbableDistance.Value < 1.5f && !isHoldingObject)
                 {
                     isCrouched.Value = true;
                 }
@@ -4783,7 +4882,7 @@ namespace LethalIntelligence.Patches
                 {
                     isCrouched.Value = false;
                 }
-                if (closestGrabbableDistance > 0.5f)
+                if (closestGrabbableDistance.Value > 0.5f)
                 {
                     __instance.SetDestinationToPosition(closestGrabbable.transform.position, false);
                     __instance.moveTowardsDestination = true;
@@ -4802,12 +4901,12 @@ namespace LethalIntelligence.Patches
                     __instance.moveTowardsDestination = false;
                 }*/
             }
-            if (closestGrabbableDistance > 0.5f && closestGrabbableDistance < 3f)
+            if (closestGrabbableDistance.Value > 0.5f && closestGrabbableDistance.Value < 3f)
             {
                 maskedEnemy.focusOnPosition = ((Component)closestGrabbable).transform.position;
                 maskedEnemy.lookAtPositionTimer = 1.5f;
             }
-            if (closestGrabbableDistance < 0.9f)
+            if (closestGrabbableDistance.Value < 0.9f)
             {
                 float num3 = Vector3.Angle(((Component)__instance).transform.forward, ((Component)closestGrabbable).transform.position - ((Component)__instance).transform.position);
                 if (((Component)closestGrabbable).transform.position.y - maskedEnemy.headTiltTarget.position.y < 0f)
@@ -4825,7 +4924,7 @@ namespace LethalIntelligence.Patches
                 itemDroped = false;
                 heldGrabbable.GrabItemFromEnemy(__instance);
             }
-            if (closestGrabbableDistance < 1f && !isHoldingObject && ((NetworkBehaviour)this).IsHost)
+            if (closestGrabbableDistance.Value < 1f && !isHoldingObject && ((NetworkBehaviour)this).IsHost)
             {
                 isCrouched.Value = true;
             }
