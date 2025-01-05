@@ -498,7 +498,12 @@ namespace LethalIntelligence.Patches
                         maskedGoal = "using entrance (" + et.entranceId + "/" + et.entrancePoint.position.ToString() + ")";
                         TimeSinceTeleporting = 0;
                         TeleportMaskedEnemyAndSync((Vector3)opposingTeleportPosition, !maskedEnemy.isOutside);
+                        maskedPosition.Value = (Vector3)opposingTeleportPosition;
                         //changing focus and activity will also break the cycle of entities being stuck at the main entrance... UNLESS this code doesnt run when they get stuck there
+                        if((maskedPersonality == Personality.Deceiving && maskedFocus == Focus.Items) || (maskedPersonality == Personality.Insane && maskedFocus == Focus.Escape))
+                        {
+                            break; //break without changing focus/activity.
+                        }
                         mustChangeFocus = true;
                         mustChangeActivity = true;
                         break;
@@ -1136,7 +1141,7 @@ namespace LethalIntelligence.Patches
                                 //terminalDistance = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position);
                                 terminalDistance = Vector3.Distance(maskedPosition.Value, ((Component)terminal).transform.position);
                                 terminalClosestPoint = Vector3.Distance(hitTerminal.position, terminal.transform.position);
-                                terminalPosition.Value = hitTerminal.position;
+                                terminalPosition.Value = new Vector3(terminal.transform.position.x, terminal.transform.position.y - 1.44f, terminal.transform.position.z) - (terminal.transform.right * 0.8f);
                             }
                             else
                             {
@@ -1524,7 +1529,8 @@ namespace LethalIntelligence.Patches
             if (((EnemyAI)maskedEnemy).isEnemyDead && isHoldingObject)
             {
                 maskedGoal = "died, dropping objects!";
-                DropItem(); //using dropitem function to drop the items
+                dropItem.Value = true;
+                //DropItem(); //using dropitem function to drop the items
                 /*closestGrabbable.parentObject = null;
                 closestGrabbable.isHeld = false;
                 closestGrabbable.isHeldByEnemy = false;
@@ -1609,7 +1615,6 @@ namespace LethalIntelligence.Patches
                     SyncTermianlInt(10);
                 }
                 Plugin.mls.LogInfo("Masked '" + maskedId + "' personality changed to '" + maskedPersonality.ToString() + "'");
-                setNearestGrabbable();
                 mustChangeFocus = true;
                 mustChangeActivity = true;
             }
@@ -2329,6 +2334,10 @@ namespace LethalIntelligence.Patches
 
         public void ItemAnimationSelector(Animator creatureAnimator, EnemyAI __instance)
         {
+            if (dropItem.Value)
+            {
+                DropItem();
+            }
             if (isHoldingObject)
             {
                 //upperBodyAnimationsWeight = Mathf.Lerp(upperBodyAnimationsWeight, 0.9f, 25f * Time.deltaTime);
@@ -3026,10 +3035,10 @@ namespace LethalIntelligence.Patches
                     if (!isHoldingObject)
                     {
                         setNearestGrabbable();
-                        if (closestGrabbable == null && closestGrabbableReachable.Value == false)
+                        if (closestGrabbable == null || closestGrabbableReachable.Value == false)
                         {
                             maskedGoal = "cant find any grabbable items, switching focus";
-                            noMoreItems = true;
+                            //noMoreItems = true;
                             mustChangeFocus = true;
                         }
                         else
@@ -3058,7 +3067,7 @@ namespace LethalIntelligence.Patches
                         {
                             Plugin.mls.LogDebug("all bushes have an item, dropping item and changing focus");
                             dropItem.Value = true;
-                            DropItem();
+                            //DropItem(); //shouldent be needed, dropItem.Value = true should be enough.
                             noMoreItems = true;
                             mustChangeFocus = true;
                         }
@@ -3080,7 +3089,7 @@ namespace LethalIntelligence.Patches
                                     Plugin.mls.LogDebug("Cunning Is Hiding an Item");
                                     itemSystem.hidedByMasked = true;
                                     dropItem.Value = true;
-                                    DropItem();
+                                    //DropItem(); //shouldent be needed, dropItem.Value = true should be enough.
                                     itemsToHide--;
                                     mustChangeFocus = true;
                                     val.GetComponent<BushSystem>().bushWithItem = true;
@@ -3121,15 +3130,15 @@ namespace LethalIntelligence.Patches
                     if (!isHoldingObject)
                     {
                         setNearestGrabbable();
-                        if (closestGrabbable == null && closestGrabbableReachable.Value == false)
+                        if (closestGrabbable == null || closestGrabbableReachable.Value == false)
                         {
-                            maskedGoal = "locating new grabbable item";
+                            maskedGoal = "cant find any grabbable items, switching focus";
                             //noMoreItems = true; //dont do this or items will always be unavailable
                             mustChangeFocus = true;
                         }
                         else
                         {
-                            maskedGoal = "grabbing nearest item";
+                            maskedGoal = "grabbing nearest item outside of the ship";
                             PickupItem();
                             //GrabItem();
                         }
@@ -3137,28 +3146,30 @@ namespace LethalIntelligence.Patches
                     else
                     {
                         isCrouched.Value = false; //stop crouching after picking up an item
-                        if (maskedEnemy.isInsidePlayerShip)
+                        if(!maskedEnemy.isOutside)
                         {
-                            //float num2 = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position);
-                            float num2 = Vector3.Distance(maskedPosition.Value, ((Component)terminal).transform.position);
-                            if (num2 > 6f)
-                            {
-                                maskedGoal = "heading to player ship to drop an item";
-                                maskedEnemy.SetDestinationToPosition(terminal.transform.position);
-                            }
-                            else if (num2 < 6f)
-                            {
-                                maskedGoal = "dropping item in player ship";
-                                dropItem.Value = true;
-                                DropItem();
-                            }
+                            findEntranceTeleports(true, true);
                         }
                         else
                         {
-                            findLockerAudio();
+                            //float num2 = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position);
+                            float num2 = Vector3.Distance(maskedPosition.Value, terminalPosition.Value);
+                            if (num2 > 6f)
+                            {
+                                maskedGoal = "heading to player ship to drop an item";
+                                maskedEnemy.SetDestinationToPosition(terminalPosition.Value);
+                            }
+                            else if (num2 < 6f && maskedEnemy.isInsidePlayerShip)
+                            {
+                                maskedGoal = "dropping item in player ship";
+                                dropItem.Value = true;
+                                mustChangeFocus = true;
+                                mustChangeActivity = true;
+                                //DropItem(); //shouldent be needed, dropItem.Value = true should be enough.
+                            }
+                        }
                         }
                     }
-                }
                 else
                 {
                     mustChangeFocus = true;
@@ -3537,7 +3548,8 @@ namespace LethalIntelligence.Patches
                 }
                 if (apparatusDistance < 10f && isHoldingObject)
                 {
-                    DropItem(); //drop item before taking the apparatus
+                    dropItem.Value = true; //drop item before taking the apparatus
+                    //DropItem(); //drop item before taking the apparatus 
                 }
                 /*if (apparatusDistance < 10f)
                 {
@@ -3884,7 +3896,7 @@ namespace LethalIntelligence.Patches
             if (num < 40f)
             //if (num < 60)
             {
-                dropItem.Value = true;
+                //dropItem.Value = true; //done later, so use later.
                 if (num < 15f && num > 3.5f && Plugin.isTerminalBeingUsed)
                 {
                     Plugin.mls.LogDebug("Terminal is being used by another entity");
@@ -3901,7 +3913,8 @@ namespace LethalIntelligence.Patches
                 }
                 if (num < 5.5f && isHoldingObject)
                 {
-                    DropItem(); //drop inside the ship if you will use the terminal
+                    dropItem.Value = true; //drop inside the ship if you will use the terminal
+                    //DropItem(); //drop inside the ship if you will use the terminal //shouldent be needed, dropItem.Value = true should be enough.
                 }
 
                 if (!terminal.terminalInUse && !noMoreTerminal && num < 1.8f)
@@ -4519,17 +4532,18 @@ namespace LethalIntelligence.Patches
                     }
                 }
             }
-            if (dropItem.Value)
+            /*if (dropItem.Value)
             {
                 DropItem();
+            }*/
             }
-        }
 
         private async void NotGrabItemsTime()
         {
             notGrabItems = true;
             await Task.Delay(9000);
             notGrabItems = false;
+            dropItem.Value = false;
         }
 
         private void OldDropItem()
