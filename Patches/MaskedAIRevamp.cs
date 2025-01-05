@@ -2983,8 +2983,11 @@ namespace LethalIntelligence.Patches
                         //noMoreTerminal = true;
                         //noMoreItems = true;
                         //focusingPersonality = true;
+                        if (IsHost)
+                        {
                         maskedEnemy.SetDestinationToPosition(breakerPosition.Value);
                         maskedEnemy.moveTowardsDestination = true;
+                        }
 
                         //breakerBoxDistance = Vector3.Distance(__instance.transform.position, breakerPosition);
                         //breakerBoxDistance = Vector3.Distance(maskedPosition.Value, breakerPosition);
