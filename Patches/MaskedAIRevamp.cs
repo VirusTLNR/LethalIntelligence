@@ -678,7 +678,7 @@ namespace LethalIntelligence.Patches
         public LNetworkVariable<DateTime>? hostTimeStamp;
         public LNetworkVariable<ulong>? maskedTargetId;
         public LNetworkVariable<bool>? maskedInSpecialAnimation;
-        public LNetworkVariable<ulong> closestGrabbableId;
+        public LNetworkVariable<ulong> closestGrabbableId, maskedWalkieId;
         public LNetworkVariable<float> closestGrabbableDistance;
         public LNetworkVariable<bool> closestGrabbableReachable;
 
@@ -723,10 +723,10 @@ namespace LethalIntelligence.Patches
 
             //for masked walkies
             useWalkie = LNetworkVariable<bool>.Connect("useWalkie" + id, false, LNetworkVariableWritePerms.Everyone);
-            maskedWalkie = LNetworkVariable<GrabbableObject>.Connect("MaskedWalkie" + id, null, LNetworkVariableWritePerms.Everyone);
+            maskedWalkieId = LNetworkVariable<ulong>.Connect("MaskedWalkieId" + id, ulong.MaxValue, LNetworkVariableWritePerms.Everyone);
 
             //for grabbing normal items
-            closestGrabbableId = LNetworkVariable<ulong>.Connect("closestGrabbableId" + id, 999999999, LNetworkVariableWritePerms.Everyone);
+            closestGrabbableId = LNetworkVariable<ulong>.Connect("closestGrabbableId" + id, ulong.MaxValue, LNetworkVariableWritePerms.Everyone);
             closestGrabbableDistance = LNetworkVariable<float>.Connect("closestGrabbableDistance" + id, -1, LNetworkVariableWritePerms.Everyone);
             closestGrabbableReachable = LNetworkVariable<bool>.Connect("closestGrabbableReachable" + id, false, LNetworkVariableWritePerms.Everyone);
 
@@ -2520,12 +2520,12 @@ namespace LethalIntelligence.Patches
                             }
                             continue;
                         }
-                        if(walkie.transform == null)
+                        if (walkie.transform == null)
                         {
                             Plugin.mls.LogError("walkie.transform is Null (GrabWalkie)");
                             continue;
                         }
-                        if(walkie.transform.position == null)
+                        if (walkie.transform.position == null)
                         {
 
                             Plugin.mls.LogError("walkie.transform.position is Null (GrabWalkie)");
@@ -2539,7 +2539,15 @@ namespace LethalIntelligence.Patches
                             }
                             maskedGoal = "spotted walkie talkie, going to go pick it up";
                             walkieToGrab = walkie;
-                            maskedWalkie.Value = walkie;
+                            //maskedWalkie.Value = walkie;
+                            if (walkieToGrab != null)
+                            {
+                                maskedWalkieId.Value = walkieToGrab.NetworkObjectId;
+                            }
+                            else
+                            {
+                                maskedWalkieId.Value = ulong.MaxValue; //to make it null;
+                            }
                             //Plugin.mls.LogError("walkie @ POS:-" + walkieToGrab.transform.position);
                             //Plugin.mls.LogError("walkie @ FLO:-" + walkieToGrab.targetFloorPosition);
                             maskedFocusInt.Value = (int)Focus.None; //syncing variables
@@ -2548,12 +2556,32 @@ namespace LethalIntelligence.Patches
                         }
                     }
                 }
-                walkieToGrab = maskedWalkie.Value;
+            }
+            else
+            {
+                if (maskedWalkieId.Value == ulong.MaxValue)
+                {
+                    walkieToGrab = null;
+                }
+                else
+                {
+                    foreach (GrabbableObject go in GlobalItemList.Instance.allitems)
+                    {
+                        if (go.NetworkObjectId == maskedWalkieId.Value)
+                        {
+                            walkieToGrab = go;
+                            //Plugin.mls.LogError("FOUND ITEM!:- " + go.name);
+                            break;
+                    }
+                }
+                }
+            }
+            //walkieToGrab = maskedWalkie.Value;
                 if (walkieToGrab == null) //if still null...
                 {
                     return; //there is no walkie to grab in sight.. so dont continue.
                 }
-                if(walkieToGrab.isHeld || walkieToGrab.isHeldByEnemy)
+            if (walkieToGrab.isHeld || walkieToGrab.isHeldByEnemy)
                 {
                     walkieToGrab = null;
                     isCrouched.Value = false;
@@ -2610,7 +2638,6 @@ namespace LethalIntelligence.Patches
                     }
                 }
             }
-        }
 
         private void HoldWalkie()
         {
