@@ -500,7 +500,7 @@ namespace LethalIntelligence.Patches
                         TeleportMaskedEnemyAndSync((Vector3)opposingTeleportPosition, !maskedEnemy.isOutside);
                         maskedPosition.Value = (Vector3)opposingTeleportPosition;
                         //changing focus and activity will also break the cycle of entities being stuck at the main entrance... UNLESS this code doesnt run when they get stuck there
-                        if((maskedPersonality == Personality.Deceiving && maskedFocus == Focus.Items) || (maskedPersonality == Personality.Insane && maskedFocus == Focus.Escape))
+                        if ((maskedPersonality == Personality.Deceiving && maskedFocus == Focus.Items) || (maskedPersonality == Personality.Insane && maskedFocus == Focus.Escape))
                         {
                             break; //break without changing focus/activity.
                         }
@@ -620,7 +620,7 @@ namespace LethalIntelligence.Patches
                     string hostTimeStampPlaceholder = "ReplaceWithDateAndTimeNeverLogThis";
                     string hostTimeStampReplacement = hostTimeStamp.Value.ToString("dd/MM/yyyy @ hh:mm:ss"); //add in time stamp AFTER it is checked to prevent spam.
 
-                    string debugMsg =
+                    string debugMsg = "DebugMode..." + //because the first line is empty
                     "\n===== MaskedStatusReport() Start =====" +
                     "\nMaskedID = " + maskedId +
                     "\nHostTimeStamp = " + hostTimeStampPlaceholder +
