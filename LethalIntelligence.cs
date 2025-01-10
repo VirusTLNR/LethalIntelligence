@@ -173,6 +173,7 @@ namespace LethalIntelligence
             harmony.PatchAll(typeof(ShotgunItemPatch));
             harmony.PatchAll(typeof(GrabbableObjectPatch));
             harmony.PatchAll(typeof(StartOfRoundPatch));
+            harmony.PatchAll(typeof(RoundManagerPatch));
 
             mls.LogDebug("Finished patching!");
         }

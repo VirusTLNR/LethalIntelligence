@@ -5417,6 +5417,11 @@ namespace LethalIntelligence.Patches
 
         private EntranceTeleport? selectClosestEntrance(bool isOutside, bool MainEntranceAllowed = true, bool FireExitsAllowed = true)
         {
+            //only for checking things are synced
+            /*foreach (int e in RoundManagerPatch.networkedInvalidEntrances.Value)
+            {
+                Plugin.mls.LogError(e.ToString());
+            }*/
             EntranceTeleport et = null;
             if (!MainEntranceAllowed && !FireExitsAllowed)
             {
@@ -5425,7 +5430,29 @@ namespace LethalIntelligence.Patches
             float dist = 1000;
             for (int i = 0; i < entrancesTeleportArray.Length; i++)
             {
-                if (currentMoon == "OffenseLevel" && entrancesTeleportArray[i].entranceId == 1)
+                //this is VERY spammy.. dont uncomment (even for testing) unless you prevent it from sending multiple times
+                /*Plugin.mls.LogError("EntranceDetails(Masked) for #" + i);
+                Plugin.mls.LogWarning("Prefab           =" + entrancesTeleportArray[i]);
+                Plugin.mls.LogWarning("ID               =" + entrancesTeleportArray[i].entranceId);
+                Plugin.mls.LogWarning("Outside?         =" + entrancesTeleportArray[i].isEntranceToBuilding);
+                Plugin.mls.LogWarning("EntrancePointPos =" + entrancesTeleportArray[i].entrancePoint.position);
+                if (entrancesTeleportArray[i].FindExitPoint())
+                {
+                    Plugin.mls.LogWarning("ExitPointPos     =" + entrancesTeleportArray[i].exitPoint.position);
+                }
+                else
+                {
+                    Plugin.mls.LogWarning("ExitPointPos     =" + "null");
+                }
+                Plugin.mls.LogWarning("TransformPos     =" + entrancesTeleportArray[i].transform.position);*/
+
+                if (RoundManagerPatch.networkedInvalidEntrances.Value.Contains(entrancesTeleportArray[i].entranceId))
+                {
+                    //on the invalid list for the current moon/interior (dynamically checked) --- so ignore this entrance!
+                    //Plugin.mls.LogError("Avoiding EntranceTeleport #" + entrancesTeleportArray[i].entranceId + " as it is on the naughty list this round");
+                    continue;
+                }
+                /*if (currentMoon == "OffenseLevel" && entrancesTeleportArray[i].entranceId == 1)
                 {
                     //you cant use the fire exit on offense because of the cliff not having any navmesh/links up/down
                     continue;
@@ -5434,7 +5461,7 @@ namespace LethalIntelligence.Patches
                 {
                     //you cant use fire exits with liminal pools as one has no navmesh due to design (offnavmeshlinks are missing).
                     continue;
-                }
+                }*/
                 if ((entrancesTeleportArray[i].entranceId == 0 && MainEntranceAllowed) || (entrancesTeleportArray[i].entranceId > 0 && FireExitsAllowed))
                 {
                     //Plugin.mls.LogError(String.Format("{0}/{1}/{2}/{3}", entrancesTeleportArray[i].entranceId, entrancesTeleportArray[i].transform.position, entrancesTeleportArray[i].entrancePoint.position, entrancesTeleportArray[i].isEntranceToBuilding));
@@ -5828,6 +5855,7 @@ namespace LethalIntelligence.Patches
                 if (otherEntrance.entranceId == entrance.entranceId
                     && otherEntrance.isEntranceToBuilding != entrance.isEntranceToBuilding)
                 {
+                    Plugin.mls.LogDebug("SettingEntranceExitPointFor#=" + i + " | EID=" + entrance.entranceId + " | OID=" + otherEntrance.entranceId + " | IETB?=" + entrance.isEntranceToBuilding);
                     return otherEntrance.entrancePoint.position;
                 }
             }
