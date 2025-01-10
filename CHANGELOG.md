@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.3.7
+- automated detection of bad MainEntrances/FireExit's so the masked do not use them (previously I was trying to add these manually)
+- prevented a null reference exception in regards to the NavMeshAgent being null
+
 ### 0.3.6 - The Grand Re-Networking Patch #2 of 2
 - TargetPlayer networking issues fixed
 - item pickup networking issues fixed
