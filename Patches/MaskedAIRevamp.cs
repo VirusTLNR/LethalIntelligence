@@ -441,8 +441,8 @@ namespace LethalIntelligence.Patches
             //if (Vector3.Distance(maskedEnemy.transform.position, agent.pathEndPosition) < 5f)
             if (Vector3.Distance(maskedPosition.Value, agent.pathEndPosition) < 5f)
             {
-                    //get a list of exits and loop through them
-                    foreach (EntranceTeleport et in entrancesTeleportArray)
+                //get a list of exits and loop through them
+                foreach (EntranceTeleport et in entrancesTeleportArray)
                 {
                     if (et == null)
                     {
@@ -488,7 +488,7 @@ namespace LethalIntelligence.Patches
                     //if (objectInLOSCheck(maskedEnemy, et.gameObject) == 2 || Vector3.Distance(maskedEnemy.transform.position, et.entrancePoint.position) < 1f) //re-adding distance as an alternative option for deciding if masked use the entrance.
                     if (objectInLOSCheck(maskedEnemy, et.gameObject) == 2 || Vector3.Distance(maskedPosition.Value, et.entrancePoint.position) < 1f) //re-adding distance as an alternative option for deciding if masked use the entrance.
                     {
-                            if (TimeSinceTeleporting < 3f)
+                        if (TimeSinceTeleporting < 3f)
                         {
                             maskedGoal = "waiting to use entrance (" + et.entranceId + "/" + et.entrancePoint.position.ToString() + ") (less than 3 seconds)";
                             return;
@@ -1539,7 +1539,10 @@ namespace LethalIntelligence.Patches
             if (maskedEnemy.isEnemyDead || StartOfRound.Instance.shipIsLeaving || StartOfRound.Instance.shipLeftAutomatically) //masked died or ship is leaving.
             {
                 maskedGoal = "none (dead or ship is leaving)!";
-                ((Behaviour)agent).enabled = false;
+                if (agent != null)
+                {
+                    ((Behaviour)agent).enabled = false;
+                }
                 if (isUsingTerminal == true)
                 {
                     isUsingTerminal = false;
