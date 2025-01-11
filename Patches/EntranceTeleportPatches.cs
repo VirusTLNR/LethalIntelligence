@@ -234,6 +234,10 @@ namespace LethalIntelligence.Patches
         {
             if (GameNetworkManager.Instance.isHostingGame)
             {
+                if (RoundManager.Instance.currentLevel.name.ToString() == "CompanyBuildingLevel")
+                {//company moon (no interior)
+                    return; //prevent this code running on the company
+                }
                 Plugin.mls.LogInfo("Checking which Entrance Teleports are Valid...");
                 earlyCallSetExitIDs();
                 entrancesChecked = 0;

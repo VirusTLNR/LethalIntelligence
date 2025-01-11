@@ -1,5 +1,8 @@
 ## Changelog
 
+### 0.3.8 - Hotfix
+- fixed an issue with routing to the company spamming an error about the main entrance being null in 0.3.7
+
 ### 0.3.7
 - automated detection of bad MainEntrances/FireExit's so the masked do not use them (previously I was trying to add these manually)
 - prevented a null reference exception in regards to the NavMeshAgent being null
