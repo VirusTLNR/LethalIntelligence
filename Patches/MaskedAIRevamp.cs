@@ -184,9 +184,10 @@ namespace LethalIntelligence.Patches
             maskedPersonality = Personality.Deceiving; //for testing a specific personality
             maskedPersonalityInt.Value = 0; //for testing a specific personality
             lastMaskedPersonality = Personality.Deceiving;
-            maskedFocusInt.Value = (int)Focus.Items;
-            maskedActivityInt.Value = (int)Activity.None;
+            maskedFocusInt.Value = (int)Focus.None;
+            maskedActivityInt.Value = (int)Activity.Idle;
             mustChangeFocus = false;
+            mustChangeActivity = false;
         }
 
         public Personality maskedPersonality;
@@ -1762,7 +1763,7 @@ namespace LethalIntelligence.Patches
                 {
                     maskedGoal = "being idle, wandering until a player is targeted";
                     idleMode();
-            }
+                }
             }
             /*if (Plugin.useTerminal && (maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane) && !noMoreTerminal)
             {
@@ -5940,9 +5941,9 @@ namespace LethalIntelligence.Patches
                 {
                     __instance.StopSearch(idleSearch);
                     idleFarthestNodeSet = false;
-                mustChangeFocus = true;
-                mustChangeActivity = true;
-            }
+                    mustChangeFocus = true;
+                    mustChangeActivity = true;
+                }
             }
         }
 
