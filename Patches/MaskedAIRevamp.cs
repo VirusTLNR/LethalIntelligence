@@ -5465,6 +5465,16 @@ namespace LethalIntelligence.Patches
                 }
                 Plugin.mls.LogWarning("TransformPos     =" + entrancesTeleportArray[i].transform.position);*/
 
+                if (RoundManagerPatch.networkedInvalidEntrances.Value == null)
+                {
+                    Plugin.mls.LogWarning("networkedInvalidEntrances list is null (please report this..)");
+                    continue;
+                }
+                if (entrancesTeleportArray[i].entranceId == null)
+                {
+                    Plugin.mls.LogWarning("Entrance Teleport Array @ " + i + " is null (please report this..)");
+                    continue;
+                }
                 if (RoundManagerPatch.networkedInvalidEntrances.Value.Contains(entrancesTeleportArray[i].entranceId))
                 {
                     //on the invalid list for the current moon/interior (dynamically checked) --- so ignore this entrance!
