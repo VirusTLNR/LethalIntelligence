@@ -1,5 +1,11 @@
 ## Changelog
 
+### 0.3.9 - Hotfix
+- improved validation of EntranceTeleports by being less strict on some constraints to be in line with previous existing code that works fine. (bringing the new automatic code and the old manual code, more in line with each other)
+- added a new idle mode to prevent log spam when all entrances are unavailable, as well as to give a "fall back" mode to masked who have nothing to do, this currently makes masked walk from 5f to 80f away from the main entrance in an attempt to find players, if they find a player they will exit idle mode. They will not enter/exit the facitility in idle mode.
+- added a null reference check to prevent an exception regarding entrance teleports, this will now instead lead to "idle mode" if this occurs.
+- improved logging when masked spawns and debug mode is turned off
+
 ### 0.3.8 - Hotfix
 - fixed an issue with routing to the company spamming an error about the main entrance being null in 0.3.7
 
