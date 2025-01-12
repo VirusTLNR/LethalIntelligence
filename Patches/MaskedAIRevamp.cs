@@ -5929,7 +5929,7 @@ namespace LethalIntelligence.Patches
                     if (idleFarthestNodeSet)
                     {
                         __instance.SetDestinationToPosition(idleFarthestNode.position);
-                        if (Vector3.Distance(mainEntrancePosition.Value, agent.transform.position) >= 80f)
+                        if (Vector3.Distance(mainEntrancePosition.Value, agent.transform.position) >= 80f || Vector3.Distance(idleFarthestNode.position, agent.transform.position) <= 5f)
                         {
                             idleModeVersion.Value = 0;
                         }
