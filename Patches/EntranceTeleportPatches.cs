@@ -9,10 +9,10 @@ namespace LethalIntelligence.Patches
     [HarmonyPatch(typeof(RoundManager))]
     internal class RoundManagerPatch
     {
-
         /// <summary>
         /// should maybe change this to check each entrance vs all the others.. if the entrance has ONE+ complete path's then it is fine to use, check inside and outside at the same time, i guess.
         /// </summary>
+        private static float validDistance = 2f;
         private static EntranceTeleport[] entrancesTeleportArray = null!;
         private static List<EntranceTeleport> eta = new List<EntranceTeleport>();
         private static List<string> badCombinations = new List<string>();
@@ -24,28 +24,95 @@ namespace LethalIntelligence.Patches
 
         public static LethalNetworkAPI.LNetworkVariable<List<int>> networkedInvalidEntrances = LethalNetworkAPI.LNetworkVariable<List<int>>.Connect("networkedInvalidEntrances" + StartOfRound.Instance.NetworkObjectId, null, LethalNetworkAPI.LNetworkVariableWritePerms.Server);
 
-        private static bool isEntrancePathComplete(Vector3 s, int d)
+        private static bool isRandomPathComplete(Vector3 s, int d)
         {
             path = new NavMeshPath();
             NavMeshHit hit1, hit2;
-            NavMesh.SamplePosition(s, out hit1, 1.0f, -1);
+            NavMesh.SamplePosition(s, out hit1, validDistance, -1);
             int attempt = 1;
             float dist = 1000f;
             Vector3 currPos = hit1.position;
             while (attempt >= 1 && attempt <= 20 && dist > 1.5f)
             {
                 lastPos = currPos;
-                NavMesh.SamplePosition(currPos, out hit1, 1.0f, -1);
-                NavMesh.SamplePosition(entrancesTeleportArray[d].entrancePoint.position, out hit2, 1.0f, -1);
-                NavMesh.CalculatePath(hit1.position, hit2.position, -1, path);
-                dist = Vector3.Distance(currPos, hit2.position);
-                Plugin.mls.LogDebug("entrance#=" + d + " ID=" + entrancesTeleportArray[d].entranceId + " | dist=" + dist.ToString() + " | corners=" + path.corners.Length.ToString() + " | attempt=" + attempt.ToString() + " | status=" + path.status.ToString());
-                attempt++;
-                if (path.corners.Length == 0)
+                NavMesh.SamplePosition(currPos, out hit1, validDistance, -1);
+                if (hit1.position == null)
                 {
+                    Plugin.mls.LogDebug("   start random position is not near the navmesh? (hit is null)");
                     return false;
                 }
+                NavMesh.SamplePosition(entrancesTeleportArray[d].entrancePoint.position, out hit2, validDistance, -1);
+                if (hit2.position == null)
+                {
+                    Plugin.mls.LogDebug("   end entrance position is not near the navmesh? (hit is null)");
+                    return false;
+                }
+                NavMesh.CalculatePath(hit1.position, hit2.position, -1, path);
+                dist = Vector3.Distance(currPos, hit2.position);
+                Vector3 finishPos;
+                if (path.corners.Length == 0)
+                {
+                    finishPos = hit2.position;
+                    Plugin.mls.LogDebug("   testing entrance#=" + d + " ID=" + entrancesTeleportArray[d].entranceId + " | attempt=" + attempt.ToString() + " | startPos=" + currPos + " | lastPos=" + finishPos + " | status=" + path.status.ToString() + " | cornersLeft=" + path.corners.Length.ToString() + " | dist=" + dist.ToString());
+                    return false;
+                }
+                else
+                {
+                    finishPos = path.corners[path.corners.Length - 1];
+                    Plugin.mls.LogDebug("   testing entrance#=" + d + " ID=" + entrancesTeleportArray[d].entranceId + " | attempt=" + attempt.ToString() + " | startPos=" + currPos + " | lastPos=" + finishPos + " | status=" + path.status.ToString() + " | cornersLeft=" + path.corners.Length.ToString() + " | dist=" + dist.ToString());
+                }
                 currPos = path.corners[path.corners.Length - 1];
+                attempt++;
+                if (currPos == lastPos)
+                {
+                    attempt = -1;
+                }
+            };
+            if (path.status == NavMeshPathStatus.PathComplete) return true;
+            return false;
+        }
+
+
+
+        private static bool isEntrancePathComplete(int s, int d)
+        {
+            path = new NavMeshPath();
+            NavMeshHit hit1, hit2;
+            NavMesh.SamplePosition(entrancesTeleportArray[s].entrancePoint.position, out hit1, validDistance, -1);
+            int attempt = 1;
+            float dist = 1000f;
+            Vector3 currPos = hit1.position;
+            while (attempt >= 1 && attempt <= 20 && dist > 1.5f)
+            {
+                lastPos = currPos;
+                NavMesh.SamplePosition(currPos, out hit1, validDistance, -1);
+                if (hit1.position == null)
+                {
+                    Plugin.mls.LogDebug("   start entrance position is not near the navmesh? (hit is null)");
+                    return false;
+                }
+                NavMesh.SamplePosition(entrancesTeleportArray[d].entrancePoint.position, out hit2, validDistance, -1);
+                if (hit2.position == null)
+                {
+                    Plugin.mls.LogDebug("   end entrance position is not near the navmesh? (hit is null)");
+                    return false;
+                }
+                NavMesh.CalculatePath(hit1.position, hit2.position, -1, path);
+                dist = Vector3.Distance(currPos, hit2.position);
+                Vector3 finishPos;
+                if(path.corners.Length == 0)
+                {
+                    finishPos = hit2.position;
+                    Plugin.mls.LogDebug("   testing entrance#=" + d + " ID=" + entrancesTeleportArray[d].entranceId + " | attempt=" + attempt.ToString() + " | startPos=" + currPos + " | lastPos=" + finishPos + " | status=" + path.status.ToString() + " | cornersLeft=" + path.corners.Length.ToString() + " | dist=" + dist.ToString());
+                    return false;
+                }
+                else
+                {
+                    finishPos = path.corners[path.corners.Length - 1];
+                    Plugin.mls.LogDebug("   testing entrance#=" + d + " ID=" + entrancesTeleportArray[d].entranceId + " | attempt=" + attempt.ToString() + " | startPos=" + currPos + " | lastPos=" + finishPos + " | status=" + path.status.ToString() + " | cornersLeft=" + path.corners.Length.ToString() + " | dist=" + dist.ToString());
+                }
+                currPos = path.corners[path.corners.Length - 1];
+                attempt++;
                 if (currPos == lastPos)
                 {
                     attempt = -1;
@@ -57,6 +124,26 @@ namespace LethalIntelligence.Patches
 
 
         private static void checkPathtoRandomLocation(Vector3 et1, int et2)
+        {
+            string status;
+            bool doorSuccess = isRandomPathComplete(et1, et2);// = calcPath(et1,et2);
+            if (doorSuccess)
+            {
+                goodCombinations.Add(entrancesTeleportArray[et2].isEntranceToBuilding + "|" + entrancesTeleportArray[et2].entranceId);
+                //goodCombinations.Add(entrancesTeleportArray[et2].isEntranceToBuilding + "|" + fixETID(et2));
+                status = "PathComplete";
+            }
+            else
+            {
+                badCombinations.Add(entrancesTeleportArray[et2].isEntranceToBuilding + "|" + entrancesTeleportArray[et2].entranceId);
+                //badCombinations.Add(entrancesTeleportArray[et2].isEntranceToBuilding + "|" + fixETID(et2));
+                status = "PathInvalid";
+            }
+            Plugin.mls.LogDebug("   " + entrancesTeleportArray[et2].isEntranceToBuilding.ToString().Replace("True", "Outside").Replace("False", "Inside") + " RandomPos" + et1.ToString() + " --> Entrance" + entrancesTeleportArray[et2].entranceId + "@" + entrancesTeleportArray[et2].transform.position + " = " + status);
+            //Plugin.mls.LogDebug(entrancesTeleportArray[et2].isEntranceToBuilding.ToString().Replace("True", "Outside").Replace("False", "Inside") + " RandomPosition(" + et1.ToString() + ") --> " + fixETID(et2) + " = " + status);
+        }
+
+        private static void checkPathtoEntranceLocation(int et1, int et2)
         {
             string status;
             bool doorSuccess = isEntrancePathComplete(et1, et2);// = calcPath(et1,et2);
@@ -72,7 +159,7 @@ namespace LethalIntelligence.Patches
                 //badCombinations.Add(entrancesTeleportArray[et2].isEntranceToBuilding + "|" + fixETID(et2));
                 status = "PathInvalid";
             }
-            Plugin.mls.LogDebug(entrancesTeleportArray[et2].isEntranceToBuilding.ToString().Replace("True", "Outside").Replace("False", "Inside") + " RandomPosition(" + et1.ToString() + ") --> " + entrancesTeleportArray[et2].entranceId + " = " + status);
+            Plugin.mls.LogDebug("   " + entrancesTeleportArray[et2].isEntranceToBuilding.ToString().Replace("True", "Outside").Replace("False", "Inside") + " Entrance" + entrancesTeleportArray[et1].entranceId + "@" + entrancesTeleportArray[et1].transform.position + " --> Entrance" + entrancesTeleportArray[et2].entranceId + "@" + entrancesTeleportArray[et2].transform.position + " = " + status);
             //Plugin.mls.LogDebug(entrancesTeleportArray[et2].isEntranceToBuilding.ToString().Replace("True", "Outside").Replace("False", "Inside") + " RandomPosition(" + et1.ToString() + ") --> " + fixETID(et2) + " = " + status);
         }
 
@@ -125,7 +212,7 @@ namespace LethalIntelligence.Patches
             networkedInvalidEntrances.Value = invalidEntrances;
         }
 
-        private static int fixETID(int arrayIndex)
+        /*private static int fixETID(int arrayIndex)
         {
             int value = -1;
             //value = (int)System.Math.Floor((decimal)arrayIndex / 2); //not working as intended
@@ -139,7 +226,7 @@ namespace LethalIntelligence.Patches
                 value = arrayIndex;
             }
             return value;
-        }
+        }*/
 
         //other objects
         /*private static void checkPathToObject(int et1, Vector3 et2, string obj)
@@ -238,7 +325,7 @@ namespace LethalIntelligence.Patches
                 {//company moon (no interior)
                     return; //prevent this code running on the company
                 }
-                Plugin.mls.LogInfo("Checking which Entrance Teleports are Valid...");
+                Plugin.mls.LogInfo("Checking which Entrance Teleports are Valid...( " + RoundManager.Instance.currentLevel.name.ToString() + " | " + RoundManager.Instance.dungeonGenerator.Generator.DungeonFlow.name.ToString() + " )");
                 earlyCallSetExitIDs();
                 entrancesChecked = 0;
                 matchesChecked = 0;
@@ -247,7 +334,9 @@ namespace LethalIntelligence.Patches
                 entrancesTeleportArray = Object.FindObjectsOfType<EntranceTeleport>(includeInactive: false);
                 for (int i = 0; i < entrancesTeleportArray.Length; i++)
                 {
-                    /*Plugin.mls.LogError("EntranceDetails for #" + i);
+                    //comment out with /* below to remove debug logging
+                    /*
+                    Plugin.mls.LogError("EntranceDetails for #" + i);
                     Plugin.mls.LogWarning("Prefab           =" + entrancesTeleportArray[i]);
                     Plugin.mls.LogWarning("ID               =" + entrancesTeleportArray[i].entranceId);
                     Plugin.mls.LogWarning("Outside?         =" + entrancesTeleportArray[i].isEntranceToBuilding);
@@ -260,12 +349,13 @@ namespace LethalIntelligence.Patches
                     {
                         Plugin.mls.LogWarning("ExitPointPos     =" + "null");
                     }
-                    Plugin.mls.LogWarning("TransformPos     =" + entrancesTeleportArray[i].transform.position);*/
+                    Plugin.mls.LogWarning("TransformPos     =" + entrancesTeleportArray[i].transform.position);/*foreasyuncommenting*/
 
                     if (entrancesTeleportArray[i] == null)
                     {
                         continue;
                     }
+                    Plugin.mls.LogDebug("Checking entrance #" + i + " vs Random Locations...");
                     for (int t = 0; t < 3; t++)
                     {
                         Vector3 randomLocation;
@@ -280,13 +370,13 @@ namespace LethalIntelligence.Patches
                             //randomLocation = RoundManager.Instance.allEnemyVents[Random.RandomRangeInt(0, RoundManager.Instance.allEnemyVents.Length)].transform.position;
                             randomLocation = RandomNavmeshLocation(entrancesTeleportArray[i].entrancePoint.position, entrancesTeleportArray[i].entrancePoint.right, 15f, 5f);
                         }
-                        Plugin.mls.LogDebug("New RandomLocation Set=" + randomLocation.ToString());
+                        Plugin.mls.LogDebug(" Using RandomLocation=" + randomLocation.ToString());
                         checkPathtoRandomLocation(randomLocation, i);
                         matchesChecked++;
                     }
-                    entrancesChecked++;
                     //check versus other entrances
-                    /*for (int j = 0; j < entrancesTeleportArray.Length; j++)
+                    Plugin.mls.LogDebug("Checking entrance #" + i + " vs Other Entrances...");
+                    for (int j = 0; j < entrancesTeleportArray.Length; j++)
                     {
                         if (entrancesTeleportArray[j] == null)
                         {
@@ -294,14 +384,19 @@ namespace LethalIntelligence.Patches
                         }
                         if (entrancesTeleportArray[i].isEntranceToBuilding == entrancesTeleportArray[j].isEntranceToBuilding)
                         {
-                            if (entrancesTeleportArray[i] == entrancesTeleportArray[j])
+                            if (entrancesTeleportArray[i].entranceId == entrancesTeleportArray[j].entranceId)
                             {
                                 continue; //same entrance/exit, do not compare.
                             }
+                            Plugin.mls.LogDebug(" Using EntranceLocation=" + entrancesTeleportArray[j].transform.position.ToString());
+                            //checkPathtoRandomLocation(entrancesTeleportArray[j].transform.position, i);
+                            checkPathtoEntranceLocation(j, i);
                             matchesChecked++;
-                            checkPathBetweenEntrances(i, j);
+                            
                         }
-                    }*/
+                    }
+                    entrancesChecked++;
+
 
                     /*NavMeshHit oohit;
                     BreakerBox breaker;
