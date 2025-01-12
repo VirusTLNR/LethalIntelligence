@@ -168,6 +168,7 @@ namespace LethalIntelligence.Patches
         public enum Activity
         {
             None,
+            Idle,
             MainEntrance,
             FireExit,
             ItemLocker,
@@ -685,6 +686,7 @@ namespace LethalIntelligence.Patches
         public LNetworkVariable<ulong> closestGrabbableId, maskedWalkieId;
         public LNetworkVariable<float> closestGrabbableDistance;
         public LNetworkVariable<bool> closestGrabbableReachable;
+        public LNetworkVariable<int> idleModeVersion;
 
         public LNetworkVariable<Vector3>? terminalPosition, breakerPosition, lockerPosition, apparatusPosition, fireExitPosition, mainEntrancePosition; //positions to save
 
@@ -741,6 +743,9 @@ namespace LethalIntelligence.Patches
             terminalReachable = LNetworkVariable<bool>.Connect("terminalReachable" + id, false, LNetworkVariableWritePerms.Everyone);
             breakerBoxReachable = LNetworkVariable<bool>.Connect("breakerBoxReachable" + id, false, LNetworkVariableWritePerms.Everyone);
             apparatusReachable = LNetworkVariable<bool>.Connect("apparatusReachable" + id, false, LNetworkVariableWritePerms.Everyone);
+
+            //for idle mode only..
+            idleModeVersion = LNetworkVariable<int>.Connect("idleModeVersion" + id, 0, LNetworkVariableWritePerms.Everyone); //int idleModeVersion;
         }
 
 
@@ -867,6 +872,10 @@ namespace LethalIntelligence.Patches
             {
                 Plugin.mls.LogError(entrancesTeleportArray[i].name + "|" + entrancesTeleportArray[i].entranceId + "|" + entrancesTeleportArray[i].entrancePoint.position.ToString() + "|" + entrancesTeleportArray[i].transform.position.ToString() + "|" + entrancesTeleportArray[i].isEntranceToBuilding + "|" + entrancesTeleportArray[i].isActiveAndEnabled);
             }*/
+            if (IsHost)
+            {
+                mainEntrancePosition.Value = maskedEnemy.mainEntrancePosition;
+            }
             //TestConfig();
         }
 
@@ -1358,6 +1367,7 @@ namespace LethalIntelligence.Patches
             }
             else
             {
+                maskedActivityInt.Value = (int)Activity.Idle;
                 //do idle stuff i guess.
                 //maskedEnemy.LookAndRunRandomly();
             }
@@ -1748,6 +1758,11 @@ namespace LethalIntelligence.Patches
                     maskedGoal = "finding RandomItem";
                     findRandomItem();
                 }
+                else if(maskedActivity == Activity.Idle)
+                {
+                    maskedGoal = "being idle, wandering until a player is targeted";
+                    idleMode();
+            }
             }
             /*if (Plugin.useTerminal && (maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane) && !noMoreTerminal)
             {
@@ -5874,10 +5889,61 @@ namespace LethalIntelligence.Patches
                 maskedGoal = "No Entrance Found, Changing Focus";
                 Plugin.mls.LogWarning("selectedEntrance was Null, if all entrances are null, this may lead to masked stopping from moving completely.");
                 selectedEntrance = null;
+                maskedFocusInt.Value = (int)Focus.None;
+                maskedActivityInt.Value = (int)Activity.Idle;
+                return;
+                //mustChangeFocus = true;
+                //mustChangeActivity = true;
+            }
+            useEntranceTeleport(selectedEntrance);
+        }
+
+        AISearchRoutine idleSearch = null;
+        Transform idleFarthestNode;
+        bool idleFarthestNodeSet;
+        private void idleMode()
+        {
+            if (IsHost)
+            {
+                if (!idleFarthestNodeSet)
+                {
+                    idleFarthestNode = __instance.ChooseFarthestNodeFromPosition(mainEntrancePosition.Value, false, 0, false, 50, false);
+                    idleFarthestNodeSet = true;
+                }
+                if (idleModeVersion.Value == 0)
+                {
+                    if (Vector3.Distance(mainEntrancePosition.Value, agent.transform.position) <= 5f) //must keep the masked away from the main entrance as they get stuck there.
+                    {
+                        __instance.SetDestinationToPosition(idleFarthestNode.position);
+                        __instance.StopSearch(idleSearch);
+                        idleModeVersion.Value = 1;
+                    }
+                    else
+                    {
+                        __instance.StartSearch(agent.nextPosition, idleSearch);
+                    }
+                }
+                else if(idleModeVersion.Value == 1)
+                {
+                    if (idleFarthestNodeSet)
+                    {
+                        __instance.SetDestinationToPosition(idleFarthestNode.position);
+                        if (Vector3.Distance(mainEntrancePosition.Value, agent.transform.position) >= 80f)
+                        {
+                            idleModeVersion.Value = 0;
+                        }
+                    }
+                }
+                maskedGoal = "being idle(mode=" + idleModeVersion.Value + ")";
+                Plugin.mls.LogError(__instance.currentSearch.inProgress.ToString());
+                if (__instance.targetPlayer != null)
+                {
+                    __instance.StopSearch(idleSearch);
+                    idleFarthestNodeSet = false;
                 mustChangeFocus = true;
                 mustChangeActivity = true;
             }
-            useEntranceTeleport(selectedEntrance);
+            }
         }
 
         float followTime = 0f;
