@@ -5936,7 +5936,7 @@ namespace LethalIntelligence.Patches
                     }
                 }
                 maskedGoal = "being idle(mode=" + idleModeVersion.Value + ")";
-                Plugin.mls.LogError(__instance.currentSearch.inProgress.ToString());
+                //Plugin.mls.LogError(__instance.currentSearch.inProgress.ToString());
                 if (__instance.targetPlayer != null)
                 {
                     __instance.StopSearch(idleSearch);
