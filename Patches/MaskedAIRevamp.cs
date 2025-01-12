@@ -1628,7 +1628,7 @@ namespace LethalIntelligence.Patches
                 {
                     SyncTermianlInt(10);
                 }
-                Plugin.mls.LogInfo("Masked '" + maskedId + "' personality changed to '" + maskedPersonality.ToString() + "'");
+                Plugin.mls.LogInfo("Masked '" + maskedId + "' personality changed to '" + maskedPersonality.ToString() + "' (Moon:" + currentMoon + " & Interior:" + currentInterior + ")");
                 mustChangeFocus = true;
                 mustChangeActivity = true;
             }
