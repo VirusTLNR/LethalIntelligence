@@ -1876,18 +1876,41 @@ namespace LethalIntelligence.Patches
             //IL_0068: Unknown result type (might be due to invalid IL or missing references)
             //bool canSeePos = __instance.CheckLineOfSightForPosition(pos, 160f, 40, -1, null);
             bool canSeePos = __instance.CheckLineOfSightForPosition(pos, 80f, 60, -1, null);
-            if (canSeePos)
+            if (canSeePos || !needsToSeePosition)
             {
                 //maskedGoal = $"Look at position {pos} called! lookatpositiontimer setting to {lookAtTime}"; //this is laggy sadly..
-                maskedEnemy.focusOnPosition = pos;
+                maskedEnemy.focusOnPosition = new Vector3(pos.x,pos.y-1f,pos.z);
                 maskedEnemy.lookAtPositionTimer = lookAtTime;
                 //float num = Vector3.Angle(((Component)this).transform.forward, pos - ((Component)this).transform.position);
-                float num = Vector3.Angle(((Component)this).transform.forward, pos - maskedPosition.Value);
+                //float num = Vector3.Angle(((Component)this).transform.forward, pos - maskedEnemy.eye.transform.position); //not networked.
+                Vector3 eyeXZ = new Vector3(maskedEnemy.eye.transform.position.x, 0, maskedEnemy.eye.transform.position.z);
+                Vector3 posXZ = new Vector3(pos.x, 0, pos.z);
+                float dist = Vector3.Distance(eyeXZ, posXZ);
+                if(dist < 1f)
+                {
+                    dist = 1f;
+                }
+                float num = Vector3.Angle(maskedEnemy.eye.transform.forward, pos - maskedEnemy.eye.transform.position); //not networked.
+                //float num = Vector3.Angle(((Component)this).transform.forward, pos - maskedPosition.Value);
+                float numMultiplier = 2f*dist;
                 if (pos.y - maskedEnemy.headTiltTarget.position.y < 0f)
                 {
-                    num *= -1f;
+                    num /= -numMultiplier;
+                    /*if(num < -60f)
+                    {
+                        num = -60f;
+                    }*/
                 }
-                maskedEnemy.verticalLookAngle = num;
+                else if( pos.y - maskedEnemy.headTiltTarget.position.y > 0f)
+                {
+                    num /= numMultiplier;
+                    /*if (num > 60f)
+                    {
+                        num = 60f;
+                    }*/
+                }
+                maskedEnemy.verticalLookAngle = -(num-2f);
+                //Plugin.mls.LogError("CurrPos=" + maskedEnemy.eye.transform.position + " | LookingAt=" + pos + " | tiltAngle=" + num);
             }
             else
             {
@@ -3016,7 +3039,7 @@ namespace LethalIntelligence.Patches
                             //Plugin.mls.LogWarning("BB Distance IS Reached = " +breakerBoxDistance);
                             Plugin.isBreakerBoxBeingUsed = true;
                             maskedGoal = "using breaker box";
-                            maskedEnemy.LookAtFocusedPosition();
+                            maskedEnemy.LookAtFocusedPosition(); //#lookupISSUE?
                             isUsingBreakerBox = true;
                             creatureAnimator.ResetTrigger("Crouching");
                             //LookAtPos(breakerBox.transform.position, 8.5f);

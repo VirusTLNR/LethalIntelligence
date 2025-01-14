@@ -138,5 +138,21 @@ namespace LethalIntelligence.Patches
             }
             return false;
         }
+
+        //trying to stop players looking up when they see a player
+        /*[HarmonyPatch("LookAtPlayerClientRpc")]
+        [HarmonyPostfix]
+        private static void LookAtPlayerClientRpc_Postfix(MaskedPlayerEnemy __instance, int playerId)
+        {
+            Transform correctHeightPlayerTransform = StartOfRound.Instance.allPlayerScripts[playerId].transform;
+            __instance.stareAtTransform = correctHeightPlayerTransform;
+        }
+
+        [HarmonyPatch("DetectNoise")]
+        [HarmonyPrefix]
+        private static bool DetectNoise_Prefix()
+        {
+            return false;
+        }*/
     }
 }
