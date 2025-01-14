@@ -28,10 +28,20 @@ namespace LethalIntelligence.Patches
         {
             path = new NavMeshPath();
             NavMeshHit hit1, hit2;
+            if (s == new Vector3(0,0,0))
+            {
+                Plugin.mls.LogDebug("   (random check)start position is null");
+                return false;
+            }
             NavMesh.SamplePosition(s, out hit1, validDistance, -1);
             int attempt = 1;
             float dist = 1000f;
             Vector3 currPos = hit1.position;
+            if (entrancesTeleportArray[d] == null)
+            {
+                Plugin.mls.LogDebug("   (random check)end position is null");
+                return false;
+            }
             while (attempt >= 1 && attempt <= 20 && dist > 1.5f)
             {
                 lastPos = currPos;
@@ -39,6 +49,11 @@ namespace LethalIntelligence.Patches
                 if (hit1.position == null)
                 {
                     Plugin.mls.LogDebug("   start random position is not near the navmesh? (hit is null)");
+                    return false;
+                }
+                if(entrancesTeleportArray[d].entrancePoint == null)
+                {
+                    Plugin.mls.LogDebug("   (random check)entrance cant be used from this side");
                     return false;
                 }
                 NavMesh.SamplePosition(entrancesTeleportArray[d].entrancePoint.position, out hit2, validDistance, -1);
@@ -78,10 +93,25 @@ namespace LethalIntelligence.Patches
         {
             path = new NavMeshPath();
             NavMeshHit hit1, hit2;
+            if (entrancesTeleportArray[s] == null)
+            {
+                Plugin.mls.LogDebug("   (entrance check)start position is null");
+                return false;
+            }
+            if (entrancesTeleportArray[s].entrancePoint == null)
+            {
+                Plugin.mls.LogDebug("   (random check)start entrance cant be used from this side");
+                return false;
+            }
             NavMesh.SamplePosition(entrancesTeleportArray[s].entrancePoint.position, out hit1, validDistance, -1);
             int attempt = 1;
             float dist = 1000f;
             Vector3 currPos = hit1.position;
+            if (entrancesTeleportArray[d] == null)
+            {
+                Plugin.mls.LogDebug("   (entrance check)end position is null");
+                return false;
+            }
             while (attempt >= 1 && attempt <= 20 && dist > 1.5f)
             {
                 lastPos = currPos;
@@ -89,6 +119,11 @@ namespace LethalIntelligence.Patches
                 if (hit1.position == null)
                 {
                     Plugin.mls.LogDebug("   start entrance position is not near the navmesh? (hit is null)");
+                    return false;
+                }
+                if (entrancesTeleportArray[d].entrancePoint == null)
+                {
+                    Plugin.mls.LogDebug("   (random check)end entrance cant be used from this side");
                     return false;
                 }
                 NavMesh.SamplePosition(entrancesTeleportArray[d].entrancePoint.position, out hit2, validDistance, -1);
@@ -165,8 +200,10 @@ namespace LethalIntelligence.Patches
 
         private static void analysePathingData()
         {
-            int[] outsideCount = new int[(entrancesTeleportArray.Length / 2)];
-            int[] insideCount = new int[(entrancesTeleportArray.Length / 2)];
+            //int[] outsideCount = new int[(entrancesTeleportArray.Length / 2)];
+            //int[] insideCount = new int[(entrancesTeleportArray.Length / 2)];
+            int[] outsideCount = new int[20];
+            int[] insideCount = new int[20];
             int numBadsIsInvalid = matchesChecked/entrancesChecked;
 
             foreach (string bc in badCombinations)
@@ -340,6 +377,9 @@ namespace LethalIntelligence.Patches
                     Plugin.mls.LogWarning("Prefab           =" + entrancesTeleportArray[i]);
                     Plugin.mls.LogWarning("ID               =" + entrancesTeleportArray[i].entranceId);
                     Plugin.mls.LogWarning("Outside?         =" + entrancesTeleportArray[i].isEntranceToBuilding);
+                    Vector3 pos = StartOfRound.Instance.elevatorTransform.position;
+                    float dist = Vector3.Distance(pos, entrancesTeleportArray[i].transform.position);
+                    Plugin.mls.LogWarning("distanceToShip?        =" + dist);
                     Plugin.mls.LogWarning("EntrancePointPos =" + entrancesTeleportArray[i].entrancePoint.position);
                     if (entrancesTeleportArray[i].FindExitPoint())
                     {
@@ -350,7 +390,14 @@ namespace LethalIntelligence.Patches
                         Plugin.mls.LogWarning("ExitPointPos     =" + "null");
                     }
                     Plugin.mls.LogWarning("TransformPos     =" + entrancesTeleportArray[i].transform.position);/*foreasyuncommenting*/
-
+                    if (entrancesTeleportArray[i].name.Contains("PocketRoomTeleport"))
+                    {
+                        if (!invalidEntrances.Contains(entrancesTeleportArray[i].entranceId))
+                        {
+                            invalidEntrances.Add(entrancesTeleportArray[i].entranceId);
+                        }
+                        continue; //ignore mel's pocket room door.
+                    }
                     if (entrancesTeleportArray[i] == null)
                     {
                         continue;
@@ -378,6 +425,14 @@ namespace LethalIntelligence.Patches
                     Plugin.mls.LogDebug("Checking entrance #" + i + " vs Other Entrances...");
                     for (int j = 0; j < entrancesTeleportArray.Length; j++)
                     {
+                        if (entrancesTeleportArray[j].name.Contains("PocketRoomTeleport"))
+                        {
+                            if (!invalidEntrances.Contains(entrancesTeleportArray[j].entranceId))
+                            {
+                                invalidEntrances.Add(entrancesTeleportArray[j].entranceId);
+                            }
+                            continue; //ignore mel's pocket room door.
+                        }
                         if (entrancesTeleportArray[j] == null)
                         {
                             continue;

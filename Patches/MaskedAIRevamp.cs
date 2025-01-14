@@ -448,12 +448,12 @@ namespace LethalIntelligence.Patches
                 {
                     if (et == null)
                     {
-                        Plugin.mls.LogWarning("An EntranceTeleport was found to be NULL on " + currentMoon + " (" + currentInterior + ")");
+                        //Plugin.mls.LogWarning("An EntranceTeleport was found to be NULL on " + currentMoon + " (" + currentInterior + ")");
                         continue;
                     }
                     if (et.entrancePoint == null)
                     {
-                        if (et.isEntranceToBuilding)
+                        /*if (et.isEntranceToBuilding)
                         {
                             Plugin.mls.LogWarning("An Outside EntranceTeleport.entrancePoint for entrance " + et.entranceId + " was found to be NULL on " + currentMoon + "(" + currentInterior + ")");
                         }
@@ -461,12 +461,12 @@ namespace LethalIntelligence.Patches
                         {
                             Plugin.mls.LogWarning("An Inside EntranceTeleport.entrancePoint for entrance " + et.entranceId + " was found to be NULL on " + currentMoon + "(" + currentInterior + ")");
 
-                        }
+                        }*/
                         continue;
                     }
                     if (et.entrancePoint.position == null)
                     {
-                        if (et.isEntranceToBuilding)
+                        /*if (et.isEntranceToBuilding)
                         {
                             Plugin.mls.LogWarning("An Outside EntranceTeleport.entrancePoint.position for entrance " + et.entranceId + " was found to be NULL on " + currentMoon + "(" + currentInterior + ")");
                         }
@@ -474,12 +474,21 @@ namespace LethalIntelligence.Patches
                         {
                             Plugin.mls.LogWarning("An Inside EntranceTeleport.entrancePoint.position for entrance " + et.entranceId + " was found to be NULL on " + currentMoon + "(" + currentInterior + ")");
 
-                        }
+                        }*/
                         continue;
+                    }
+                    /*foreach (var iet in RoundManagerPatch.invalidEntrances)
+                    {
+                        Plugin.mls.LogError("Invalid Entrance ID -> " + iet.ToString());
+                    }*/
+                    if(RoundManagerPatch.invalidEntrances.Contains(et.entranceId))
+                    {
+                        continue; //shouldent use entrance when its invalid.
                     }
                     //if (Vector3.Distance(maskedEnemy.transform.position, et.entrancePoint.position) < 4f)
                     if (Vector3.Distance(maskedPosition.Value, et.entrancePoint.position) < 4f)
                     {
+                        //Plugin.mls.LogError("I SEE ENTRANCE ID:-" + et.entranceId);
                         //Vector3 headStraightPositon = new Vector3(((Component)et).transform.position.x, ((Component)this).transform.position.y, ((Component)et).transform.position.z);
                         //LookAtPos(headStraightPositon);
                         //not working
