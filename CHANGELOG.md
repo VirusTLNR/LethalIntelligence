@@ -1,5 +1,11 @@
 ## Changelog
 
+### 0.4.0 - Hotfix
+- fixed another thing that was making masked look upwards.
+- improved entrance teleports checks to ignore Melanie's furniture "pocket room" entrance and mark it as invalid automatically. if melanie's "ship" fire exit is placed, it should be valid with mode 0, but will be invalid with mode 1/2 as i dont check individual sides of an entrance.
+- added a lot of null reference checks to the entrance teleport checking + using processes.
+- added a proper bepindependency for LethalNetworkAPI
+
 ### 0.3.9 - Hotfix
 - improved validation of EntranceTeleports by being less strict on some constraints to be in line with previous existing code that works fine. (bringing the new automatic code and the old manual code, more in line with each other)
 - added a new idle mode to prevent log spam when all entrances are unavailable, as well as to give a "fall back" mode to masked who have nothing to do, this currently makes masked walk from 5f to 80f away from the main entrance in an attempt to find players, if they find a player they will exit idle mode. They will not enter/exit the interior in idle mode.
