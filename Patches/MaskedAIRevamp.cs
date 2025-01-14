@@ -1671,11 +1671,13 @@ namespace LethalIntelligence.Patches
                 writeSyncedVariables(); //for syncing variables between host and client
             }
             readSyncedVariables(); //for syncing variables between host and client
-
             ///////////////////////////////
             //for testing only, do not use
             /*agent.transform.position = maskedPosition.Value;
             agent.speed = 0f;
+            agent.enabled = false;
+            PlayerControllerB test = RoundManager.Instance.playersManager.allPlayerScripts[0].playerClientId.GetPlayerController();
+            LookAtPos(test.playerEye.transform.position -test.playerEye.forward,1,false);
             return;/**/
             //////////////////////////////
 
@@ -1864,7 +1866,7 @@ namespace LethalIntelligence.Patches
 
         public void LookAtPos(Vector3 pos, float lookAtTime = 1f, bool needsToSeePosition = true)
         {
-            maskedGoal = "Looking at Position for " + lookAtTime;
+            maskedGoal = "Looking at Position for " + lookAtTime + "f";
             //IL_0006: Unknown result type (might be due to invalid IL or missing references)
             //IL_0023: Unknown result type (might be due to invalid IL or missing references)
             //IL_0024: Unknown result type (might be due to invalid IL or missing references)
@@ -2330,7 +2332,8 @@ namespace LethalIntelligence.Patches
             }
             if (__instance.targetPlayer != null)
             {
-                LookAtPos(((Component)((EnemyAI)maskedEnemy).targetPlayer).transform.position, 0.5f);
+                LookAtPos(__instance.targetPlayer.playerEye.transform.position - __instance.targetPlayer.playerEye.forward, 0.5f);
+                //LookAtPos(((Component)((EnemyAI)maskedEnemy).targetPlayer).transform.position, 0.5f);
             }
             //crouched
             //running
