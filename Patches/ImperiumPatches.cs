@@ -31,7 +31,9 @@ namespace LethalIntelligence.Patches
                 .RegisterInsight("RotW", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().maskedRotation.Value.w.ToString("f5").Replace(" ", "")}")*/
                 //.RegisterInsight("CurrentAreaMask", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().agent.areaMask}")
                 .RegisterInsight("Dest", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().agent.pathEndPosition.ToString().Replace(" ", "")}")
-                .RegisterInsight("Distance", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().currentDestinationDistance.Value.ToString().Replace("F","")}")
+                .RegisterInsight("Distance", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().currentDestinationDistance.Value.ToString().Replace("F", "")}")
+                .RegisterInsight("HeadTilt", entity => $"{entity.headTiltTarget.eulerAngles.ToString()}")
+                .RegisterInsight("VLookAngle", entity => $"{entity.verticalLookAngle.ToString()}");
                 //.RegisterInsight("D->", entity => $"{MaskedPlayerEnemyPatch.vd.agent.destination.ToString()}");
                 //.RegisterInsight("Goal", entity => $"{MaskedPlayerEnemyPatch.vd.maskedGoal}");
                 ;
