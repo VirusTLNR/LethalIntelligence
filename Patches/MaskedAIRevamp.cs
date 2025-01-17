@@ -1704,7 +1704,6 @@ namespace LethalIntelligence.Patches
                 CheckForEntrancesNearby(); //use entrances here
                 //host only (set in function) - setting variables of masked choices
                 SetFocus();
-                writeSyncedVariables(); //for syncing variables between host and client
             }
             readSyncedVariables(); //for syncing variables between host and client
             ///////////////////////////////
