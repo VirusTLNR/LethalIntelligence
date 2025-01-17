@@ -702,6 +702,9 @@ namespace LethalIntelligence.Patches
 
         public LNetworkVariable<Vector3>? terminalPosition, breakerPosition, lockerPosition, apparatusPosition, fireExitPosition, mainEntrancePosition; //positions to save
 
+        //event bools
+        public static LNetworkVariable<bool> appTrigger;
+
         private void setupLNAPIvariables(string id)
         {
             //host time
@@ -758,6 +761,11 @@ namespace LethalIntelligence.Patches
 
             //for idle mode only..
             idleModeVersion = LNetworkVariable<int>.Connect("idleModeVersion" + id, 0, LNetworkVariableWritePerms.Everyone); //int idleModeVersion;
+
+            //event bools
+            appTrigger = LNetworkVariable<bool>.Connect("appTrigger" + id, false, LNetworkVariableWritePerms.Server);
+            appTrigger.OnValueChanged += (oldVal, newVal) => { sabotageApparatus(newVal); };
+
         }
 
 
@@ -3360,7 +3368,7 @@ namespace LethalIntelligence.Patches
             {
                 if (!noMoreApparatus)
                 {
-                    SabotageApparatus();
+                    usingApparatus();
                 }
                 else
                 {
@@ -3558,7 +3566,7 @@ namespace LethalIntelligence.Patches
         }
 
         //apparatus
-        private void SabotageApparatus()
+        private void usingApparatus()
         {
             if(seenCheckNum <= 0)
             {
@@ -3624,54 +3632,69 @@ namespace LethalIntelligence.Patches
                 if (isUsingApparatus)
                 {
                     maskedGoal = "sabotaging apparatus";
-                    __instance.inSpecialAnimation = true;
-                    __instance.movingTowardsTargetPlayer = false;
-                    __instance.targetPlayer = null;
-                    ((Component)maskedEnemy.headTiltTarget).gameObject.SetActive(false);
-                    agent.speed = 0f;
-                    //apparatus.GrabItemFromEnemy(__instance);
-                    //SpawningUtils.SpawnScrapServerRpc("LungApparatus", itemHolder.transform.position, itemHolder.transform);
-                    //SpawningUtils.SpawnInactiveItemServerRpc("LungApparatusTurnedOff", maskedEnemy.transform.position);
-                    completedApparatusFocus = true;
-                    apparatus.EquipItem();
-                    apparatus.isLungPowered = false;
-                    apparatus.lungDeviceLightIntensity = 0f;
-                    apparatus.GetComponent<GrabbableObject>().SetScrapValue(0); //tainted by the masked
-                    NetworkObject netObj = apparatus.GetComponent<NetworkObject>();
-                    if (netObj != null)
+                    if (IsHost && !appTrigger.Value)
                     {
-                        var scanNode = netObj.GetComponentInChildren<ScanNodeProperties>();
-                        scanNode.headerText = "SabotagedApparatus";
-                        scanNode.scrapValue = 0;
-                        scanNode.subText = $"Value: ${0}";
-                        var lights = netObj.GetComponentsInChildren<Light>().ToList();
-                        lights.Do(l => l.enabled = false);
+                        new WaitForSeconds(0.5f);
+                        appTrigger.Value = true;
                     }
-                    apparatus.isLungDocked = false;
-                    apparatus.isLungDockedInElevator = false;
-                    apparatus.isLungPowered = false;
-                    apparatus.GetComponent<AudioSource>().Stop();
-                    //apparatus.GetComponent<NetworkObject>().Despawn(false); //allowing players to pick up the sabotaged apparatus
-                    /*foreach (GrabbableObject o in GlobalItemList.Instance.allitems)
-                    {
-                        if (o.name == "LungApparatusTurnedOff(Clone)" && Vector3.Distance(maskedEnemy.transform.position,o.transform.position)<5.0f)
-                        {
-                                o.name = "BrokenApparatus";
-                                o.itemProperties.itemSpawnsOnGround = true;
-                                //o.itemProperties.itemSpawnsOnGround = true;
-                                //ManuelGrabItem(o);
-                        }
-                    }*/
-                    //grabbableApparatus.ItemActivate(false);
-                    //grabbableApparatus.GrabItemFromEnemy(__instance);
-                    //GrabDockedApparatus(grabbableApparatus);
-                    //ForceGrabCustomItem(grabbableApparatus);
-                    //pull apparatus here..
-                    isUsingApparatus = false;
-                    __instance.inSpecialAnimation = false;
-                    ((Component)maskedEnemy.headTiltTarget).gameObject.SetActive(true);
                 }
             }
+        }
+
+        private void sabotageApparatus(bool value)
+        {
+            if(!value)
+            {
+                return;
+            }
+            __instance.inSpecialAnimation = true;
+            __instance.movingTowardsTargetPlayer = false;
+            __instance.targetPlayer = null;
+            ((Component)maskedEnemy.headTiltTarget).gameObject.SetActive(false);
+            agent.speed = 0f;
+            //apparatus.GrabItemFromEnemy(__instance);
+            //SpawningUtils.SpawnScrapServerRpc("LungApparatus", itemHolder.transform.position, itemHolder.transform);
+            //SpawningUtils.SpawnInactiveItemServerRpc("LungApparatusTurnedOff", maskedEnemy.transform.position);
+            completedApparatusFocus = true;
+            apparatus.EquipItem();
+            apparatus.isLungPowered = false;
+            apparatus.lungDeviceLightIntensity = 0f;
+            apparatus.GetComponent<GrabbableObject>().SetScrapValue(0); //tainted by the masked
+            NetworkObject netObj = apparatus.GetComponent<NetworkObject>();
+            if (netObj != null)
+            {
+                var scanNode = netObj.GetComponentInChildren<ScanNodeProperties>();
+                scanNode.headerText = "SabotagedApparatus";
+                scanNode.scrapValue = 0;
+                scanNode.subText = $"Value: ${0}";
+                var lights = netObj.GetComponentsInChildren<Light>().ToList();
+                lights.Do(l => l.enabled = false);
+            }
+            apparatus.isLungDocked = false;
+            apparatus.isLungDockedInElevator = false;
+            apparatus.isLungPowered = false;
+            apparatus.GetComponent<AudioSource>().Stop();
+            //apparatus.GetComponent<NetworkObject>().Despawn(false); //allowing players to pick up the sabotaged apparatus
+            /*foreach (GrabbableObject o in GlobalItemList.Instance.allitems)
+            {
+                if (o.name == "LungApparatusTurnedOff(Clone)" && Vector3.Distance(maskedEnemy.transform.position,o.transform.position)<5.0f)
+                {
+                        o.name = "BrokenApparatus";
+                        o.itemProperties.itemSpawnsOnGround = true;
+                        //o.itemProperties.itemSpawnsOnGround = true;
+                        //ManuelGrabItem(o);
+                }
+            }*/
+            //grabbableApparatus.ItemActivate(false);
+            //grabbableApparatus.GrabItemFromEnemy(__instance);
+            //GrabDockedApparatus(grabbableApparatus);
+            //ForceGrabCustomItem(grabbableApparatus);
+            //pull apparatus here..
+            isUsingApparatus = false;
+            __instance.inSpecialAnimation = false;
+            ((Component)maskedEnemy.headTiltTarget).gameObject.SetActive(true);
+            Plugin.mls.LogError("Masked " + maskedId + " is Insane and sabotaged the apparatus");
+            //if (IsHost) { appTrigger.Value = false; }
         }
 
         //escape
