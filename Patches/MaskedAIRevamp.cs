@@ -181,13 +181,14 @@ namespace LethalIntelligence.Patches
 
         private void TestConfig()
         {
-            maskedPersonality = Personality.Deceiving; //for testing a specific personality
+            maskedPersonality = Personality.Insane; //for testing a specific personality
             maskedPersonalityInt.Value = 0; //for testing a specific personality
-            lastMaskedPersonality = Personality.Deceiving;
-            maskedFocusInt.Value = (int)Focus.None;
-            maskedActivityInt.Value = (int)Activity.Idle;
+            lastMaskedPersonality = Personality.Insane;
+            maskedFocusInt.Value = (int)Focus.Escape;
+            maskedActivityInt.Value = (int)Activity.None;
             mustChangeFocus = false;
             mustChangeActivity = false;
+            SyncTerminalValues(10);
         }
 
         public Personality maskedPersonality;
