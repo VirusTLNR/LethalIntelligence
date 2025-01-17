@@ -5464,18 +5464,18 @@ namespace LethalIntelligence.Patches
 
         private void findBreakerBox()
         {
-            //if (!__instance.isOutside && !__instance.isEnemyDead)
-            //{
             maskedGoal = "walking to breaker box (" + breakerPosition.Value.ToString() + ")";
             maskedEnemy.lostLOSTimer = 0f;
             maskedEnemy.stopAndStareTimer = 0f;
-            bool reachable = ((EnemyAI)maskedEnemy).SetDestinationToPosition(breakerPosition.Value, true);
-            //__instance.moveTowardsDestination = true;
-            if (!reachable)
+            if (IsHost)
+            {
+                maskedEnemy.SetDestinationToPosition(breakerPosition.Value);
+                maskedEnemy.moveTowardsDestination = true;
+            }
+            if (!breakerBoxReachable.Value)
             {
                 mustChangeActivity = true;
             }
-            //}
             if (breakerBoxDistance <= 10f)
             {
                 mustChangeFocus = true;
