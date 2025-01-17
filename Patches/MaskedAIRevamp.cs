@@ -1696,6 +1696,7 @@ namespace LethalIntelligence.Patches
             ItemAnimationSelector(creatureAnimator, __instance);
             if (IsHost)
             {
+                writeSyncedVariables(); //for syncing variables between host and client
                 CalculatingVariables();
 
                 DetectAndSelectRandomPlayer();
