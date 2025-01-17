@@ -247,7 +247,7 @@ namespace LethalIntelligence.Patches
 
         public CheckItemCollision itemSystem;
 
-        public float enterTermianlCodeTimer;
+        //public float enterTermianlCodeTimer;
 
         //public float transmitMessageTimer; //for transmitting a signal translator message
 
@@ -687,7 +687,7 @@ namespace LethalIntelligence.Patches
         public LNetworkVariable<bool>? useWalkie;
         public LNetworkVariable<bool>? isCrouched, isDancing, isRunning, isJumped;
         //public LNetworkVariable<int>? enterTermianlSpecialCodeInt;
-        public LNetworkVariable<float>? terminalTimeFloat, delayMaxTime, transmitMessageTimer;
+        public LNetworkVariable<float>? terminalTimeFloat, delayMaxTime, transmitMessageTimer, enterTerminalCodeTimer;
         public LNetworkVariable<string>? terminalCode;
         //public LNetworkVariable<bool> isUsingTerminal;
         public LNetworkVariable<int>? maxDanceCount;
@@ -704,8 +704,8 @@ namespace LethalIntelligence.Patches
         public LNetworkVariable<Vector3>? terminalPosition, breakerPosition, lockerPosition, apparatusPosition, fireExitPosition, mainEntrancePosition; //positions to save
 
         //event bools
-        public static LNetworkVariable<bool> appTrigger, signalTranslatorTrigger;
-        public static LNetworkVariable<string> signalTranslatorMessage;
+        public static LNetworkVariable<bool> appTrigger, signalTranslatorTrigger, landDropshipTrigger, objectCodeTrigger;
+        public static LNetworkVariable<string> signalTranslatorMessage, objectCode;
 
         private void setupLNAPIvariables(string id)
         {
@@ -739,9 +739,9 @@ namespace LethalIntelligence.Patches
 
             //terminal values
             //enterTermianlSpecialCodeInt = LNetworkVariable<int>.Connect("enterTermianlSpecialCodeInt" + id, -1, LNetworkVariableWritePerms.Everyone);
-            terminalCode = LNetworkVariable<string>.Connect("terminalCode" + id, null, LNetworkVariableWritePerms.Everyone);
             terminalTimeFloat = LNetworkVariable<float>.Connect("terminalTimeFloat" + id, -1f, LNetworkVariableWritePerms.Everyone);
             transmitMessageTimer = LNetworkVariable<float>.Connect("transmitMessageTimer" + id, -1f, LNetworkVariableWritePerms.Everyone);
+            enterTerminalCodeTimer = LNetworkVariable<float>.Connect("enterTerminalCodeTimer" + id, -1f, LNetworkVariableWritePerms.Everyone);
             delayMaxTime = LNetworkVariable<float>.Connect("delayMaxTime" + id, -1f, LNetworkVariableWritePerms.Everyone);
             //isUsingTerminal = LNetworkVariable<bool>.Connect("isUsingTerminal" + id, false, LNetworkVariableWritePerms.Everyone);
 
@@ -769,9 +769,16 @@ namespace LethalIntelligence.Patches
             appTrigger = LNetworkVariable<bool>.Connect("appTrigger" + id, false, LNetworkVariableWritePerms.Server);
             appTrigger.OnValueChanged += (oldVal, newVal) => { sabotageApparatus(newVal); };
 
+            landDropshipTrigger = LNetworkVariable<bool>.Connect("landDropshipTrigger" + id, false, LNetworkVariableWritePerms.Server);
+            landDropshipTrigger.OnValueChanged += (oldVal, newVal) => { landDropship(newVal); };
+
             signalTranslatorTrigger = LNetworkVariable<bool>.Connect("signalTranslatorTrigger" + id, false, LNetworkVariableWritePerms.Server);
             signalTranslatorMessage = LNetworkVariable<string>.Connect("signalTranslatorMessage" + id, null, LNetworkVariableWritePerms.Server);
             signalTranslatorMessage.OnValueChanged += (oldVal, newVal) => { sendSignalTranslatorMessage(newVal); };
+
+            objectCodeTrigger = LNetworkVariable<bool>.Connect("objectCodeTrigger" + id, false, LNetworkVariableWritePerms.Server);
+            terminalCode = LNetworkVariable<string>.Connect("terminalCode" + id, null, LNetworkVariableWritePerms.Server);
+            terminalCode.OnValueChanged += (oldVal, newVal) => { useObjectCode(newVal); };
 
         }
 
@@ -972,6 +979,7 @@ namespace LethalIntelligence.Patches
         {
             enterTermianlSpecialCodeTime = num;
             transmitMessageTimer.Value = 0.01f;
+            enterTerminalCodeTimer.Value = 0.01f;
             terminalTimeFloat.Value = 6f;
             //delayMaxTime.Value = 11f;
         }
@@ -3728,7 +3736,7 @@ namespace LethalIntelligence.Patches
                 //if (Vector3.Distance(maskedEnemy.transform.position, terminalPosition) < 5f)
                 if (Vector3.Distance(maskedPosition.Value, terminalPosition.Value) < 5f)
                 {
-                        if (!TerminalPatches.Transmitter.IsSignalTranslatorUnlocked())
+                    if (!TerminalPatches.Transmitter.IsSignalTranslatorUnlocked())
                     {
                         Plugin.mls.LogDebug("Signal Translator is not unlocked so skipping 'escape warnings'");
                         isTerminalEscaping = false;
@@ -3935,7 +3943,7 @@ namespace LethalIntelligence.Patches
             int coc = terminal.keyboardClips.Length;
             int seed = Random.RandomRangeInt(0, coc);
             float randomAddTime;
-            if (maskedPersonality == Personality.Deceiving && enterTermianlCodeTimer > terminalTimeFloat.Value && enterTermianlSpecialCodeTime > 0)
+            if (maskedPersonality == Personality.Deceiving && enterTerminalCodeTimer.Value > terminalTimeFloat.Value && enterTermianlSpecialCodeTime > 0)
             {
                 randomAddTime = terminalTimeFloat.Value;
             }
@@ -4079,7 +4087,7 @@ namespace LethalIntelligence.Patches
                 {
                     if (terminal.numberOfItemsInDropship <= 0 && !dropship.shipLanded && dropship.shipTimer <= 0f && !isDeliverEmptyDropship && !noMoreTerminal)
                     {
-                        if(dropShipTimer > 6f && purchasedStuff == false)
+                        if (dropShipTimer > 6f && purchasedStuff == false)
                         {
                             if (IsHost)
                             {
@@ -4089,21 +4097,22 @@ namespace LethalIntelligence.Patches
                         }
                         //dropShipTimer += Time.deltaTime;
                         dropShipTimer += updateFrequency; //fixing timing
-                        if (dropShipTimer > 10f)
+                        if (dropShipTimer > 10f && purchasedStuff)
                         {
                             /*if (dropship.IsSpawned == false)
                             {
                                 dropship.ShipLeave();
                             }*/
-                            dropship.LandShipOnServer();
-                            isDeliverEmptyDropship = true;
+                            if (IsHost)
+                            {
+                                landDropshipTrigger.Value = true;
+                            }
                         }
                     }
                     else if (isDeliverEmptyDropship && dropShipTimer <= 12f && !noMoreTerminal)
                     {
                         //dropShipTimer += Time.deltaTime;
                         dropShipTimer += updateFrequency; //fixing timing
-
                     }
                     if (dropShipTimer > 12f)
                     {
@@ -4162,13 +4171,13 @@ namespace LethalIntelligence.Patches
                             if (enterTermianlSpecialCodeTime != 0)
                             {
                                 signalTranslatorMessage.Value = InsaneTransmitMessageSelection();
-                    }
+                            }
                         }
                         if (transmitMessageTimer.Value > terminalTimeFloat.Value)
-                    {
+                        {
                             transmitMessageTimer.Value = 0f;
                             signalTranslatorTrigger.Value = true;
-                    }
+                        }
                     }
                     if (enterTermianlSpecialCodeTime == 0 || StartOfRound.Instance.shipIsLeaving)
                     {
@@ -4222,38 +4231,38 @@ namespace LethalIntelligence.Patches
                         return;
                     }
                     //enterTermianlCodeTimer += Time.deltaTime;
-                    enterTermianlCodeTimer += updateFrequency; //fixing timing
-                    if (enterTermianlCodeTimer > terminalTimeFloat.Value && enterTermianlSpecialCodeTime > 0)
+                    enterTerminalCodeTimer.Value += updateFrequency; //fixing timing
+                    if (enterTerminalCodeTimer.Value > terminalTimeFloat.Value && enterTermianlSpecialCodeTime > 0)
                     {
                         if (GameNetworkManager.Instance.isHostingGame)
                         {
-                            terminalTimeFloat.Value = Random.Range(2.2f, 8.5f);
-                            if (terminalAccessibleObject.Length != 0) //masked should sit on the terminal and do nothing when no codes exist
+                            if (objectCodeTrigger.Value == true)
                             {
-                                TerminalAccessibleObject obj = terminalAccessibleObject[Random.Range(0, terminalAccessibleObject.Length)];
-                                string code = obj.objectCode;
-                                if (obj != null)
+                                objectCodeTrigger.Value = false;
+                                terminalTimeFloat.Value = Random.Range(2.2f, 8.5f);
+                                if (terminalAccessibleObject.Length != 0) //masked should sit on the terminal and do nothing when no codes exist
                                 {
-                                    terminalCode.Value = code;
+                                    TerminalAccessibleObject obj = terminalAccessibleObject[Random.Range(0, terminalAccessibleObject.Length)];
+                                    string code = obj.objectCode;
+                                    if (obj != null)
+                                    {
+                                        terminalCode.Value = code;
+                                        terminal.terminalAudio.PlayOneShot(terminal.codeBroadcastSFX);
+                                    }
+                                }
+                                else
+                                {
+                                    //there is no code to use.. so just broadcast the sound.
+                                    terminalCode.Value = null;
                                     terminal.terminalAudio.PlayOneShot(terminal.codeBroadcastSFX);
                                 }
                             }
                             else
                             {
-                                //there is no code to use.. so just broadcast the sound.
-                                terminalCode.Value = null;
-                                terminal.terminalAudio.PlayOneShot(terminal.codeBroadcastSFX);
+                                objectCodeTrigger.Value = true;
+                                enterTerminalCodeTimer.Value = 0f;
                             }
                         }
-                        enterTermianlSpecialCodeTime--;
-                        enterTermianlCodeTimer = 0f;
-                        }
-                    if (terminalCode.Value != null)
-                    {
-                        Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + "' and broadcasting a terminal code");
-                        terminal.CallFunctionInAccessibleTerminalObject(terminalCode.Value);
-                        Plugin.mls.LogDebug("Code broadcasted is " + terminalCode.Value + " (" + enterTermianlSpecialCodeTime + " code entries remaining)");
-                        terminalCode.Value = null;
                     }
                     if (enterTermianlSpecialCodeTime == 0 || StartOfRound.Instance.shipIsLeaving)
                     {
@@ -4283,6 +4292,30 @@ namespace LethalIntelligence.Patches
             }
         }
 
+        private void landDropship(bool value)
+        {
+            if (value)
+            {
+                purchasedStuff = false;
+                dropship.LandShipOnServer();
+                isDeliverEmptyDropship = true;
+                landDropshipTrigger.Value = false;
+            }
+        }
+
+        private void useObjectCode(string code)
+        {
+            if (code != null)
+            {
+                if (IsHost)
+                {
+                    terminal.CallFunctionInAccessibleTerminalObject(code);
+                }
+            }
+            enterTermianlSpecialCodeTime--;
+            Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + "' and broadcasting code " + code + " (" + enterTermianlSpecialCodeTime + " code entries remaining)");
+        }
+
         private void sendSignalTranslatorMessage(string message)
         {
             if (message == null || message == "")
@@ -4291,8 +4324,8 @@ namespace LethalIntelligence.Patches
             }
             Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + "' and sending a message using the signal translator");
             TerminalPatches.Transmitter.SendMessage(message);
-            Plugin.mls.LogDebug("Message sent is: " + message + " (" + enterTermianlSpecialCodeTime + " message sends remaining)");
             enterTermianlSpecialCodeTime--;
+            Plugin.mls.LogDebug("Message sent is: " + message + " (" + enterTermianlSpecialCodeTime + " message sends remaining)");
         }
 
         /*private void sendSignalTranslatorMessage(bool send, string message)
@@ -4316,7 +4349,7 @@ namespace LethalIntelligence.Patches
                 Plugin.mls.LogDebug("SignalTranslator Message should be sent so now clearing Message value and setting the trigger to false");
                 signalTranslatorTrigger.Value = false;
                 signalTranslatorMessage.Value = null;
-        }
+            }
         }*/
 
         public string InsaneTransmitMessageSelection() //TODO - the messaged neeed syncing host to client imho.
