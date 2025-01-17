@@ -1295,6 +1295,13 @@ namespace LethalIntelligence.Patches
                     //this was a cunning only line
                     //else if (closestGrabbableDistance < breakerBoxDistance && closestGrabbableDistance < terminalDistance && lastMaskedFocus != Focus.Items && closestGrabbableReachable && !noMoreItems)
                     {
+                        if(maskedPersonality == Personality.Aggressive)
+                        {
+                            noMoreItems = true;
+                            mustChangeFocus = true;
+                            mustChangeActivity = true;
+                            return; //prevent aggressive picking up weapons as it breaks aggressive
+                        }
                         //all masked
                         maskedFocusInt.Value = (int)Focus.Items; //syncing variables
                                                                  //maskedFocus = Focus.Items;
