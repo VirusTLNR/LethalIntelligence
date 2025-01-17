@@ -20,8 +20,8 @@ if this is on.. OR Imperium is installed.. debug mode will be turned on, this wi
   <summary>Masked Behaviour (spoiler?):</summary>
 
 * Aggressive
-    * If you have a dropped shotgun, pick it up and shoot people. (currently bugged - fixing soon)
-    * If there is a player with a shotgun, attack with a shovel type item. (currently bugged - fixing soon)
+    * If you have a dropped shotgun, pick it up and shoot people. (currently disabled - fixing soon)
+    * If there is a player with a shotgun, attack with a shovel type item. (currently disabled - fixing soon)
     * will almost always target a detected player. (also has a player focus where they 100% focus on chasing you til you are dead)
 
 * Stealthy

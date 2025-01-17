@@ -1,5 +1,13 @@
 ## Changelog
 
+### 0.4.1
+- fixed all remaining networking issues in relation to the terminal (deceiving/cunning/insane), everything should be 100% synced now (including signal translator messages).
+- fixed all remaining networking issues with sabotaging the apparatus
+- fixed a position recognition issue at the start of the round leading to bad decisions
+- cleaned up some code thats no longer needed as well as fixed an error spamming due to host only code running on the client when going to the breaker box.
+- modified some distance checking code
+- temporarily disabled Aggressive's ability to pick up weapons as Aggressive holding a weapon is unable to kill you currently. (will fix soon :))
+
 ### 0.4.0 - Hotfix
 - fixed another thing that was making masked look upwards.
 - improved entrance teleports checks to ignore Melanie's furniture "pocket room" entrance and mark it as invalid automatically. if melanie's "ship" fire exit is placed, it should be valid with mode 0, but will be invalid with mode 1/2 as i dont check individual sides of an entrance.
