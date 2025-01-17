@@ -4151,7 +4151,6 @@ namespace LethalIntelligence.Patches
                         return;
                     }
                     //transmitMessageTimer += Time.deltaTime;
-                    transmitMessageTimer += updateFrequency; //fixing timing
 
                     if (GameNetworkManager.Instance.isHostingGame)
                     {
@@ -4170,10 +4169,6 @@ namespace LethalIntelligence.Patches
                             transmitMessageTimer.Value = 0f;
                             signalTranslatorTrigger.Value = true;
                     }
-                    if (transmitMessageTimer <= delayMaxTime.Value)
-                    {
-                        //transmitPauseTimer += Time.deltaTime;
-                        transmitPauseTimer += updateFrequency; //fixing timing
                     }
                     if (enterTermianlSpecialCodeTime == 0 || StartOfRound.Instance.shipIsLeaving)
                     {
@@ -4205,7 +4200,6 @@ namespace LethalIntelligence.Patches
                         Plugin.isTerminalBeingUsed = false;
                         terminalAccess(true);
                     }
-
                 }
                 else
                 {
