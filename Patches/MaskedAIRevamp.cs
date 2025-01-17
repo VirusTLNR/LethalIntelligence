@@ -1182,7 +1182,7 @@ namespace LethalIntelligence.Patches
                             {
                                 terminalReachable.Value = agent.CalculatePath(hitTerminal.position, nmpTerminal);
                                 //terminalDistance = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position);
-                                terminalDistance = Vector3.Distance(maskedPosition.Value, ((Component)terminal).transform.position);
+                                terminalDistance = Vector3.Distance(maskedPosition.Value, hitTerminal.position);
                                 terminalClosestPoint = Vector3.Distance(hitTerminal.position, terminal.transform.position);
                                 terminalPosition.Value = new Vector3(terminal.transform.position.x, terminal.transform.position.y - 1.44f, terminal.transform.position.z) - (terminal.transform.right * 0.8f);
                             }
