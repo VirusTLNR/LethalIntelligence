@@ -631,8 +631,10 @@ namespace LethalIntelligence.Patches
                     string hostTimeStampPlaceholder = "ReplaceWithDateAndTimeNeverLogThis";
                     string hostTimeStampReplacement = hostTimeStamp.Value.ToString("dd/MM/yyyy @ hh:mm:ss"); //add in time stamp AFTER it is checked to prevent spam.
 
+                    string HoC = (IsHost) ? "Host" : "Client";
+
                     string debugMsg = "DebugMode..." + //because the first line is empty
-                    "\n===== MaskedStatusReport() Start =====" +
+                    "\n===== MaskedStatusReport("+HoC+") Start =====" +
                     "\nMaskedID = " + maskedId +
                     "\nHostTimeStamp = " + hostTimeStampPlaceholder +
                     "\nMaskedPersonality = " + maskedPersonality.ToString() +
