@@ -248,7 +248,7 @@ namespace LethalIntelligence.Patches
 
         public float enterTermianlCodeTimer;
 
-        public float transmitMessageTimer; //for transmitting a signal translator message
+        //public float transmitMessageTimer; //for transmitting a signal translator message
 
         public float transmitPauseTimer; //for adding a delay between messages
 
@@ -686,7 +686,7 @@ namespace LethalIntelligence.Patches
         public LNetworkVariable<bool>? useWalkie;
         public LNetworkVariable<bool>? isCrouched, isDancing, isRunning, isJumped;
         //public LNetworkVariable<int>? enterTermianlSpecialCodeInt;
-        public LNetworkVariable<float>? terminalTimeFloat, delayMaxTime;
+        public LNetworkVariable<float>? terminalTimeFloat, delayMaxTime, transmitMessageTimer;
         public LNetworkVariable<string>? terminalCode;
         //public LNetworkVariable<bool> isUsingTerminal;
         public LNetworkVariable<int>? maxDanceCount;
@@ -703,7 +703,8 @@ namespace LethalIntelligence.Patches
         public LNetworkVariable<Vector3>? terminalPosition, breakerPosition, lockerPosition, apparatusPosition, fireExitPosition, mainEntrancePosition; //positions to save
 
         //event bools
-        public static LNetworkVariable<bool> appTrigger;
+        public static LNetworkVariable<bool> appTrigger, signalTranslatorTrigger;
+        public static LNetworkVariable<string> signalTranslatorMessage;
 
         private void setupLNAPIvariables(string id)
         {
@@ -738,8 +739,9 @@ namespace LethalIntelligence.Patches
             //terminal values
             //enterTermianlSpecialCodeInt = LNetworkVariable<int>.Connect("enterTermianlSpecialCodeInt" + id, -1, LNetworkVariableWritePerms.Everyone);
             terminalCode = LNetworkVariable<string>.Connect("terminalCode" + id, null, LNetworkVariableWritePerms.Everyone);
-            terminalTimeFloat = LNetworkVariable<float>.Connect("terminalTimeFloat" + id, -1, LNetworkVariableWritePerms.Everyone);
-            delayMaxTime = LNetworkVariable<float>.Connect("delayMaxTime" + id, -1, LNetworkVariableWritePerms.Everyone);
+            terminalTimeFloat = LNetworkVariable<float>.Connect("terminalTimeFloat" + id, -1f, LNetworkVariableWritePerms.Everyone);
+            transmitMessageTimer = LNetworkVariable<float>.Connect("transmitMessageTimer" + id, -1f, LNetworkVariableWritePerms.Everyone);
+            delayMaxTime = LNetworkVariable<float>.Connect("delayMaxTime" + id, -1f, LNetworkVariableWritePerms.Everyone);
             //isUsingTerminal = LNetworkVariable<bool>.Connect("isUsingTerminal" + id, false, LNetworkVariableWritePerms.Everyone);
 
             //for masked walkies
@@ -765,6 +767,10 @@ namespace LethalIntelligence.Patches
             //event bools
             appTrigger = LNetworkVariable<bool>.Connect("appTrigger" + id, false, LNetworkVariableWritePerms.Server);
             appTrigger.OnValueChanged += (oldVal, newVal) => { sabotageApparatus(newVal); };
+
+            signalTranslatorTrigger = LNetworkVariable<bool>.Connect("signalTranslatorTrigger" + id, false, LNetworkVariableWritePerms.Server);
+            signalTranslatorMessage = LNetworkVariable<string>.Connect("signalTranslatorMessage" + id, null, LNetworkVariableWritePerms.Server);
+            signalTranslatorMessage.OnValueChanged += (oldVal, newVal) => { sendSignalTranslatorMessage(newVal); };
 
         }
 
@@ -961,6 +967,13 @@ namespace LethalIntelligence.Patches
             }
         }
 
+        private void SyncTerminalValues(int num)
+        {
+            enterTermianlSpecialCodeTime = num;
+            transmitMessageTimer.Value = 0.01f;
+            terminalTimeFloat.Value = 6f;
+            //delayMaxTime.Value = 11f;
+        }
         private void SyncTermianlInt(int num)
         {
             enterTermianlSpecialCodeTime = num;
@@ -1641,11 +1654,13 @@ namespace LethalIntelligence.Patches
                 lastMaskedPersonality = maskedPersonality;
                 if (maskedPersonality == Personality.Deceiving)
                 {
-                    SyncTermianlInt(15);
+                    SyncTerminalValues(15);
+                    //SyncTermianlInt(15);
                 }
                 else if (maskedPersonality == Personality.Insane)
                 {
-                    SyncTermianlInt(10);
+                    //SyncTermianlInt(10);
+                    SyncTerminalValues(10);
                 }
                 Plugin.mls.LogInfo("Masked '" + maskedId + "' personality changed to '" + maskedPersonality.ToString() + "' (Moon:" + currentMoon + " & Interior:" + currentInterior + ")");
                 mustChangeFocus = true;
@@ -3735,6 +3750,7 @@ namespace LethalIntelligence.Patches
                     //as signal translator is unlocked, we will interact with the terminal
                     if (enterTermianlSpecialCodeTime == 0 && !isLeverEscaping)
                     {
+                        transmitMessageTimer.Value = 0f;
                         enterTermianlSpecialCodeTime = 10;
                         isTerminalEscaping = true;
                     }
@@ -3926,7 +3942,7 @@ namespace LethalIntelligence.Patches
             {
                 randomAddTime = 10f; //cunning only types into the terminal for a one off time to fake order items so after that is done.. type no more!
             }
-            else if (maskedPersonality == Personality.Insane && transmitMessageTimer >= terminalTimeFloat.Value && transmitPauseTimer >= delayMaxTime.Value)
+            else if (maskedPersonality == Personality.Insane && transmitMessageTimer.Value >= terminalTimeFloat.Value && transmitPauseTimer >= delayMaxTime.Value)
             {
                 randomAddTime = delayMaxTime.Value;
             }
@@ -4138,25 +4154,27 @@ namespace LethalIntelligence.Patches
 
                     if (GameNetworkManager.Instance.isHostingGame)
                     {
-                        terminalTimeFloat.Value = Random.Range(5.2f, 12.5f);
-                        delayMaxTime.Value = Random.Range(15f, 45f);
+                        transmitMessageTimer.Value += updateFrequency; //fixing timing
+                        if (signalTranslatorMessage.Value == null || signalTranslatorTrigger.Value)
+                        {
+                            signalTranslatorTrigger.Value = false;
+                            terminalTimeFloat.Value = Random.Range(5.2f, 8.5f);
+                            if (enterTermianlSpecialCodeTime != 0)
+                            {
+                                signalTranslatorMessage.Value = InsaneTransmitMessageSelection();
                     }
-                    if (transmitMessageTimer > terminalTimeFloat.Value && transmitPauseTimer > delayMaxTime.Value)
+                        }
+                        if (transmitMessageTimer.Value > terminalTimeFloat.Value)
                     {
-                        Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + "' and sending a message using the signal translator");
-                        string sentMessage = InsaneTransmitMessageSelection();
-                        TerminalPatches.Transmitter.SendMessage(sentMessage);
-                        Plugin.mls.LogDebug("Message sent is: " + sentMessage + " (" + enterTermianlSpecialCodeTime + " message sends remaining)");
-                        enterTermianlSpecialCodeTime--;
-                        transmitMessageTimer = 0f;
-                        transmitPauseTimer = 0f;
+                            transmitMessageTimer.Value = 0f;
+                            signalTranslatorTrigger.Value = true;
                     }
                     if (transmitMessageTimer <= delayMaxTime.Value)
                     {
                         //transmitPauseTimer += Time.deltaTime;
                         transmitPauseTimer += updateFrequency; //fixing timing
                     }
-                    if (enterTermianlSpecialCodeTime == 0)
+                    if (enterTermianlSpecialCodeTime == 0 || StartOfRound.Instance.shipIsLeaving)
                     {
                         terminal.terminalAudio.PlayOneShot(terminal.leaveTerminalSFX);
                         __instance.inSpecialAnimation = false;
@@ -4169,12 +4187,18 @@ namespace LethalIntelligence.Patches
                         //__instance.SetDestinationToPosition(GameObject.Find("ItemShip").transform.position, false); //doesnt actually route to the item ship, just uses it as a hook to get off i guess.
                         isUsingTerminal = false;
                         noMoreTerminal = true;
+                        signalTranslatorMessage.Value = null;
                         //isTerminalEscaping = false;
                         if (maskedFocus == Focus.Escape)
                         {
                             isTerminalEscaping = false;
                             isLeverEscaping = true;
                             noMoreTerminal = true;
+                        }
+                        else
+                        {
+                            mustChangeFocus = true;
+                            mustChangeActivity = true;
                         }
                         //isLeverEscaping = true;
                         Plugin.isTerminalBeingUsed = false;
@@ -4263,6 +4287,42 @@ namespace LethalIntelligence.Patches
                 ((Component)maskedEnemy.headTiltTarget).gameObject.SetActive(true);
             }
         }
+
+        private void sendSignalTranslatorMessage(string message)
+        {
+            if (message == null || message == "")
+            {
+                return; //do nothing because message is empty.
+            }
+            Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + "' and sending a message using the signal translator");
+            TerminalPatches.Transmitter.SendMessage(message);
+            Plugin.mls.LogDebug("Message sent is: " + message + " (" + enterTermianlSpecialCodeTime + " message sends remaining)");
+            enterTermianlSpecialCodeTime--;
+        }
+
+        /*private void sendSignalTranslatorMessage(bool send, string message)
+        {
+            if (send == false)
+            {
+                return;
+            }
+            while (message == null || message == "")
+            {
+                //do nothing
+                Plugin.mls.LogDebug("message is empty");
+            }
+            TerminalPatches.Transmitter.SendMessage(message);
+            Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + "' and sending a message using the signal translator");
+            Plugin.mls.LogDebug("Message sent is: " + message + " (" + enterTermianlSpecialCodeTime + " message sends remaining)");
+            enterTermianlSpecialCodeTime--;
+            if (IsHost)
+            {
+                new WaitForSeconds(2f);
+                Plugin.mls.LogDebug("SignalTranslator Message should be sent so now clearing Message value and setting the trigger to false");
+                signalTranslatorTrigger.Value = false;
+                signalTranslatorMessage.Value = null;
+        }
+        }*/
 
         public string InsaneTransmitMessageSelection() //TODO - the messaged neeed syncing host to client imho.
         {
