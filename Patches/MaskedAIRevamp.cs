@@ -1570,6 +1570,7 @@ namespace LethalIntelligence.Patches
 
         private void LateUpdate()
         {
+            CalculatingVariables();
             readSyncedVariables(); //for syncing variables between host and client
         }
 
@@ -1717,7 +1718,6 @@ namespace LethalIntelligence.Patches
             if (IsHost)
             {
                 writeSyncedVariables(); //for syncing variables between host and client
-                CalculatingVariables();
                 DetectAndSelectRandomPlayer();
                 TargetAndKillPlayer(); //potentially, this should change the focus to NONE and "Activity" to killing the player..depending on the personality, this should cancel current activity as well.
                 CheckForEntrancesNearby(); //use entrances here
