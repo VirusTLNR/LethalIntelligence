@@ -724,7 +724,7 @@ namespace LethalIntelligence.Patches
             maskedPosition = LNetworkVariable<Vector3>.Connect("maskedPosition" + id, Vector3.negativeInfinity, LNetworkVariableWritePerms.Everyone); //probably should be server only.
             maskedRotation = LNetworkVariable<Quaternion>.Connect("maskedRotation" + id, new Quaternion(), LNetworkVariableWritePerms.Everyone); //probably should be server only.
             currentDestinationDistance = LNetworkVariable<float>.Connect("currentDestinationDistance" + id, -1,LNetworkVariableWritePerms.Everyone); //probably should be server only.
-            maskedTargetId = LNetworkVariable<ulong>.Connect("maskedTarget" + id, 0 , LNetworkVariableWritePerms.Everyone); //probably should be server only.
+            maskedTargetId = LNetworkVariable<ulong>.Connect("maskedTarget" + id, ulong.MaxValue , LNetworkVariableWritePerms.Everyone); //probably should be server only.
             maskedInSpecialAnimation = LNetworkVariable<bool>.Connect("maskedInSpecialAnimation" + id, false, LNetworkVariableWritePerms.Everyone); //probably should be server only.
             maskedPersonalityInt = LNetworkVariable<int>.Connect("maskedPersonalityInt" + id, -1 , LNetworkVariableWritePerms.Everyone);
             maskedFocusInt = LNetworkVariable<int>.Connect("maskedFocusInt" + id, -1, LNetworkVariableWritePerms.Everyone);
@@ -1262,7 +1262,7 @@ namespace LethalIntelligence.Patches
         {
             if (GameNetworkManager.Instance.isHostingGame)
             {
-                if (mustChangeFocus)
+                if (mustChangeFocus || maskedFocusInt.Value == -1 || maskedActivityInt.Value == -1 || (maskedFocus != Focus.None && maskedActivity != Activity.None) || (maskedFocus == Focus.None && maskedActivity == Activity.None))
                 {
                     lastMaskedFocus = maskedFocus;
 
@@ -1522,7 +1522,7 @@ namespace LethalIntelligence.Patches
             }
             else
             {
-                maskedTargetId.Value = 99999; //to make it null;
+                maskedTargetId.Value = ulong.MaxValue; //to make it null;
             }
             maskedInSpecialAnimation.Value = maskedEnemy.inSpecialAnimation;
             if (closestGrabbable != null)
@@ -1540,7 +1540,7 @@ namespace LethalIntelligence.Patches
             //all clients (including host) - receiving variables
             maskedFocus = (Focus)maskedFocusInt.Value;
             maskedActivity = (Activity)maskedActivityInt.Value;
-            if (maskedTargetId.Value == 99999)
+            if (maskedTargetId.Value == ulong.MaxValue)
             {
                 maskedEnemy.targetPlayer = null;
             }
@@ -1568,6 +1568,11 @@ namespace LethalIntelligence.Patches
             //Plugin.mls.LogError(closestGrabbableId.Value);
         }
 
+        private void DoAIInterval()
+        {
+            readSyncedVariables(); //for syncing variables between host and client
+        }
+
         public void FixedUpdate()
         {
             if (currentMoon == null || currentInterior == null)
@@ -1583,7 +1588,7 @@ namespace LethalIntelligence.Patches
             }
             if (maskedPersonality != Personality.None) //why bother doing a report if personality is none.
             {
-                MaskedStatusReport(); 
+                MaskedStatusReport();
             }
             if (((EnemyAI)maskedEnemy).isEnemyDead && isHoldingObject)
             {
@@ -1636,7 +1641,7 @@ namespace LethalIntelligence.Patches
                     //Plugin.mls.LogError(useablePersonalities.Count);
                 }
             }
-            if(maskedPersonalityInt.Value == -1)
+            if (maskedPersonalityInt.Value == -1)
             {
                 Plugin.mls.LogDebug("Masked Has No Personality yet (non-hosts should get this once...)"); //dont report this as an error as all clients will receive this.
                 //maskedPersonalityInt.Value = 0;
@@ -1713,14 +1718,12 @@ namespace LethalIntelligence.Patches
             {
                 writeSyncedVariables(); //for syncing variables between host and client
                 CalculatingVariables();
-
                 DetectAndSelectRandomPlayer();
                 TargetAndKillPlayer(); //potentially, this should change the focus to NONE and "Activity" to killing the player..depending on the personality, this should cancel current activity as well.
                 CheckForEntrancesNearby(); //use entrances here
                 //host only (set in function) - setting variables of masked choices
                 SetFocus();
             }
-            readSyncedVariables(); //for syncing variables between host and client
             ///////////////////////////////
             //for testing only, do not use
             /*agent.transform.position = maskedPosition.Value;
@@ -3434,7 +3437,7 @@ namespace LethalIntelligence.Patches
             }
             if (__instance.targetPlayer != null)
             {
-                maskedFocus = Focus.Player;
+                maskedFocusInt.Value = (int)Focus.Player;
 
                 if ((Object)(object)__instance.targetPlayer != (Object)null && isHoldingObject && !(closestGrabbable is Shovel) && !(closestGrabbable is ShotgunItem) && maskedPersonality == Personality.Aggressive)
                 {
