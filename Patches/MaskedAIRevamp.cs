@@ -5751,6 +5751,12 @@ namespace LethalIntelligence.Patches
         {
             // Firstly, each EnemyAI will have an AudioStream component attached to it. This is used for handling networked audio.
             // In order to know when a new audio clip is created and streamed over, we will be subscribing to "AudioStreamEvent"s.
+            if(maskedEnemy.GetComponent<AudioStream>() == null)
+            {
+                Plugin.mls.LogWarning("Mirage AudioStream is NULL - Disabling Mirage Compatibility");
+                Plugin.mirageIntegrated = false;
+                return;
+            }
             maskedEnemy.GetComponent<AudioStream>().OnAudioStream += OnAudioStreamHandler;
         }
 
