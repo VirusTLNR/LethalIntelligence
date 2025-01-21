@@ -1,5 +1,10 @@
 ## Changelog
 
+### 0.4.2 - Hotfix
+- fixed an issue where a masked spotting a player at spawn would cause "-1" value for focus/activity there in breaking their logic.
+- fixed an issue where a mod breaks mirage, which then breaks LI.
+- hopefully improved FPS a bit by moving calculations from FixedUpdate to LateUpdate
+
 ### 0.4.1
 - fixed all remaining networking issues in relation to the terminal (deceiving/cunning/insane), everything should be 100% synced now (including signal translator messages).
 - fixed all remaining networking issues with sabotaging the apparatus
