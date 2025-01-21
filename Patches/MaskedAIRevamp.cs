@@ -1262,7 +1262,7 @@ namespace LethalIntelligence.Patches
         {
             if (GameNetworkManager.Instance.isHostingGame)
             {
-                if (mustChangeFocus || maskedFocusInt.Value == -1 || maskedActivityInt.Value == -1 || (maskedFocus != Focus.None && maskedActivity != Activity.None) || (maskedFocus == Focus.None && maskedActivity == Activity.None))
+                if (mustChangeFocus /*|| maskedFocusInt.Value == -1 || maskedActivityInt.Value == -1 || (maskedFocus != Focus.None && maskedActivity != Activity.None) || (maskedFocus == Focus.None && maskedActivity == Activity.None)*/)
                 {
                     lastMaskedFocus = maskedFocus;
 
@@ -1568,7 +1568,7 @@ namespace LethalIntelligence.Patches
             //Plugin.mls.LogError(closestGrabbableId.Value);
         }
 
-        private void DoAIInterval()
+        private void LateUpdate()
         {
             readSyncedVariables(); //for syncing variables between host and client
         }
