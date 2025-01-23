@@ -1333,7 +1333,7 @@ namespace LethalIntelligence.Patches
                                                                       //maskedActivity = Activity.None;
                         mustChangeActivity = true;
                     }
-                    else if (maskedPersonality == Personality.Insane && lastMaskedFocus != Focus.Apparatus && lateGameChoices && !maskedEnemy.isOutside)
+                    else if (maskedPersonality == Personality.Insane && lastMaskedFocus != Focus.Apparatus && lateGameChoices && !maskedEnemy.isOutside && apparatus != null)
                     {
                         maskedFocusInt.Value = (int)Focus.Apparatus; //syncing variables
                                                                      //maskedFocus = Focus.Apparatus;
@@ -3398,7 +3398,7 @@ namespace LethalIntelligence.Patches
                     mustChangeFocus = true;
                 }
             }
-            else if (maskedFocus == Focus.Apparatus && apparatus != null)
+            else if (maskedFocus == Focus.Apparatus)
             {
                 if (!noMoreApparatus)
                 {
