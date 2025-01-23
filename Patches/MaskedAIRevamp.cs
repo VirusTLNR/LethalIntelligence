@@ -3398,7 +3398,7 @@ namespace LethalIntelligence.Patches
                     mustChangeFocus = true;
                 }
             }
-            else if (maskedFocus == Focus.Apparatus)
+            else if (maskedFocus == Focus.Apparatus && apparatus != null)
             {
                 if (!noMoreApparatus)
                 {
@@ -3602,6 +3602,14 @@ namespace LethalIntelligence.Patches
         //apparatus
         private void usingApparatus()
         {
+            if(apparatus == null)
+            {
+                Plugin.mls.LogWarning("Apparatus was null so insane cannot sabotage it. (usually due to mansion interior)");
+                mustChangeFocus = true;
+                mustChangeActivity = true;
+                noMoreApparatus = true;
+                return;
+            }
             if(seenCheckNum <= 0)
             {
                 Plugin.mls.LogWarning("Apparatus was seen, but could not be reached! Not Critical, but please report this!");
