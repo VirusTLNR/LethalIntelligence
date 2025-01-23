@@ -1980,6 +1980,10 @@ namespace LethalIntelligence.Patches
         {
             if (IsHost)
             {
+                if (agent == null)
+                {
+                    return; //happens once right at the start of the round due to this happening before agent is assigned.
+                }
                 NavMeshHit hitGrabbable;
                 NavMeshPath nmpClosestGrabbable = new NavMeshPath();
                 List<GrabbableObject> allItemsList;
