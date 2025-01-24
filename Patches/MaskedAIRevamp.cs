@@ -442,7 +442,7 @@ namespace LethalIntelligence.Patches
             //check distance to destination
 
             //if (Vector3.Distance(maskedEnemy.transform.position, agent.pathEndPosition) < 5f)
-            if (Vector3.Distance(maskedPosition.Value, agent.pathEndPosition) < 5f)
+            if (Vector3.Distance(agent.transform.position, agent.pathEndPosition) < 5f)
             {
                 //get a list of exits and loop through them
                 foreach (EntranceTeleport et in entrancesTeleportArray)
@@ -487,7 +487,7 @@ namespace LethalIntelligence.Patches
                         continue; //shouldent use entrance when its invalid.
                     }
                     //if (Vector3.Distance(maskedEnemy.transform.position, et.entrancePoint.position) < 4f)
-                    if (Vector3.Distance(maskedPosition.Value, et.entrancePoint.position) < 4f)
+                    if (Vector3.Distance(agent.transform.position, et.entrancePoint.position) < 4f)
                     {
                         //Plugin.mls.LogError("I SEE ENTRANCE ID:-" + et.entranceId);
                         //Vector3 headStraightPositon = new Vector3(((Component)et).transform.position.x, ((Component)this).transform.position.y, ((Component)et).transform.position.z);
@@ -498,7 +498,7 @@ namespace LethalIntelligence.Patches
                     }
                     //check LOS for each exit
                     //if (objectInLOSCheck(maskedEnemy, et.gameObject) == 2 || Vector3.Distance(maskedEnemy.transform.position, et.entrancePoint.position) < 1f) //re-adding distance as an alternative option for deciding if masked use the entrance.
-                    if (objectInLOSCheck(maskedEnemy, et.gameObject) == 2 || Vector3.Distance(maskedPosition.Value, et.entrancePoint.position) < 1f) //re-adding distance as an alternative option for deciding if masked use the entrance.
+                    if (objectInLOSCheck(maskedEnemy, et.gameObject) == 2 || Vector3.Distance(agent.transform.position, et.entrancePoint.position) < 1f) //re-adding distance as an alternative option for deciding if masked use the entrance.
                     {
                         if (TimeSinceTeleporting < 3f)
                         {
@@ -510,7 +510,7 @@ namespace LethalIntelligence.Patches
                         maskedGoal = "using entrance (" + et.entranceId + "/" + et.entrancePoint.position.ToString() + ")";
                         TimeSinceTeleporting = 0;
                         TeleportMaskedEnemyAndSync((Vector3)opposingTeleportPosition, !maskedEnemy.isOutside);
-                        maskedPosition.Value = (Vector3)opposingTeleportPosition;
+                        agent.transform.position = (Vector3)opposingTeleportPosition;
                         //changing focus and activity will also break the cycle of entities being stuck at the main entrance... UNLESS this code doesnt run when they get stuck there
                         if ((maskedPersonality == Personality.Deceiving && maskedFocus == Focus.Items) || (maskedPersonality == Personality.Insane && maskedFocus == Focus.Escape))
                         {
@@ -591,7 +591,7 @@ namespace LethalIntelligence.Patches
 
                     destination = maskedEnemy.destination;
                     //distanceToDestination = Vector3.Distance(maskedEnemy.transform.position, destination);
-                    distanceToDestination = Vector3.Distance(maskedPosition.Value, destination);
+                    distanceToDestination = Vector3.Distance(agent.transform.position, destination);
 
                     string focusStart = "\n------------ Focus Details ------------";
                     string focusDetails = "";
@@ -680,9 +680,9 @@ namespace LethalIntelligence.Patches
             }
         }
 
-        public LNetworkVariable<Vector3>? maskedPosition;
+        //public LNetworkVariable<Vector3>? maskedPosition;
         public LNetworkVariable<float>? currentDestinationDistance;
-        public LNetworkVariable<Quaternion>? maskedRotation;
+        //public LNetworkVariable<Quaternion>? maskedRotation;
         public LNetworkVariable<int>? maskedPersonalityInt, maskedFocusInt, maskedActivityInt;
         public LNetworkVariable<bool>? useWalkie;
         public LNetworkVariable<bool>? isCrouched, isDancing, isRunning, isJumped;
@@ -721,8 +721,9 @@ namespace LethalIntelligence.Patches
             mainEntrancePosition = LNetworkVariable<Vector3>.Connect("mainEntrancePosition" + id, Vector3.negativeInfinity, LNetworkVariableWritePerms.Everyone);
 
             //basic masked variables.
-            maskedPosition = LNetworkVariable<Vector3>.Connect("maskedPosition" + id, Vector3.negativeInfinity, LNetworkVariableWritePerms.Everyone); //probably should be server only.
-            maskedRotation = LNetworkVariable<Quaternion>.Connect("maskedRotation" + id, new Quaternion(), LNetworkVariableWritePerms.Everyone); //probably should be server only.
+            //maskedPosition = LNetworkVariable<Vector3>.Connect("maskedPosition" + id, Vector3.negativeInfinity, LNetworkVariableWritePerms.Everyone); //probably should be server only.
+            //maskedPosition.OnValueChanged += (oldVal, newVal) => { updatePosition(oldVal, newVal); };
+            //maskedRotation = LNetworkVariable<Quaternion>.Connect("maskedRotation" + id, new Quaternion(), LNetworkVariableWritePerms.Everyone); //probably should be server only.
             currentDestinationDistance = LNetworkVariable<float>.Connect("currentDestinationDistance" + id, -1,LNetworkVariableWritePerms.Everyone); //probably should be server only.
             maskedTargetId = LNetworkVariable<ulong>.Connect("maskedTarget" + id, ulong.MaxValue , LNetworkVariableWritePerms.Everyone); //probably should be server only.
             maskedInSpecialAnimation = LNetworkVariable<bool>.Connect("maskedInSpecialAnimation" + id, false, LNetworkVariableWritePerms.Everyone); //probably should be server only.
@@ -1096,7 +1097,7 @@ namespace LethalIntelligence.Patches
                                 //Plugin.mls.LogError("Reachable=" + apparatusReachable);
                                 //breakerBoxDistance = Vector3.Distance(((Component)this).transform.position, hitBreaker.position);
                                 //apparatusDistance = Vector3.Distance(maskedEnemy.transform.position, hitApparatus.position);
-                                apparatusDistance = Vector3.Distance(maskedPosition.Value, hitApparatus.position);
+                                apparatusDistance = Vector3.Distance(agent.transform.position, hitApparatus.position);
                                 //Plugin.mls.LogError("dis:- " + apparatusDistance);
                                 apparatusClosestPoint = Vector3.Distance(hitApparatus.position, apparatus.transform.position);
                                 apparatusPosition.Value = hitApparatus.position;
@@ -1144,7 +1145,7 @@ namespace LethalIntelligence.Patches
                             {
                                 breakerBoxReachable.Value = agent.CalculatePath(hitBreaker.position, nmpBreaker);
                                 //breakerBoxDistance = Vector3.Distance(((Component)this).transform.position, hitBreaker.position);
-                                breakerBoxDistance = Vector3.Distance(maskedPosition.Value, hitBreaker.position);
+                                breakerBoxDistance = Vector3.Distance(agent.transform.position, hitBreaker.position);
                                 breakerClosestPoint = Vector3.Distance(hitBreaker.position, breakerBox.transform.position);
                                 breakerPosition.Value = hitBreaker.position;
                             }
@@ -1190,7 +1191,7 @@ namespace LethalIntelligence.Patches
                             {
                                 terminalReachable.Value = agent.CalculatePath(hitTerminal.position, nmpTerminal);
                                 //terminalDistance = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position);
-                                terminalDistance = Vector3.Distance(maskedPosition.Value, hitTerminal.position);
+                                terminalDistance = Vector3.Distance(agent.transform.position, hitTerminal.position);
                                 terminalClosestPoint = Vector3.Distance(hitTerminal.position, terminal.transform.position);
                                 terminalPosition.Value = new Vector3(terminal.transform.position.x, terminal.transform.position.y - 1.44f, terminal.transform.position.z) - (terminal.transform.right * 0.8f);
                             }
@@ -1513,9 +1514,9 @@ namespace LethalIntelligence.Patches
         private void writeSyncedVariables() //update hosts network variables
         {
             hostTimeStamp.Value = DateTime.Now;
-            maskedPosition.Value = this.transform.position;
-            maskedRotation.Value = this.transform.rotation;
-            currentDestinationDistance.Value = Vector3.Distance(maskedPosition.Value, agent.pathEndPosition);
+            //maskedPosition.Value = this.transform.position;
+            //maskedRotation.Value = this.transform.rotation;
+            currentDestinationDistance.Value = Vector3.Distance(agent.transform.position, agent.pathEndPosition);
             if (maskedEnemy.targetPlayer != null)
             {
                 maskedTargetId.Value = maskedEnemy.targetPlayer.GetClientId();
@@ -1570,6 +1571,10 @@ namespace LethalIntelligence.Patches
 
         private void LateUpdate()
         {
+            if(agent == null)
+            {
+                return;
+            }
             CalculatingVariables();
             readSyncedVariables(); //for syncing variables between host and client
         }
@@ -2088,7 +2093,7 @@ namespace LethalIntelligence.Patches
                     //end removing items
 
                     //float num2 = Vector3.Distance(((Component)this).transform.position, ((Component)allitem).transform.position);
-                    float num2 = Vector3.Distance(maskedPosition.Value, ((Component)allitem).transform.position);
+                    float num2 = Vector3.Distance(agent.transform.position, ((Component)allitem).transform.position);
                     if (allitem.GetComponent<CheckItemCollision>() != null)
                     {
                         itemSystem = allitem.GetComponent<CheckItemCollision>();
@@ -2117,7 +2122,7 @@ namespace LethalIntelligence.Patches
                         //closestGrabbableReachable = agent.CalculatePath(hitGrabbable.position, nmpGrabbable);
                         closestGrabbableReachable.Value = agent.CalculatePath(closestGrabbable.transform.position, nmpClosestGrabbable);
                         //nearestGrabbableDistance = Vector3.Distance(((Component)this).transform.position, ((Component)nearestGrabbable).transform.position);
-                        closestGrabbableDistance.Value = Vector3.Distance(maskedPosition.Value, ((Component)closestGrabbable).transform.position);
+                        closestGrabbableDistance.Value = Vector3.Distance(agent.transform.position, ((Component)closestGrabbable).transform.position);
                         //grabbableClosestPoint = Vector3.Distance(hitGrabbable.position, nearestGrabbable.transform.position);
                     }
                     else
@@ -2177,7 +2182,7 @@ namespace LethalIntelligence.Patches
             foreach (GrabbableObject allitem in GlobalItemList.Instance.allitems)
             {
                 //float num = Vector3.Distance(((Component)this).transform.position, ((Component)allitem).transform.position);
-                float num = Vector3.Distance(maskedPosition.Value, ((Component)allitem).transform.position);
+                float num = Vector3.Distance(agent.transform.position, ((Component)allitem).transform.position);
                 if (num < float.PositiveInfinity && num <= 10f && ((NetworkBehaviour)this).IsHost)
                 {
                     if (num > 0.5f)
@@ -2214,7 +2219,7 @@ namespace LethalIntelligence.Patches
                 return;
             }
             //float num = Vector3.Distance(((Component)this).transform.position, ((Component)item).transform.position);
-            float num = Vector3.Distance(maskedPosition.Value, ((Component)item).transform.position);
+            float num = Vector3.Distance(agent.transform.position, ((Component)item).transform.position);
             if (num < 0.9f)
             {
                 float num2 = Vector3.Angle(((Component)__instance).transform.forward, ((Component)closestGrabbable).transform.position - ((Component)__instance).transform.position);
@@ -2701,7 +2706,7 @@ namespace LethalIntelligence.Patches
                 return; //sorry buddy, someone else got there first
             }
             //var distance = Vector3.Distance(__instance.transform.position, walkieToGrab.transform.position);
-            var distance = Vector3.Distance(maskedPosition.Value, walkieToGrab.transform.position);
+            var distance = Vector3.Distance(agent.transform.position, walkieToGrab.transform.position);
             if (distance < 1.0f && !isHoldingObject)
             {
                 isCrouched.Value = true;
@@ -2917,13 +2922,13 @@ namespace LethalIntelligence.Patches
                 }
                 nearestPlayer = val;
                 //float num2 = Vector3.Distance(((Component)this).transform.position, ((Component)val).transform.position);
-                float num2 = Vector3.Distance(maskedPosition.Value, ((Component)val).transform.position);
+                float num2 = Vector3.Distance(agent.transform.position, ((Component)val).transform.position);
                 if (num2 < 4f && (Object)(object)__instance.targetPlayer != (Object)null)
                 {
                     //Vector3 val2 = ((Component)this).transform.position - ((Component)val).transform.position;
                     //Vector3 val3 = ((Component)this).transform.position + ((Vector3)(val2)).normalized * 5f;
-                    Vector3 val2 = maskedPosition.Value - ((Component)val).transform.position;
-                    Vector3 val3 = maskedPosition.Value + ((Vector3)(val2)).normalized * 5f;
+                    Vector3 val2 = agent.transform.position - ((Component)val).transform.position;
+                    Vector3 val3 = agent.transform.position + ((Vector3)(val2)).normalized * 5f;
                     if (originDestination != agent.destination)
                     {
                         originDestination = agent.destination;
@@ -2981,13 +2986,13 @@ namespace LethalIntelligence.Patches
             //IL_013d: Unknown result type (might be due to invalid IL or missing references)
             //IL_0121: Unknown result type (might be due to invalid IL or missing references)
             //float num = Vector3.Distance(((Component)this).transform.position, ((Component)nearestPlayer).transform.position);
-            float num = Vector3.Distance(maskedPosition.Value, ((Component)nearestPlayer).transform.position);
+            float num = Vector3.Distance(agent.transform.position, ((Component)nearestPlayer).transform.position);
             if (num < 4f && (Object)(object)__instance.targetPlayer != (Object)null)
             {
                 //Vector3 val = ((Component)this).transform.position - ((Component)nearestPlayer).transform.position;
                 //Vector3 val2 = ((Component)this).transform.position + ((Vector3)(val)).normalized * 5f;
-                Vector3 val = maskedPosition.Value - ((Component)nearestPlayer).transform.position;
-                Vector3 val2 = maskedPosition.Value + ((Vector3)(val)).normalized * 5f;
+                Vector3 val = agent.transform.position - ((Component)nearestPlayer).transform.position;
+                Vector3 val2 = agent.transform.position + ((Vector3)(val)).normalized * 5f;
                 if (originDestination != agent.destination)
                 {
                     originDestination = agent.destination;
@@ -3075,7 +3080,7 @@ namespace LethalIntelligence.Patches
                 }
                 if (!noMoreBreakerBox)
                 {
-                    breakerBoxDistance = Vector3.Distance(maskedPosition.Value, breakerPosition.Value);
+                    breakerBoxDistance = Vector3.Distance(agent.transform.position, breakerPosition.Value);
                     //Plugin.mls.LogError("bbd=" + breakerBoxDistance + "||nmt = " + noMoreTerminal);
                     //breakerbox
                     if (breakerBoxDistance < 40f || noMoreTerminal) //add logic for breaker box being turned off so if breaker box is turned OFF, then do nothing.
@@ -3258,7 +3263,7 @@ namespace LethalIntelligence.Patches
                         else
                         {
                             //float num2 = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position);
-                            float num2 = Vector3.Distance(maskedPosition.Value, terminalPosition.Value);
+                            float num2 = Vector3.Distance(agent.transform.position, terminalPosition.Value);
                             if (num2 > 6f)
                             {
                                 maskedGoal = "heading to player ship to drop an item";
@@ -3542,7 +3547,7 @@ namespace LethalIntelligence.Patches
                     foreach (PlayerControllerB val in allPlayerScripts)
                     {
                         //float num = Vector3.Distance(((Component)val).transform.position, ((Component)this).transform.position);
-                        float num = Vector3.Distance(((Component)val).transform.position, maskedPosition.Value);
+                        float num = Vector3.Distance(((Component)val).transform.position, agent.transform.position);
                         if (num < 1f)
                         {
                             maskedGoal = "attempting to kill a player";
@@ -3637,7 +3642,7 @@ namespace LethalIntelligence.Patches
                 //mustChangeFocus = true;
             }
             //apparatusDistance = Vector3.Distance(maskedEnemy.transform.position, apparatusPosition);
-            apparatusDistance = Vector3.Distance(maskedPosition.Value, apparatusPosition.Value);
+            apparatusDistance = Vector3.Distance(agent.transform.position, apparatusPosition.Value);
             if (apparatusDistance > 0f)
             {
                 dropItem.Value = true;
@@ -3756,7 +3761,7 @@ namespace LethalIntelligence.Patches
             {
                 //check if signal translator is enabled once in range
                 //if (Vector3.Distance(maskedEnemy.transform.position, terminalPosition) < 5f)
-                if (Vector3.Distance(maskedPosition.Value, terminalPosition.Value) < 5f)
+                if (Vector3.Distance(agent.transform.position, terminalPosition.Value) < 5f)
                 {
                     if (!TerminalPatches.Transmitter.IsSignalTranslatorUnlocked())
                     {
@@ -3849,7 +3854,7 @@ namespace LethalIntelligence.Patches
                         Plugin.mls.LogError("Distance = " + Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position)); //for debugging distance issues
                     }*/
                     //if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) < 3f)
-                    if (Vector3.Distance(maskedPosition.Value, startMatchLever.transform.position) < 3f)
+                    if (Vector3.Distance(agent.transform.position, startMatchLever.transform.position) < 3f)
                     {
                         startMatchLever.LeverAnimation();
                         startMatchLever.EndGame();
@@ -4021,7 +4026,7 @@ namespace LethalIntelligence.Patches
             //IL_023c: Unknown result type (might be due to invalid IL or missing references)
             //IL_00de: Unknown result type (might be due to invalid IL or missing references)
             //float num = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position - (terminal.transform.right * 0.8f) + new Vector3(0f, 0.25f, 0f));
-            float num = Vector3.Distance(maskedPosition.Value, ((Component)terminal).transform.position - (terminal.transform.right * 0.8f) + new Vector3(0f, 0.25f, 0f));
+            float num = Vector3.Distance(agent.transform.position, ((Component)terminal).transform.position - (terminal.transform.right * 0.8f) + new Vector3(0f, 0.25f, 0f));
             if (num < 40f)
             //if (num < 60)
             {
@@ -4085,12 +4090,12 @@ namespace LethalIntelligence.Patches
                     this.transform.position = terminalStandingPosition;
                     this.transform.LookAt(new Vector3(terminal.transform.position.x,this.transform.position.y,terminal.transform.position.z));
                 }
-                if (maskedPosition.Value != terminalStandingPosition)
+                if (agent.transform.position != terminalStandingPosition)
                 {
                     return;
                 }
-                this.transform.position = maskedPosition.Value;
-                this.transform.rotation = maskedRotation.Value;
+                this.transform.position = agent.transform.position;
+                this.transform.rotation = agent.transform.rotation;
                 creatureAnimator.SetTrigger("Terminal");
                 __instance.inSpecialAnimation = true;
                 this.ignoringPersonality = false;
@@ -5509,7 +5514,7 @@ namespace LethalIntelligence.Patches
             //__instance.moveTowardsDestination = true;
             //}
             //float distanceToLockerAudio = Vector3.Distance(maskedEnemy.transform.position, lockerPosition);
-            float distanceToLockerAudio = Vector3.Distance(maskedPosition.Value, lockerPosition.Value);
+            float distanceToLockerAudio = Vector3.Distance(agent.transform.position, lockerPosition.Value);
             if (distanceToLockerAudio <= 2f)
             {
                 mustChangeFocus = true;
@@ -5543,7 +5548,7 @@ namespace LethalIntelligence.Patches
             //find where an item is, but dont pick it up. fixed this now, adding this comment so i can commit this as a seperate item (see 2 commits ago for what was changed)
             GrabbableObject selectedItem = null;
             //List<GrabbableObject> items = GlobalItemList.Instance.allitems.Where(x => Vector3.Distance(maskedEnemy.transform.position, x.transform.position) < 50f).ToList();
-            List<GrabbableObject> items = GlobalItemList.Instance.allitems.Where(x => Vector3.Distance(maskedPosition.Value, x.transform.position) < 50f).ToList();
+            List<GrabbableObject> items = GlobalItemList.Instance.allitems.Where(x => Vector3.Distance(agent.transform.position, x.transform.position) < 50f).ToList();
             if (items.Count == 0)
             {
                 mustChangeFocus = true;
@@ -5572,7 +5577,7 @@ namespace LethalIntelligence.Patches
             maskedGoal = "wallking to " +  selectedItem.name + "(" + maskedEnemy.isOutside + "/" + selectedItem.isInFactory + "/" + selectedItem.transform.position + ")";
             maskedEnemy.SetDestinationToPosition(selectedItem.transform.position, true);
             //if (Vector3.Distance(maskedEnemy.transform.position, selectedItem.transform.position) < 1.5f)
-            if (Vector3.Distance(maskedPosition.Value, selectedItem.transform.position) < 1.5f)
+            if (Vector3.Distance(agent.transform.position, selectedItem.transform.position) < 1.5f)
             {
                     mustChangeFocus = true;
                 mustChangeActivity = true;
@@ -5669,7 +5674,7 @@ namespace LethalIntelligence.Patches
                     //    Plugin.mls.LogError("TP#" + entrancesTeleportArray[i].entranceId + " -> " + entrancesTeleportArray[i].transform.position + "|" + Vector3.Distance(maskedEnemy.transform.position, entrancesTeleportArray[i].transform.position));
                     //}
                     //float tempDist = Vector3.Distance(maskedEnemy.transform.position, entrancesTeleportArray[i].entrancePoint.position);
-                    float tempDist = Vector3.Distance(maskedPosition.Value, entrancesTeleportArray[i].entrancePoint.position);
+                    float tempDist = Vector3.Distance(agent.transform.position, entrancesTeleportArray[i].entrancePoint.position);
                     if (tempDist < dist && isOutside == entrancesTeleportArray[i].isEntranceToBuilding)
                     {
                         dist = tempDist;
@@ -5718,7 +5723,7 @@ namespace LethalIntelligence.Patches
             //maskedGoal = "looking and running randomly near entranceTeleport (" + entrance.entranceId + ")";
             Vector3 tPos = entrance.entrancePoint.position;
             //float distanceToEntrance = Vector3.Distance(maskedEnemy.transform.position, tPos);
-            float distanceToEntrance = Vector3.Distance(maskedPosition.Value, tPos);
+            float distanceToEntrance = Vector3.Distance(agent.transform.position, tPos);
             maskedEnemy.SetDestinationToPosition(tPos, false);
             if (distanceToEntrance > 4f)
             {
@@ -5808,7 +5813,7 @@ namespace LethalIntelligence.Patches
 
                 //check distance
                 //walkieDistance = Vector3.Distance(__instance.transform.position, walkie.transform.position);
-                walkieDistance = Vector3.Distance(maskedPosition.Value, walkie.transform.position);
+                walkieDistance = Vector3.Distance(agent.transform.position, walkie.transform.position);
                 if (walkieDistance <= 15f)
                 {
                     walkieNearby++;
