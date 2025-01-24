@@ -2136,6 +2136,10 @@ namespace LethalIntelligence.Patches
 
         private void DetectAndSelectRandomPlayer()
         {
+            if(__instance.targetPlayer != null)
+            {
+                return; //you already have a target so stop looking for a new one.
+            }
             //PlayerControllerB[] players = maskedEnemy.GetAllPlayersInLineOfSight(160f, 60, null, -1, -1);
             PlayerControllerB[] players = maskedEnemy.GetAllPlayersInLineOfSight(80f, 60, null, -1, -1);
             if (players == null)
@@ -2164,12 +2168,15 @@ namespace LethalIntelligence.Patches
                 //target the random player
                 mustChangeActivity = false;
                 mustChangeFocus = false;
-                maskedFocus = Focus.None;
-                maskedActivity = Activity.RandomPlayer;
+                maskedFocus = Focus.Player;
+                maskedActivity = Activity.None;
                 mustChangeActivity = false;
                 mustChangeFocus = false;
+                if (__instance.targetPlayer == null)
+                {
                 __instance.targetPlayer = players[random];
             }
+        }
         }
 
         public void DetectEnemy()
@@ -3576,6 +3583,34 @@ namespace LethalIntelligence.Patches
             }
         }
 
+        private void OnCollideWithPlayer()
+        {
+            if (!((EnemyAI)maskedEnemy).isEnemyDead && !isUsingTerminal && !isUsingBreakerBox && (maskedPersonality != Personality.Aggressive || !isHoldingObject || (!(closestGrabbable is Shovel) && !(closestGrabbable is ShotgunItem))))
+            {
+                PlayerControllerB[] allPlayerScripts = StartOfRound.Instance.allPlayerScripts;
+                foreach (PlayerControllerB val in allPlayerScripts)
+                {
+                    //float num = Vector3.Distance(((Component)val).transform.position, ((Component)this).transform.position);
+                    float num = Vector3.Distance(((Component)val).transform.position, agent.transform.position);
+                    if (num < 1f)
+                    {
+                        maskedGoal = "attempting to kill a player";
+                        PlayerControllerB collidePlayer = maskedEnemy.MeetsStandardPlayerCollisionConditions(val.playerCollider, maskedEnemy.inKillAnimation || maskedEnemy.startingKillAnimationLocalClient || !maskedEnemy.enemyEnabled, false);
+                        if (collidePlayer != null)
+                        {
+                            __instance.targetPlayer = val;
+                            LookAtPos(val.transform.position);
+                            maskedEnemy.KillPlayerAnimationServerRpc((int)val.playerClientId);
+                            maskedEnemy.startingKillAnimationLocalClient = true;
+                            if (val.isCrouching)
+                            {
+                                val.Crouch(false);
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         int seenCheckNum = 200;
 
