@@ -17,6 +17,8 @@ namespace LethalIntelligence.Patches
                 .RegisterInsight("Personality", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().maskedPersonality}")
                 .RegisterInsight("Focus", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().maskedFocus}")
                 .RegisterInsight("Activity", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().maskedActivity}")
+                .RegisterInsight("FindPlayer", entity => $"{(entity.gameObject.GetComponent<MaskedAIRevamp>().targetedPlayer!=null?entity.gameObject.GetComponent<MaskedAIRevamp>().targetedPlayer.name.ToString():"null")}")
+                .RegisterInsight("FindTime", entity => $"{(entity.gameObject.GetComponent<MaskedAIRevamp>().targetedPlayer!=null?entity.gameObject.GetComponent<MaskedAIRevamp>().followTime.ToString():"null")}")
                 //.RegisterInsight("Running?", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().isRunning.Value}")
                 //.RegisterInsight("Crouching?", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().isCrouched.Value}")
                 //.RegisterInsight("Dancing?", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().isDancing.Value}")

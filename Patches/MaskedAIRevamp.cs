@@ -726,6 +726,7 @@ namespace LethalIntelligence.Patches
             //maskedRotation = LNetworkVariable<Quaternion>.Connect("maskedRotation" + id, new Quaternion(), LNetworkVariableWritePerms.Everyone); //probably should be server only.
             currentDestinationDistance = LNetworkVariable<float>.Connect("currentDestinationDistance" + id, -1,LNetworkVariableWritePerms.Everyone); //probably should be server only.
             maskedTargetId = LNetworkVariable<ulong>.Connect("maskedTarget" + id, ulong.MaxValue , LNetworkVariableWritePerms.Everyone); //probably should be server only.
+            maskedTargetId.OnValueChanged += (oldVal, newVal) => { updateTargetPlayer(oldVal, newVal); };
             maskedInSpecialAnimation = LNetworkVariable<bool>.Connect("maskedInSpecialAnimation" + id, false, LNetworkVariableWritePerms.Everyone); //probably should be server only.
             maskedPersonalityInt = LNetworkVariable<int>.Connect("maskedPersonalityInt" + id, -1 , LNetworkVariableWritePerms.Everyone);
             maskedFocusInt = LNetworkVariable<int>.Connect("maskedFocusInt" + id, -1, LNetworkVariableWritePerms.Everyone);
@@ -1267,8 +1268,15 @@ namespace LethalIntelligence.Patches
                 {
                     lastMaskedFocus = maskedFocus;
 
-                    //new line
-                    if (maskedPersonality == Personality.Cunning && breakerBoxDistance < 40f && lastMaskedFocus != Focus.BreakerBox && breakerBoxReachable.Value && !noMoreBreakerBox)
+                    if (__instance.targetPlayer != null && lastMaskedFocus != Focus.Player)
+                    {
+                        maskedFocusInt.Value = (int)Focus.Player; //syncing variables
+                                                                  //maskedFocus = Focus.Player;
+                        maskedActivityInt.Value = (int)Activity.None; //syncing variables
+                                                                      //maskedActivity = Activity.None;
+                        mustChangeActivity = true;
+                    }
+                    else if (maskedPersonality == Personality.Cunning && breakerBoxDistance < 40f && lastMaskedFocus != Focus.BreakerBox && breakerBoxReachable.Value && !noMoreBreakerBox)
                     //this was a cunning only line
                     //if (breakerBoxDistance < terminalDistance && breakerBoxDistance < closestGrabbableDistance && lastMaskedFocus != Focus.BreakerBox && breakerBoxReachable && !noMoreBreakerBox && maskedPersonality==Personality.Cunning)
                     {
@@ -1322,14 +1330,6 @@ namespace LethalIntelligence.Patches
                     {
                         maskedFocusInt.Value = (int)Focus.Mimicking; //syncing variables
                                                                      //maskedFocus = Focus.Mimicking;
-                        maskedActivityInt.Value = (int)Activity.None; //syncing variables
-                                                                      //maskedActivity = Activity.None;
-                        mustChangeActivity = true;
-                    }
-                    else if ((maskedPersonality == Personality.Aggressive || maskedPersonality == Personality.Deceiving) && __instance.targetPlayer != null && lastMaskedFocus != Focus.Player)
-                    {
-                        maskedFocusInt.Value = (int)Focus.Player; //syncing variables
-                                                                  //maskedFocus = Focus.Player;
                         maskedActivityInt.Value = (int)Activity.None; //syncing variables
                                                                       //maskedActivity = Activity.None;
                         mustChangeActivity = true;
@@ -1541,14 +1541,14 @@ namespace LethalIntelligence.Patches
             //all clients (including host) - receiving variables
             maskedFocus = (Focus)maskedFocusInt.Value;
             maskedActivity = (Activity)maskedActivityInt.Value;
-            if (maskedTargetId.Value == ulong.MaxValue)
+            /*if (maskedTargetId.Value == ulong.MaxValue)
             {
                 maskedEnemy.targetPlayer = null;
             }
             else
             {
                 maskedEnemy.targetPlayer = maskedTargetId.Value.GetPlayerController();
-            }
+            }*/
             //maskedEnemy.inSpecialAnimation = maskedInSpecialAnimation.Value;
             if (closestGrabbableId.Value == ulong.MaxValue)
             {
@@ -1725,6 +1725,7 @@ namespace LethalIntelligence.Patches
                 writeSyncedVariables(); //for syncing variables between host and client
                 DetectAndSelectRandomPlayer();
                 TargetAndKillPlayer(); //potentially, this should change the focus to NONE and "Activity" to killing the player..depending on the personality, this should cancel current activity as well.
+                OnCollideWithPlayer();
                 CheckForEntrancesNearby(); //use entrances here
                 //host only (set in function) - setting variables of masked choices
                 SetFocus();
@@ -1804,11 +1805,11 @@ namespace LethalIntelligence.Patches
                     maskedGoal = "pathing to breaker box";
                     findBreakerBox();
                 }
-                else if (maskedActivity == Activity.RandomPlayer)
+                /*else if (maskedActivity == Activity.RandomPlayer)
                 {
                     maskedGoal = "finding random player";
-                    findRandomPlayer();
-                }
+                    findPlayer();
+                }*/
                 else if (maskedActivity == Activity.Apparatus)
                 {
                     maskedGoal = "finding Apparatus";
@@ -2136,7 +2137,7 @@ namespace LethalIntelligence.Patches
 
         private void DetectAndSelectRandomPlayer()
         {
-            if(__instance.targetPlayer != null)
+            if(targetedPlayer != null)
             {
                 return; //you already have a target so stop looking for a new one.
             }
@@ -2174,9 +2175,9 @@ namespace LethalIntelligence.Patches
                 mustChangeFocus = false;
                 if (__instance.targetPlayer == null)
                 {
-                __instance.targetPlayer = players[random];
+                    __instance.targetPlayer = players[random];
+                }
             }
-        }
         }
 
         public void DetectEnemy()
@@ -3223,6 +3224,10 @@ namespace LethalIntelligence.Patches
                     mustChangeFocus = true;
                 }
             }
+            else if(maskedFocus == Focus.Player)
+            {
+                focusingOnPlayer();
+            }
         }
 
         public void MaskedDeceiving() //deceivings special ability
@@ -3294,42 +3299,43 @@ namespace LethalIntelligence.Patches
             }
             else if (maskedFocus == Focus.Player)
             {
-                if (distanceToPlayer >= 17f)
-                {
-                    //find player
-                    PlayerControllerB player = __instance.GetClosestPlayer();
-                    __instance.SetMovingTowardsTargetPlayer(player);
-                }
-                else
-                {
-                    if (enableDance)
-                    {
-                        isDancing.Value = true;
-                        maskedEnemy.stopAndStareTimer = 0.9f;
-                        agent.speed = 0f;
-                    }
-                    if (distanceToPlayer < 17f && __instance.targetPlayer.performingEmote && maxDanceCount.Value > 0)
-                    {
-                        maskedGoal = "emoting with nearby player";
-                        if (GameNetworkManager.Instance.isHostingGame && !enableDance)
-                        {
-                            LNetworkVariable<int> obj3 = maxDanceCount; //TODO
-                            obj3.Value -= 1;
-                            randomPose = 1;
-                            enableDance = true;
-                        }
-                        stopAndTbagTimer = 0.9f;
-                        __instance.agent.speed = 0f;
-                    }
-                    else if (isDancing.Value && GameNetworkManager.Instance.isHostingGame)
-                    {
-                        isDancing.Value = false;
-                        stopAndTbagTimer = 0.4f;
-                        randomPose = 1;
-                        enableDance = false;
-                    }
-                    mustChangeFocus = true;
-                }
+                focusingOnPlayer();
+                //if (distanceToPlayer >= 17f)
+                //{
+                //    //find player
+                //    PlayerControllerB player = __instance.GetClosestPlayer();
+                //    __instance.SetMovingTowardsTargetPlayer(player);
+                //}
+                //else
+                //{
+                //    if (enableDance)
+                //    {
+                //        isDancing.Value = true;
+                //        maskedEnemy.stopAndStareTimer = 0.9f;
+                //        agent.speed = 0f;
+                //    }
+                //    if (distanceToPlayer < 17f && __instance.targetPlayer.performingEmote && maxDanceCount.Value > 0)
+                //    {
+                //        maskedGoal = "emoting with nearby player";
+                //        if (GameNetworkManager.Instance.isHostingGame && !enableDance)
+                //        {
+                //            LNetworkVariable<int> obj3 = maxDanceCount; //TODO
+                //            obj3.Value -= 1;
+                //            randomPose = 1;
+                //            enableDance = true;
+                //        }
+                //        stopAndTbagTimer = 0.9f;
+                //        __instance.agent.speed = 0f;
+                //    }
+                //    else if (isDancing.Value && GameNetworkManager.Instance.isHostingGame)
+                //    {
+                //        isDancing.Value = false;
+                //        stopAndTbagTimer = 0.4f;
+                //        randomPose = 1;
+                //        enableDance = false;
+                //    }
+                //    mustChangeFocus = true;
+                //}
             }
         }
 
@@ -3350,6 +3356,10 @@ namespace LethalIntelligence.Patches
                     maskedGoal = "doing PlayerLikeAction()";
                     PlayerLikeAction();
                 }
+            }
+            else if (maskedFocus == Focus.Player)
+            {
+                focusingOnPlayer();
             }
         }
 
@@ -3380,23 +3390,24 @@ namespace LethalIntelligence.Patches
             }
             else if (maskedFocus == Focus.Player)
             {
-                //find the nearest player and kill them as fast as you can i guess? should change focus once player is dead
-                PlayerControllerB pt = __instance.GetClosestPlayer();
-                if (pt == null)
-                {
-                    mustChangeFocus = true;
-                    //maskedFocus = Focus.None;
-                    mustChangeActivity = true;
-                    return;
-                }
-                __instance.SetMovingTowardsTargetPlayer(pt);
-                //if (Vector3.Distance(__instance.transform.position, pt.transform.position) < 1f || pt.isPlayerDead)
-                if (Vector3.Distance(maskedPosition.Value, pt.transform.position) < 1f || pt.isPlayerDead)
-                {
-                    mustChangeFocus = true;
-                    //maskedFocus = Focus.None;
-                    mustChangeActivity = true;
-                }
+                focusingOnPlayer();
+                ////find the nearest player and kill them as fast as you can i guess? should change focus once player is dead
+                //PlayerControllerB pt = __instance.GetClosestPlayer();
+                //if (pt == null)
+                //{
+                //    mustChangeFocus = true;
+                //    //maskedFocus = Focus.None;
+                //    mustChangeActivity = true;
+                //    return;
+                //}
+                //__instance.SetMovingTowardsTargetPlayer(pt);
+                ////if (Vector3.Distance(__instance.transform.position, pt.transform.position) < 1f || pt.isPlayerDead)
+                //if (Vector3.Distance(agent.transform.position, pt.transform.position) < 1f || pt.isPlayerDead)
+                //{
+                //    mustChangeFocus = true;
+                //    //maskedFocus = Focus.None;
+                //    mustChangeActivity = true;
+                //}
             }
         }
 
@@ -3438,11 +3449,158 @@ namespace LethalIntelligence.Patches
                     mustChangeFocus = true;
                 }
             }
+            else if (maskedFocus == Focus.Player)
+            {
+                focusingOnPlayer();
+            }
         }
 
         //Focused Activities
 
+        //bool hasSeenTarget = false;
+
+        private void focusingOnPlayer() //function for all masked personalities to keep code together for this focus (like using terminal/etc)
+        {
+            /*PlayerControllerB player = __instance.GetClosestPlayer(true);
+            if (!hasSeenTarget && player != null)
+            {
+                __instance.SetMovingTowardsTargetPlayer(player); //go towards player until you have seen them
+                if (__instance.CheckLineOfSightForPosition(player.transform.position, 60f))
+                {
+                    hasSeenTarget = true;
+                    __instance.targetPlayer = player; //closest player should be the one you can see.
+                }
+            }
+            if (hasSeenTarget && player == null)
+            {
+                __instance.targetPlayer = player;
+                findPlayer();
+            }
+            if (hasSeenTarget && player != null)
+            {
+                //do personality things*/
+                /*if (maskedPersonality == Personality.Deceiving)
+                {
+                    if (distanceToPlayer >= 17f)
+                    {
+                        //find player
+                        PlayerControllerB player = __instance.GetClosestPlayer();
+                        __instance.SetMovingTowardsTargetPlayer(player);
+                    }
+                    else
+                    {
+                        if (enableDance)
+                        {
+                            isDancing.Value = true;
+                            maskedEnemy.stopAndStareTimer = 0.9f;
+                            agent.speed = 0f;
+                        }
+                        if (distanceToPlayer < 17f && __instance.targetPlayer.performingEmote && maxDanceCount.Value > 0)
+                        {
+                            maskedGoal = "emoting with nearby player";
+                            if (GameNetworkManager.Instance.isHostingGame && !enableDance)
+                            {
+                                LNetworkVariable<int> obj3 = maxDanceCount; //TODO
+                                obj3.Value -= 1;
+                                randomPose = 1;
+                                enableDance = true;
+                            }
+                            stopAndTbagTimer = 0.9f;
+                            __instance.agent.speed = 0f;
+                        }
+                        else if (isDancing.Value && GameNetworkManager.Instance.isHostingGame)
+                        {
+                            isDancing.Value = false;
+                            stopAndTbagTimer = 0.4f;
+                            randomPose = 1;
+                            enableDance = false;
+                        }
+                        mustChangeFocus = true;
+                    }
+                }
+                else if (maskedPersonality == Personality.Aggressive)
+                {
+                    //find the nearest player and kill them as fast as you can i guess? should change focus once player is dead
+                    PlayerControllerB pt = __instance.GetClosestPlayer();
+                    if (pt == null)
+                    {
+                        mustChangeFocus = true;
+                        //maskedFocus = Focus.None;
+                        mustChangeActivity = true;
+                        return;
+                    }
+                    __instance.SetMovingTowardsTargetPlayer(pt);
+                    //if (Vector3.Distance(__instance.transform.position, pt.transform.position) < 1f || pt.isPlayerDead)
+                    if (Vector3.Distance(agent.transform.position, pt.transform.position) < 1f || pt.isPlayerDead)
+                    {
+                        mustChangeFocus = true;
+                        //maskedFocus = Focus.None;
+                        mustChangeActivity = true;
+                    }
+                }
+                else //insane, stealthy, cunning
+                {*/
+                    //copying aggressive's for now
+                    //find the nearest player and kill them as fast as you can i guess? should change focus once player is dead
+                    PlayerControllerB pt = __instance.GetClosestPlayer();
+                    if (pt == null)
+                    {
+                        mustChangeFocus = true;
+                        //maskedFocus = Focus.None;
+                        mustChangeActivity = true;
+                        return;
+                    }
+                    __instance.SetMovingTowardsTargetPlayer(pt);
+                    //if (Vector3.Distance(__instance.transform.position, pt.transform.position) < 1f || pt.isPlayerDead)
+                    float tempDist = Vector3.Distance(agent.transform.position, pt.transform.position);
+                    if (tempDist < 1f || pt.isPlayerDead)
+                    {
+                        mustChangeFocus = true;
+                        //maskedFocus = Focus.None;
+                        mustChangeActivity = true;
+                    }
+                //}
+            //}
+        }
+
+        public float followTime = 1000f;
+
+        private void findPlayer()
+        {
+            if (targetedPlayer == null)
+            {
+                mustChangeFocus = true;
+                mustChangeActivity = true;
+                return;
+            }
+            PlayerControllerB randomPlayer = targetedPlayer;
+            maskedGoal = "finding " + randomPlayer.name.ToString();
+            Vector3 pos = randomPlayer.transform.position;
+            //bool canSeePos = __instance.CheckLineOfSightForPosition(pos, 160f, 40, -1, null);
+            bool canSeePos = __instance.CheckLineOfSightForPosition(pos, 80f, 60, -1, null);
+            if (canSeePos)
+            {
+                followTime = 20f;
+            }
+            else
+            {
+                followTime -= updateFrequency;
+                //Plugin.mls.LogError("Losing Player = " + followTime);
+            }
+            if (followTime <= 0f)
+            {
+                __instance.targetPlayer = null;
+                targetedPlayer = null;
+                mustChangeFocus = true;
+                mustChangeActivity = true;
+                //followTime = 20f;
+                lastMaskedFocus = Focus.Player;
+            }
+        }
+
+
         //find and kill players
+        public PlayerControllerB targetedPlayer;
 
         private void TargetAndKillPlayer()
         {
@@ -3451,9 +3609,14 @@ namespace LethalIntelligence.Patches
                 maskedGoal = "not targeting player, holding object";
                 dropTimer = 0f;
             }
-            if (__instance.targetPlayer != null)
+            if (targetedPlayer == null)
+            {
+                targetedPlayer = __instance.targetPlayer;
+            }
+            if (targetedPlayer != null)
             {
                 maskedFocusInt.Value = (int)Focus.Player;
+                maskedActivityInt.Value = (int)Activity.None;
 
                 if ((Object)(object)__instance.targetPlayer != (Object)null && isHoldingObject && !(closestGrabbable is Shovel) && !(closestGrabbable is ShotgunItem) && maskedPersonality == Personality.Aggressive)
                 {
@@ -3548,7 +3711,8 @@ namespace LethalIntelligence.Patches
                     distanceToPlayer = Vector3.Distance(((Component)creatureAnimator).transform.position, ((Component)__instance.targetPlayer).transform.position);
                     maskedEnemy.lookAtPositionTimer = 0f;
                 }
-                if (!((EnemyAI)maskedEnemy).isEnemyDead && !isUsingTerminal && !isUsingBreakerBox && (maskedPersonality != Personality.Aggressive || !isHoldingObject || (!(closestGrabbable is Shovel) && !(closestGrabbable is ShotgunItem))))
+                findPlayer();
+                /*if (!((EnemyAI)maskedEnemy).isEnemyDead && !isUsingTerminal && !isUsingBreakerBox && (maskedPersonality != Personality.Aggressive || !isHoldingObject || (!(closestGrabbable is Shovel) && !(closestGrabbable is ShotgunItem))))
                 {
                     PlayerControllerB[] allPlayerScripts = StartOfRound.Instance.allPlayerScripts;
                     foreach (PlayerControllerB val in allPlayerScripts)
@@ -3570,7 +3734,7 @@ namespace LethalIntelligence.Patches
                             }
                         }
                     }
-                }
+                }*/
             }
             else
             {
@@ -3582,6 +3746,37 @@ namespace LethalIntelligence.Patches
                 }
             }
         }
+
+        //private void TargetPlayer()
+        //{
+        //    if (__instance.targetPlayer == null && isHoldingObject)
+        //    {
+        //        maskedGoal = "not targeting player, holding object";
+        //        dropTimer = 0f;
+        //    }
+        //    if (__instance.targetPlayer != null)
+        //    {
+        //        maskedFocusInt.Value = (int)Focus.Player;
+        //        maskedActivityInt.Value = (int)Activity.None;
+
+        //        if (__instance.targetPlayer != null)
+        //        {
+        //            //targetPlayerReachable = __instance.SetDestinationToPosition(__instance.targetPlayer.transform.position, true); //needed when going towards a player
+        //            //checking distance to target player
+        //            distanceToPlayer = Vector3.Distance(((Component)creatureAnimator).transform.position, ((Component)__instance.targetPlayer).transform.position);
+        //            maskedEnemy.lookAtPositionTimer = 0f;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        //do nothing
+        //        if (maskedFocus == Focus.Player || maskedActivity == Activity.RandomPlayer)
+        //        {
+        //            mustChangeFocus = true;
+        //            mustChangeActivity = true;
+        //        }
+        //    }
+        //}
 
         private void OnCollideWithPlayer()
         {
@@ -3611,6 +3806,100 @@ namespace LethalIntelligence.Patches
                 }
             }
         }
+
+        //private void TargetAndKillPlayers()
+        //{
+        //    if (maskedEnemy.targetPlayer != null)
+        //    {
+        //        maskedFocusInt.Value = (int)Focus.Player;
+        //        maskedActivityInt.Value = (int)Activity.None;
+
+        //        if (maskedEnemy.targetPlayer != (Object)null)
+        //        {
+        //            //targetPlayerReachable = __instance.SetDestinationToPosition(__instance.targetPlayer.transform.position, true); //needed when going towards a player
+        //            //checking distance to target player
+        //            distanceToPlayer = Vector3.Distance(((Component)creatureAnimator).transform.position, ((Component)__instance.targetPlayer).transform.position);
+        //            maskedEnemy.lookAtPositionTimer = 0f;
+        //        }
+
+        //        if (!maskedEnemy.isEnemyDead && !isUsingTerminal && !isUsingBreakerBox && !isUsingApparatus)
+        //        {
+        //            if (maskedPersonality == Personality.Aggressive && (closestGrabbable is Shovel || closestGrabbable is ShotgunItem || closestGrabbable is StunGrenadeItem || closestGrabbable is KnifeItem))
+        //            {
+        //                return; //aggressive masked carrying weapons shouldent kill by using their hands
+        //            }
+        //            if (isHoldingObject)
+        //            {
+        //                dropItem.Value = true; //drop the item because your about to kill.
+        //            }
+        //            PlayerControllerB[] allPlayerScripts = StartOfRound.Instance.allPlayerScripts;
+        //            //PlayerControllerB playerToKill = null;
+        //            foreach (PlayerControllerB val in allPlayerScripts)
+        //            {
+        //                //float num = Vector3.Distance(((Component)val).transform.position, ((Component)this).transform.position);
+        //                float num = Vector3.Distance(((Component)val).transform.position, agent.transform.position);
+        //                if (num < 1f)
+        //                {
+        //                    maskedGoal = "attempting to kill a player";
+        //                    PlayerControllerB collidePlayer = maskedEnemy.MeetsStandardPlayerCollisionConditions(val.playerCollider, maskedEnemy.inKillAnimation || maskedEnemy.startingKillAnimationLocalClient || !maskedEnemy.enemyEnabled, false);
+        //                    if (collidePlayer != null)
+        //                    {
+        //                        //agent.enabled = false;
+        //                        //playerToKill = collidePlayer;
+        //                        maskedEnemy.KillPlayerAnimationServerRpc((int)val.playerClientId);
+        //                        maskedEnemy.startingKillAnimationLocalClient = true;
+        //                        if (val.isCrouching)
+        //                        {
+        //                            val.Crouch(false);
+        //                        }
+        //                        //agent.enabled = true;
+        //                        break;
+        //                    }
+        //                }
+        //            }
+        //            //if(playerToKill != null)
+        //            //{
+        //            //    new WaitForSeconds(3f);
+        //            //    playerToKill = null;
+        //            //    agent.enabled = true;
+        //            //}
+        //        }
+        //        //foreach (PlayerControllerB val in allPlayerScripts)
+        //        //{
+        //        //    //float num = Vector3.Distance(((Component)val).transform.position, ((Component)this).transform.position);
+        //        //    float num = Vector3.Distance(((Component)val).transform.position, maskedPosition.Value);
+        //        //    if (num < 1f)
+        //        //    {
+        //        //        maskedGoal = "attempting to kill a player";
+        //        //        PlayerControllerB collidePlayer = maskedEnemy.MeetsStandardPlayerCollisionConditions(val.playerCollider, maskedEnemy.inKillAnimation || maskedEnemy.startingKillAnimationLocalClient || !maskedEnemy.enemyEnabled, false);
+        //        //        if (collidePlayer != null)
+        //        //        {
+        //        //            playerToKill = collidePlayer;
+        //        //            agent.speed = 0f;
+        //        //            maskedPosition.Value = collidePlayer.transform.position + collidePlayer.transform.forward;
+        //        //            var oppositeY = collidePlayer.transform.rotation.y + 180f;
+        //        //            maskedRotation.Value = new Quaternion(collidePlayer.transform.rotation.x, collidePlayer.transform.rotation.y + 180f, collidePlayer.transform.rotation.z, collidePlayer.transform.rotation.w);
+        //        //            maskedEnemy.KillPlayerAnimationServerRpc((int)val.playerClientId);
+        //        //            maskedEnemy.startingKillAnimationLocalClient = true;
+        //        //            if (val.isCrouching)
+        //        //            {
+        //        //                val.Crouch(false);
+        //        //            }
+        //        //        }
+        //        //    }
+        //        //}
+        //    }
+        //    else
+        //    {
+        //        //do nothing
+        //        if (maskedFocus == Focus.Player || maskedActivity == Activity.RandomPlayer)
+        //        {
+        //            mustChangeFocus = true;
+        //            mustChangeActivity = true;
+        //        }
+        //    }
+        //}
+
 
         int seenCheckNum = 200;
 
@@ -4351,6 +4640,27 @@ namespace LethalIntelligence.Patches
                 ((Behaviour)terminal.terminalLight).enabled = false;
                 creatureAnimator.ResetTrigger("Terminal");
                 ((Component)maskedEnemy.headTiltTarget).gameObject.SetActive(true);
+            }
+        }
+
+
+        private void updatePosition(Vector3 oldVal, Vector3 newVal)
+        {
+            this.transform.position = newVal;
+        }
+
+        private void updateTargetPlayer(ulong oldVal, ulong newVal)
+        {
+            if (!IsHost)
+            {
+                if (newVal == ulong.MaxValue)
+                {
+                    maskedEnemy.targetPlayer = null;
+                }
+                else
+                {
+                    maskedEnemy.targetPlayer = newVal.GetPlayerController();
+                }
             }
         }
 
@@ -6170,36 +6480,6 @@ namespace LethalIntelligence.Patches
                     mustChangeFocus = true;
                     mustChangeActivity = true;
                 }
-            }
-        }
-
-        float followTime = 0f;
-
-        private void findRandomPlayer()
-        {   
-            if (__instance.targetPlayer == null)
-            {
-                mustChangeFocus = true;
-                mustChangeActivity = true;
-                return;
-            }
-            PlayerControllerB randomPlayer = __instance.targetPlayer;
-            maskedGoal = "finding " + randomPlayer.name.ToString();
-            Vector3 pos = randomPlayer.transform.position;
-            //bool canSeePos = __instance.CheckLineOfSightForPosition(pos, 160f, 40, -1, null);
-            bool canSeePos = __instance.CheckLineOfSightForPosition(pos, 80f, 60, -1, null);
-            if (canSeePos)
-            {
-                followTime = 20f;
-            }
-            else
-            {
-                followTime -= 0.1f;
-            }
-            if (followTime == 0f)
-            {
-                mustChangeFocus = true;
-                mustChangeActivity = true;
             }
         }
         #endregion generic activites
