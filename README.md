@@ -50,8 +50,8 @@ if this is on.. OR Imperium is installed.. debug mode will be turned on, this wi
  </details>
 
 ## Known Issues
-- masked "ignoring players" is sometimes way too much, and sometimes way too little, a rework of the system will occur soon.
-- pathing to objects behind doors/walls will cause "stuck motion" (as does any route to which the masked cannot reach the destination) - working on a solution to this
+- masked "ignoring players" is sometimes way too much, and sometimes way too little, a rework of the system will occur soon - slight rework done, let me know if the situation has improved or gotten worse!
+- pathing to objects behind locked doors/walls will cause "stuck motion" (as does any route to which the masked cannot reach the destination) - working on a solution to this
 - if you despawn a masked (using a mod to remove them from the game) while it is on the terminal, the terminal is unusable and the lobby must be restarted - not planning to fix as shouldent occur in an actual game. (if you kill them before you despawn them, this wont happen).
 
 If you have any of the above issues, or any other issue, dont hesitate to send me the full log file after your session has ended (either on discord, or as an issue on github)

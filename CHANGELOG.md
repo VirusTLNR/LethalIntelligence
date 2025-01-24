@@ -1,5 +1,13 @@
 ## Changelog
 
+### 0.4.3 - The 'Anti-MP' Patch
+- prevented error spam when "apparatus" is null (usually on the mansion interior)
+- prevented an error message at start of the day due to items being null
+- instead of syncing "masked" position and rotation myself, ive switched to instead using agent position and rotation.
+- disabled syncing of "in special animation" bool as it was causing issues, will fix in future.
+- improved player detection, selection, following and losing track of players.
+- made sure that masked are "collidable" (ie, so they can kill you) majority of the time. only real exceptions is while they are "using" the terminal/breaker/apparatus.
+
 ### 0.4.2 - Hotfix
 - fixed an issue where a masked spotting a player at spawn would cause "-1" value for focus/activity there in breaking their logic.
 - fixed an issue where a mod breaks mirage, which then breaks LI.
