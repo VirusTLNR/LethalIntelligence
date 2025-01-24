@@ -1525,7 +1525,7 @@ namespace LethalIntelligence.Patches
             {
                 maskedTargetId.Value = ulong.MaxValue; //to make it null;
             }
-            maskedInSpecialAnimation.Value = maskedEnemy.inSpecialAnimation;
+            //maskedInSpecialAnimation.Value = maskedEnemy.inSpecialAnimation; //this is breaking the mod currently need to look into this.
             if (closestGrabbable != null)
             {
                 closestGrabbableId.Value = closestGrabbable.NetworkObjectId;
@@ -1549,7 +1549,7 @@ namespace LethalIntelligence.Patches
             {
                 maskedEnemy.targetPlayer = maskedTargetId.Value.GetPlayerController();
             }
-            maskedEnemy.inSpecialAnimation = maskedInSpecialAnimation.Value;
+            //maskedEnemy.inSpecialAnimation = maskedInSpecialAnimation.Value;
             if (closestGrabbableId.Value == ulong.MaxValue)
             {
                 closestGrabbable = null;
