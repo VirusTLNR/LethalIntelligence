@@ -24,7 +24,7 @@ namespace LethalIntelligence.Patches
                 //.RegisterInsight("ItemHeld", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().heldGrabbable}")
                 /*.RegisterInsight("TPos", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().transform.rotation.ToString().Replace(" ", "")}")
                 .RegisterInsight("TRot", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().transform.position.ToString().Replace(" ", "")}")*/
-                .RegisterInsight("Pos", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().maskedPosition.Value.ToString().Replace(" ", "")}")
+                .RegisterInsight("Pos", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().agent.transform.position.ToString().Replace(" ", "")}")
                 /*.RegisterInsight("RotX", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().maskedRotation.Value.x.ToString("f5").Replace(" ", "")}")
                 .RegisterInsight("RotY", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().maskedRotation.Value.y.ToString("f5").Replace(" ", "")}")
                 .RegisterInsight("RotZ", entity => $"{entity.gameObject.GetComponent<MaskedAIRevamp>().maskedRotation.Value.z.ToString("f5").Replace(" ", "")}")
