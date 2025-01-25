@@ -3587,7 +3587,7 @@ namespace LethalIntelligence.Patches
                 followTime -= updateFrequency;
                 //Plugin.mls.LogError("Losing Player = " + followTime);
             }
-            if (followTime <= 0f || targetedPlayer.isPlayerDead)
+            if (followTime <= 0f || targetedPlayer.isPlayerDead || (maskedEnemy.isOutside && targetedPlayer.isInsideFactory))
             {
                 __instance.targetPlayer = null;
                 targetedPlayer = null;
@@ -3596,6 +3596,12 @@ namespace LethalIntelligence.Patches
                 //followTime = 20f;
                 lastMaskedFocus = Focus.Player;
             }
+            /*if (maskedEnemy.isOutside && targetedPlayer.isInsideFactory) //if player is outside while enemy is inside, and vica versa, then go to the nearest exit asap.
+            {
+                //not working properly so disable for now.
+                maskedGoal = "using nearest entrance teleport to catch up with player";
+                findEntranceTeleports(true, true); //chase player outside/inside
+            }*/
         }
 
 
