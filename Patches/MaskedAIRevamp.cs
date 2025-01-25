@@ -1300,7 +1300,7 @@ namespace LethalIntelligence.Patches
                         mustChangeActivity = true;
                     }
                     //new line
-                    else if ((maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Aggressive) && closestGrabbableDistance.Value < 40f && lastMaskedFocus != Focus.Items && closestGrabbableReachable.Value && !noMoreItems)
+                    else if ((maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Aggressive) && closestGrabbableDistance.Value < 40f && lastMaskedFocus != Focus.Items && closestGrabbableReachable.Value && !noMoreItems && TimeOfDay.Instance.hour > lastItemErrorHour)
                     //this was a cunning only line
                     //else if (closestGrabbableDistance < breakerBoxDistance && closestGrabbableDistance < terminalDistance && lastMaskedFocus != Focus.Items && closestGrabbableReachable && !noMoreItems)
                     {
@@ -1982,6 +1982,8 @@ namespace LethalIntelligence.Patches
             }
         }
 
+        int lastItemErrorHour = 0;
+
         private void setNearestGrabbable()
         {
             if (IsHost)
@@ -2118,6 +2120,7 @@ namespace LethalIntelligence.Patches
 
                     num = num2;
                     closestGrabbable = allitem;
+                    //Plugin.mls.LogError("ClosestGrabbable=" + (closestGrabbable==null?"null":closestGrabbable.name.ToString()));
                     if (NavMesh.SamplePosition(closestGrabbable.transform.position, out hitGrabbable, 10f, -1))
                     {
                         //closestGrabbableReachable = agent.CalculatePath(hitGrabbable.position, nmpGrabbable);
@@ -3156,6 +3159,7 @@ namespace LethalIntelligence.Patches
                         if (closestGrabbable == null || closestGrabbableReachable.Value == false)
                         {
                             maskedGoal = "cant find any grabbable items, switching focus";
+                            lastItemErrorHour = TimeOfDay.Instance.hour;
                             //noMoreItems = true;
                             mustChangeFocus = true;
                         }
@@ -3255,6 +3259,7 @@ namespace LethalIntelligence.Patches
                         if (closestGrabbable == null || closestGrabbableReachable.Value == false)
                         {
                             maskedGoal = "cant find any grabbable items, switching focus";
+                            lastItemErrorHour = TimeOfDay.Instance.hour;
                             //noMoreItems = true; //dont do this or items will always be unavailable
                             mustChangeFocus = true;
                         }
