@@ -1725,11 +1725,11 @@ namespace LethalIntelligence.Patches
                 writeSyncedVariables(); //for syncing variables between host and client
                 DetectAndSelectRandomPlayer();
                 TargetAndKillPlayer(); //potentially, this should change the focus to NONE and "Activity" to killing the player..depending on the personality, this should cancel current activity as well.
-                OnCollideWithPlayer();
                 CheckForEntrancesNearby(); //use entrances here
                 //host only (set in function) - setting variables of masked choices
                 SetFocus();
             }
+            OnCollideWithPlayer();
             ///////////////////////////////
             //for testing only, do not use
             /*agent.transform.position = maskedPosition.Value;
@@ -3587,7 +3587,7 @@ namespace LethalIntelligence.Patches
                 followTime -= updateFrequency;
                 //Plugin.mls.LogError("Losing Player = " + followTime);
             }
-            if (followTime <= 0f)
+            if (followTime <= 0f || targetedPlayer.isPlayerDead)
             {
                 __instance.targetPlayer = null;
                 targetedPlayer = null;
