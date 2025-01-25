@@ -358,9 +358,20 @@ namespace LethalIntelligence.Patches
         {
             if (GameNetworkManager.Instance.isHostingGame)
             {
-                if (RoundManager.Instance.currentLevel.name.ToString() == "CompanyBuildingLevel")
+                /*if (RoundManager.Instance.currentLevel.name.ToString() == "CompanyBuildingLevel")
                 {//company moon (no interior)
+                    Plugin.mls.LogDebug("EntranceTeleport checks skipped on Company planet");
                     return; //prevent this code running on the company
+                }*/
+                if (RoundManager.Instance.dungeonGenerator == null)
+                {
+                    Plugin.mls.LogInfo("EntranceTeleport checks skipped on " + RoundManager.Instance.currentLevel.name.ToString() + " as interior generator is null");
+                    return;
+                }
+                if (RoundManager.Instance.currentLevel == null)
+                {
+                    Plugin.mls.LogError("EntranceTeleport checks skipped as moon is null (urgent, report this telling me what moon you routed to!)");
+                    return;
                 }
                 Plugin.mls.LogInfo("Checking which Entrance Teleports are Valid...( " + RoundManager.Instance.currentLevel.name.ToString() + " | " + RoundManager.Instance.dungeonGenerator.Generator.DungeonFlow.name.ToString() + " )");
                 earlyCallSetExitIDs();
