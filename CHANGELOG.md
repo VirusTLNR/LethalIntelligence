@@ -1,5 +1,11 @@
 ## Changelog
 
+### 0.4.4 - Hotfix
+- fixed masked killing client players
+- added extra logic around masked chasing players who exit the facility
+- improved entrance teleport checks to ignore moons with no interior (Company & Galentry at the moment, but should apply to any moon where the interior does not exist)
+- reduced log spam (and so hopefully some lag) when masked cannot find an item to pick up and keep trying to by delaying their "re-attempt" until the next ingame hour (and so if it is not the next ingame hour, they should do something else)
+
 ### 0.4.3 - The 'Anti-MP' Patch
 - prevented error spam when "apparatus" is null (usually on the mansion interior)
 - prevented an error message at start of the day due to items being null
