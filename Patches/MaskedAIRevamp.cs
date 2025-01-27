@@ -758,6 +758,7 @@ namespace LethalIntelligence.Patches
 
             //other
             dropItem = LNetworkVariable<bool>.Connect("dropItem" + id, false, LNetworkVariableWritePerms.Everyone);
+            dropItem.OnValueChanged += (oldVal, newVal) => { DropItemsNew(oldVal,newVal); };
 
             //bools for checking if something is reachable
             terminalReachable = LNetworkVariable<bool>.Connect("terminalReachable" + id, false, LNetworkVariableWritePerms.Everyone);
@@ -1596,16 +1597,16 @@ namespace LethalIntelligence.Patches
             {
                 MaskedStatusReport();
             }
-            if (((EnemyAI)maskedEnemy).isEnemyDead && isHoldingObject)
-            {
-                maskedGoal = "died, dropping objects!";
-                dropItem.Value = true;
-                //DropItem(); //using dropitem function to drop the items
-                /*closestGrabbable.parentObject = null;
-                closestGrabbable.isHeld = false;
-                closestGrabbable.isHeldByEnemy = false;
-                isHoldingObject = false;*/
-            }
+            //if (((EnemyAI)maskedEnemy).isEnemyDead && isHoldingObject)
+            //{
+            //    maskedGoal = "died, dropping objects!";
+            //    dropItem.Value = true;
+            //    //DropItem(); //using dropitem function to drop the items
+            //    /*closestGrabbable.parentObject = null;
+            //    closestGrabbable.isHeld = false;
+            //    closestGrabbable.isHeldByEnemy = false;
+            //    isHoldingObject = false;*/
+            //}
             if (maskedEnemy.isEnemyDead || StartOfRound.Instance.shipIsLeaving || StartOfRound.Instance.shipLeftAutomatically) //masked died or ship is leaving.
             {
                 maskedGoal = "none (dead or ship is leaving)!";
@@ -1613,7 +1614,11 @@ namespace LethalIntelligence.Patches
                 {
                     ((Behaviour)agent).enabled = false;
                 }
-                if (isUsingTerminal == true)
+                if(isHoldingObject)
+                {
+                    dropItem.Value = true;
+                }
+                if (isUsingTerminal)
                 {
                     isUsingTerminal = false;
                     Plugin.isTerminalBeingUsed = false; //attempting to fix a killed/despawned mask locking out others from the terminal
@@ -2452,10 +2457,10 @@ namespace LethalIntelligence.Patches
 
         public void ItemAnimationSelector(Animator creatureAnimator, EnemyAI __instance)
         {
-            if (dropItem.Value)
+            /*if (dropItem.Value)
             {
                 DropItem();
-            }
+            }*/
             if (isHoldingObject)
             {
                 //upperBodyAnimationsWeight = Mathf.Lerp(upperBodyAnimationsWeight, 0.9f, 25f * Time.deltaTime);
@@ -5133,6 +5138,38 @@ namespace LethalIntelligence.Patches
                 __instance.movingTowardsTargetPlayer = true;
                 __instance.targetPlayer = targetPlayer;
                 __instance.SwitchToBehaviourState(2);
+            }
+        }
+
+        private void DropItemsNew(bool oldVal, bool newVal)
+        {
+            if (oldVal == newVal) return; //do nothing as no value change
+            if (newVal == false) return; //do nothing because false means do nothing
+            if ((Object)(object)heldGrabbable != (Object)null && isHoldingObject)
+            {
+                heldGrabbable.parentObject = null;
+                ((Component)heldGrabbable).transform.SetParent(StartOfRound.Instance.propsContainer, true);
+                heldGrabbable.EnablePhysics(true);
+                heldGrabbable.fallTime = 0f;
+                heldGrabbable.startFallingPosition = ((Component)heldGrabbable).transform.parent.InverseTransformPoint(((Component)heldGrabbable).transform.position);
+                heldGrabbable.targetFloorPosition = ((Component)heldGrabbable).transform.parent.InverseTransformPoint(heldGrabbable.GetItemFloorPosition(default(Vector3)));
+                heldGrabbable.floorYRot = -1;
+                heldGrabbable.isHeld = false;
+                heldGrabbable.isHeldByEnemy = false;
+                isHoldingObject = false;
+                heldGrabbable.DiscardItemFromEnemy();
+                heldGrabbable.hasHitGround = true;
+                NotGrabItemsTime();
+                heldGrabbable.grabbable = true;
+                isHoldingObject = false;
+                itemDroped = true;
+                //PlayerControllerB targetPlayer = __instance.CheckLineOfSightForClosestPlayer(70f, 50, 1, 3f);
+                PlayerControllerB targetPlayer = __instance.CheckLineOfSightForClosestPlayer(80f, 60, 1, 3f);
+                __instance.movingTowardsTargetPlayer = true;
+                __instance.targetPlayer = targetPlayer;
+                __instance.SwitchToBehaviourState(2);
+                heldGrabbable = null;
+                dropItem.Value = false;
             }
         }
 
