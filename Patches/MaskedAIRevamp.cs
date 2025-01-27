@@ -2360,7 +2360,10 @@ namespace LethalIntelligence.Patches
                 isRunning.Value = false;
                 creatureAnimator.ResetTrigger("Running");
                 creatureAnimator.SetTrigger("Dancing");
-                __instance.SetDestinationToPosition(((Component)__instance).transform.position, false);
+                if (IsHost)
+                {
+                    __instance.SetDestinationToPosition(((Component)__instance).transform.position, false);
+                }
                 agent.speed = 0f;
                 Plugin.mls.LogInfo((object)"Dancing");
             }
@@ -2965,7 +2968,10 @@ namespace LethalIntelligence.Patches
                     {
                         if (__instance.isOutside)
                         {
-                            __instance.SetDestinationToPosition(maskedEnemy.shipHidingSpot, true);
+                            if (IsHost)
+                            {
+                                __instance.SetDestinationToPosition(maskedEnemy.shipHidingSpot, true);
+                            }
                         }
                         else
                         {
@@ -2976,11 +2982,17 @@ namespace LethalIntelligence.Patches
                         }
                         originTimer = 0f;
                     }
-                    __instance.SetDestinationToPosition(val3, true);
+                    if (IsHost)
+                    {
+                        __instance.SetDestinationToPosition(val3, true);
+                    }
                 }
                 else
                 {
-                    __instance.SetDestinationToPosition(originDestination, true);
+                    if (IsHost)
+                    {
+                        __instance.SetDestinationToPosition(originDestination, true);
+                    }
                 }
             }
         }
@@ -3029,7 +3041,10 @@ namespace LethalIntelligence.Patches
                 {
                     if (__instance.isOutside)
                     {
-                        __instance.SetDestinationToPosition(maskedEnemy.shipHidingSpot, true);
+                        if (IsHost)
+                        {
+                            __instance.SetDestinationToPosition(maskedEnemy.shipHidingSpot, true);
+                        }
                     }
                     else
                     {
@@ -3040,11 +3055,17 @@ namespace LethalIntelligence.Patches
                     }
                     originTimer = 0f;
                 }
-                __instance.SetDestinationToPosition(val2, true);
+                if (IsHost)
+                {
+                    __instance.SetDestinationToPosition(val2, true);
+                }
             }
             else
             {
-                __instance.SetDestinationToPosition(originDestination, true);
+                if (IsHost)
+                {
+                    __instance.SetDestinationToPosition(originDestination, true);
+                }
             }
         }
 
@@ -3214,7 +3235,10 @@ namespace LethalIntelligence.Patches
                                 if (bushDistance > 2f && bushDistance < float.PositiveInfinity && !val.GetComponent<BushSystem>().bushWithItem)
                                 {
                                     maskedGoal = "walking to bush (" + val.transform.position.ToString() + ")";
-                                    maskedEnemy.SetDestinationToPosition(val.transform.position, true);
+                                    if (IsHost)
+                                    {
+                                        maskedEnemy.SetDestinationToPosition(val.transform.position, true);
+                                    }
                                     moveSpecial = true;
                                 }
                                 if (bushDistance < 2f)
@@ -3296,7 +3320,10 @@ namespace LethalIntelligence.Patches
                             if (num2 > 6f)
                             {
                                 maskedGoal = "heading to player ship to drop an item";
-                                maskedEnemy.SetDestinationToPosition(terminalPosition.Value);
+                                if (IsHost)
+                                {
+                                    maskedEnemy.SetDestinationToPosition(terminalPosition.Value);
+                                }
                             }
                             else if (num2 < 6f && maskedEnemy.isInsidePlayerShip)
                             {
@@ -3717,7 +3744,10 @@ namespace LethalIntelligence.Patches
                     maskedGoal = "not dead, holding object, targetting player (is not aggressive OR closest item is not a shovel/shotgun)";
                     if (__instance.isOutside)
                     {
-                        __instance.SetDestinationToPosition(maskedEnemy.shipHidingSpot, false);
+                        if (IsHost)
+                        {
+                            __instance.SetDestinationToPosition(maskedEnemy.shipHidingSpot, false);
+                        }
                     }
                     else
                     {
@@ -4001,10 +4031,13 @@ namespace LethalIntelligence.Patches
                         return; //cant reach apparatus
                     }
                     maskedGoal = "walking to apparatus (" + apparatusPosition.Value.ToString() + ")";
-                    __instance.SetDestinationToPosition(apparatusPosition.Value, false);
-                    //Plugin.mls.LogError("ApparatusDistance = " + apparatusDistance);
-                    //Plugin.mls.LogError("ApparatusPosition = " + apparatusPosition);
-                    __instance.moveTowardsDestination = true;
+                    if (IsHost)
+                    {
+                        __instance.SetDestinationToPosition(apparatusPosition.Value, false);
+                        //Plugin.mls.LogError("ApparatusDistance = " + apparatusDistance);
+                        //Plugin.mls.LogError("ApparatusPosition = " + apparatusPosition);
+                        __instance.moveTowardsDestination = true;
+                    }
                 }
                 if ((Object)(object)apparatus != (Object)null && !apparatus.isLungDocked)
                 {
@@ -4150,7 +4183,10 @@ namespace LethalIntelligence.Patches
                 else
                 {
                     maskedGoal = "(escape) heading to terminal in player ship";
-                    maskedEnemy.SetDestinationToPosition(terminalPosition.Value);
+                    if (IsHost)
+                    {
+                        maskedEnemy.SetDestinationToPosition(terminalPosition.Value);
+                    }
                 }
 
             }
@@ -4182,8 +4218,11 @@ namespace LethalIntelligence.Patches
                     maskedGoal = "(escape) walking to ships lever (" + startMatchLever.transform.position.ToString() + ")";
                     //if (startLeverDistance > 0.5f)
                     //{
-                    maskedEnemy.SetDestinationToPosition(startMatchLever.transform.position, false);
-                    maskedEnemy.moveTowardsDestination = true;
+                    if (IsHost)
+                    {
+                        maskedEnemy.SetDestinationToPosition(startMatchLever.transform.position, false);
+                        maskedEnemy.moveTowardsDestination = true;
+                    }
                     //}
                     if (startMatchLever == null)
                     {
@@ -5906,8 +5945,12 @@ namespace LethalIntelligence.Patches
             maskedGoal = "walking to ships locker (" + lockerPosition.Value.ToString() + ")";
             maskedEnemy.lostLOSTimer = 0f;
             maskedEnemy.stopAndStareTimer = 0f;
-            bool reachable = ((EnemyAI)maskedEnemy).SetDestinationToPosition(lockerPosition.Value, true);
-            if (!reachable)
+            if (IsHost)
+            {
+                maskedEnemy.SetDestinationToPosition(lockerPosition.Value, true);
+                maskedEnemy.moveTowardsDestination = true;
+            }
+            if (!lockerReachable)
             {
                 mustChangeActivity = true;
             }
@@ -5975,11 +6018,14 @@ namespace LethalIntelligence.Patches
                 return;
             }
             maskedGoal = "wallking to " +  selectedItem.name + "(" + maskedEnemy.isOutside + "/" + selectedItem.isInFactory + "/" + selectedItem.transform.position + ")";
-            maskedEnemy.SetDestinationToPosition(selectedItem.transform.position, true);
+            if (IsHost)
+            {
+                maskedEnemy.SetDestinationToPosition(selectedItem.transform.position, true);
+            }
             //if (Vector3.Distance(maskedEnemy.transform.position, selectedItem.transform.position) < 1.5f)
             if (Vector3.Distance(agent.transform.position, selectedItem.transform.position) < 1.5f)
             {
-                    mustChangeFocus = true;
+                mustChangeFocus = true;
                 mustChangeActivity = true;
             }
         }
@@ -5989,8 +6035,12 @@ namespace LethalIntelligence.Patches
             maskedGoal = "walking to apparatus (" + apparatusPosition.Value.ToString() + ")";
             maskedEnemy.lostLOSTimer = 0f;
             maskedEnemy.stopAndStareTimer = 0f;
-            bool reachable = ((EnemyAI)maskedEnemy).SetDestinationToPosition(apparatusPosition.Value, true);
-            if (!reachable)
+            if (IsHost)
+            {
+                maskedEnemy.SetDestinationToPosition(apparatusPosition.Value, true);
+                maskedEnemy.moveTowardsDestination = true;
+            }
+            if (!apparatusReachable.Value)
             {
                 mustChangeActivity = true;
             }
@@ -6124,7 +6174,10 @@ namespace LethalIntelligence.Patches
             Vector3 tPos = entrance.entrancePoint.position;
             //float distanceToEntrance = Vector3.Distance(maskedEnemy.transform.position, tPos);
             float distanceToEntrance = Vector3.Distance(agent.transform.position, tPos);
-            maskedEnemy.SetDestinationToPosition(tPos, false);
+            if (IsHost)
+            {
+                maskedEnemy.SetDestinationToPosition(tPos, false);
+            }
             if (distanceToEntrance > 4f)
             {
                 maskedGoal = "going to entrance (" + entrance.entranceId + "/" + tPos.ToString() + ")";
@@ -6506,7 +6559,10 @@ namespace LethalIntelligence.Patches
                 {
                     if (Vector3.Distance(mainEntrancePosition.Value, agent.transform.position) <= 5f) //must keep the masked away from the main entrance as they get stuck there.
                     {
-                        __instance.SetDestinationToPosition(idleFarthestNode.position);
+                        if (IsHost)
+                        {
+                            __instance.SetDestinationToPosition(idleFarthestNode.position);
+                        }
                         __instance.StopSearch(idleSearch);
                         idleModeVersion.Value = 1;
                     }
@@ -6519,7 +6575,10 @@ namespace LethalIntelligence.Patches
                 {
                     if (idleFarthestNodeSet)
                     {
-                        __instance.SetDestinationToPosition(idleFarthestNode.position);
+                        if (IsHost)
+                        {
+                            __instance.SetDestinationToPosition(idleFarthestNode.position);
+                        }
                         if (Vector3.Distance(mainEntrancePosition.Value, agent.transform.position) >= 80f || Vector3.Distance(idleFarthestNode.position, agent.transform.position) <= 5f)
                         {
                             idleModeVersion.Value = 0;
