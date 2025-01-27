@@ -2709,6 +2709,10 @@ namespace LethalIntelligence.Patches
                 }
             }
             //walkieToGrab = maskedWalkie.Value;
+            if(agent == null)
+            {
+                return; //agent was null, this shouldent happen
+            }
             if (walkieToGrab == null) //if still null...
             {
                 return; //there is no walkie to grab in sight.. so dont continue.
@@ -2730,9 +2734,12 @@ namespace LethalIntelligence.Patches
             if (distance > 0.5f)
             {
                 maskedGoal = "walkiing to selected walkie @ " + walkieToGrab.transform.position;
-                __instance.SetDestinationToPosition(((Component)walkieToGrab).transform.position, true);
-                __instance.moveTowardsDestination = true;
-                __instance.movingTowardsTargetPlayer = false;
+                if (IsHost)
+                {
+                    __instance.SetDestinationToPosition(((Component)walkieToGrab).transform.position, true);
+                    __instance.moveTowardsDestination = true;
+                    __instance.movingTowardsTargetPlayer = false;
+                }
             }
             if (distance > 0.5f && distance < 3f)
             {
