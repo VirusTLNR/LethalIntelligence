@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AI;
@@ -347,7 +348,21 @@ namespace LethalIntelligence.Patches
                 new WaitForSeconds(1f);
             }
             Vector3 mep = RoundManager.FindMainEntrancePosition(false, false);
-            RoundManager.Instance.SetExitIDs(mep);
+            //===================== START SetExitID()s code (literally) ================================
+            int num = 1;
+            EntranceTeleport[] array = (from x in Object.FindObjectsOfType<EntranceTeleport>() 
+                                        orderby (x.transform.position - mep).sqrMagnitude
+                                        select x).ToArray<EntranceTeleport>();
+            for (int i = 0; i < array.Length; i++)
+            {
+                if (array[i].entranceId == 1 && !array[i].isEntranceToBuilding)
+                {
+                    array[i].entranceId = num;
+                    num++;
+                }
+            }
+            //===================== END SetExitID()s code (literally) ================================
+            //RoundManager.Instance.SetExitIDs(mep);
         }
 
 
