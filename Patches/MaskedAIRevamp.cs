@@ -838,18 +838,20 @@ namespace LethalIntelligence.Patches
             selectAvailablePersonalities();
             if (RoundManager.Instance.currentLevel == null)
             {//no moon, should be in orbit.. but this isnt correct, this should only occur when masked are SPAWNED in the ship anyway, so not a big deal
+                Plugin.mls.LogDebug("MoonWasNotFound:- " + RoundManager.Instance.currentLevel.ToString());
                 return;
             }
-            else if(RoundManager.Instance.currentLevel.name.ToString() == "CompanyBuildingLevel")
+            else if(RoundManager.Instance.dungeonGenerator == null)
             {//company moon (no interior)
                 currentMoon = RoundManager.Instance.currentLevel.name;
                 currentInterior = "null";
+                Plugin.mls.LogDebug("MoonWithoutInteriorFound:- " + currentMoon);
             }
             else
             {//normal moon with interior
-                Plugin.mls.LogDebug("NormalMoonWithInteriorFound:- " + RoundManager.Instance.currentLevel.name.ToString());
                 currentMoon = RoundManager.Instance.currentLevel.name;
                 currentInterior = RoundManager.Instance.dungeonGenerator.Generator.DungeonFlow.name.ToString();
+                Plugin.mls.LogDebug("MoonWithInteriorFound:- " + currentMoon + "(" + currentInterior + ")");
             }
             if ((Object)(object)GameObject.FindGameObjectWithTag("Bush") != (Object)null)
             {
@@ -1582,6 +1584,15 @@ namespace LethalIntelligence.Patches
 
         public void FixedUpdate()
         {
+            /*if (!StartOfRound.Instance.shipHasLanded)
+            {
+                if (!((Component)this).TryGetComponent<NavMeshAgent>(out agent))
+                {
+                    agent = ((Component)this).GetComponent<NavMeshAgent>();
+                }
+                //agent.enabled = false; //error spam will occur if masked spawn in the ship in orbit due to lack of navmesh.. cant avoid this.
+                return; //in orbit so nothing should be going past this point.
+            }*/ //need to check this code properly before implementing
             if (currentMoon == null || currentInterior == null)
             {
                 if (!(currentMoon == null && currentInterior == null))
