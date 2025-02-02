@@ -50,7 +50,7 @@ if this is on.. OR Imperium is installed.. debug mode will be turned on, this wi
  </details>
 
 ## Known Issues
-- masked "ignoring players" is sometimes way too much, and sometimes way too little, a rework of the system will occur soon - slight rework done, let me know if the situation has improved or gotten worse!
+- masked may get stuck on mineshaft interior due to the main entrance elevator, tried to bypass this issue, fix will come soon.
 - pathing to objects behind locked doors/walls will cause "stuck motion" (as does any route to which the masked cannot reach the destination) - working on a solution to this
 - if you despawn a masked (using a mod to remove them from the game) while it is on the terminal, the terminal is unusable and the lobby must be restarted - not planning to fix as shouldent occur in an actual game. (if you kill them before you despawn them, this wont happen).
 
@@ -87,3 +87,4 @@ Not 100% Compatible (and how to get the best compatibility with these mods.. fee
 - Fandovec03 for suggesting LOS as a fix to "distance related issues" I was having.
 - darmuh for help with "synced audios" for the terminal audio improvements
 - IAmBatby for suggesting how I could improve checking the EntranceTeleports
+- Buttery Stancakes for helping me fixing compatibility with ButteryFixes (and also perhaps some other mods too) in reference to my fire exit patches.

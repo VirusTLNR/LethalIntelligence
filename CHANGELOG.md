@@ -1,5 +1,13 @@
 ## Changelog
 
+### 0.4.5
+- Improved masked's usage of stamina to prevent graphical issues due to wrong animations being used.
+- fixed some (cant fix all as this shouldent be a thing) error spam when masked are spawned in orbit.
+- fixed a compatibility issue with ButteryFixes (and perhaps also with Mimics and Lethal Things)
+- fixed a lot of error spam relating to non-hosts setting destination on the masked NavmeshAgent
+- fixed a null reference error when picking up walkies, also fixed an error when pathing to walkies
+- fixed dropping of items on shipleave (as well as tweaked how item dropping works)
+
 ### 0.4.4 - Hotfix
 - fixed masked killing client players
 - added extra logic around masked chasing players who exit the facility
