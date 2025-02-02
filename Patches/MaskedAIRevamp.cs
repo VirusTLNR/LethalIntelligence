@@ -1739,6 +1739,7 @@ namespace LethalIntelligence.Patches
             if (IsHost)
             {
                 writeSyncedVariables(); //for syncing variables between host and client
+                //handleElevators();
                 DetectAndSelectRandomPlayer();
                 TargetAndKillPlayer(); //potentially, this should change the focus to NONE and "Activity" to killing the player..depending on the personality, this should cancel current activity as well.
                 CheckForEntrancesNearby(); //use entrances here
@@ -6117,6 +6118,11 @@ namespace LethalIntelligence.Patches
                     //Plugin.mls.LogError("Avoiding EntranceTeleport #" + entrancesTeleportArray[i].entranceId + " as it is on the naughty list this round");
                     continue;
                 }
+                if(currentInterior == "Level3Flow" && entrancesTeleportArray[i].entranceId == 0)
+                {
+                    //elevator on mineshaft is breaking masked, temporary ignoring of the main entrance on mineshaft until i get them using the elevator instead of walking into walls
+                    continue;
+                }
                 /*if (currentMoon == "OffenseLevel" && entrancesTeleportArray[i].entranceId == 1)
                 {
                     //you cant use the fire exit on offense because of the cliff not having any navmesh/links up/down
@@ -6218,6 +6224,81 @@ namespace LethalIntelligence.Patches
                                        mustChangeActivity = true;
                                    //}
                                }*/
+            }
+        }
+
+        private void handleElevators()
+        {
+            bool initialFlag = false;
+            PlayerControllerB closestPlayer = __instance.GetClosestPlayer(false, false, false);
+            if (!maskedEnemy.isOutside && closestPlayer != null && RoundManager.Instance.currentDungeonType == 4 && Vector3.Distance(closestPlayer.transform.position, maskedEnemy.mainEntrancePosition) < 30f)
+            {
+                initialFlag = true;
+            }
+            if (currentInterior == "Level3Flow" && closestPlayer == null && maskedEnemy.isInElevatorStartRoom)
+            {
+                bool goingUp = false;
+                bool thirdFlag = false;
+                bool hasElevator = true;
+                if(maskedEnemy.elevatorScript == null)
+                {
+                    maskedEnemy.elevatorScript = Object.FindObjectOfType<MineshaftElevatorController>();
+                    if(maskedEnemy.elevatorScript == null)
+                    {
+                        hasElevator = false;
+                    }
+                }
+                if (hasElevator)
+                {
+                    if (maskedEnemy.isInElevatorStartRoom)
+                    {
+                        if (Vector3.Distance(base.transform.position, maskedEnemy.elevatorScript.elevatorBottomPoint.position) < 10f)
+                        {
+                            maskedEnemy.isInElevatorStartRoom = false;
+                        }
+                    }
+                    else if (Vector3.Distance(base.transform.position, maskedEnemy.elevatorScript.elevatorTopPoint.position) < 10f)
+                    {
+                        maskedEnemy.isInElevatorStartRoom = true;
+                    }
+                }
+                if (hasElevator && RoundManager.Instance.currentDungeonType == 4 && !maskedEnemy.isOutside)
+                {
+                    if (!maskedEnemy.isInElevatorStartRoom)
+                    {
+                        goingUp = maskedEnemy.UseElevator(true);
+                    }
+                    else
+                    {
+                        if (targetedPlayer == null)
+                        {
+                            thirdFlag = true;
+                            goingUp = maskedEnemy.GoTowardsEntrance();
+                        }
+                        else if (!initialFlag)
+                        {
+                            goingUp = maskedEnemy.UseElevator(false);
+                        }
+                    }
+                }
+                else
+                {
+                    thirdFlag = true;
+                    goingUp = maskedEnemy.GoTowardsEntrance();
+                }
+                /*if (flag3 && Vector3.Distance(base.transform.position, .mainEntrancePosition) < 1f)
+                {
+                    this.TeleportMaskedEnemyAndSync(RoundManager.FindMainEntrancePosition(true, !this.isOutside), !this.isOutside);
+                    return;
+                }
+                if (flag2)
+                {
+                    if (this.searchForPlayers.inProgress)
+                    {
+                        base.StopSearch(this.searchForPlayers, true);
+                    }
+                    return;
+                }*/
             }
         }
 
