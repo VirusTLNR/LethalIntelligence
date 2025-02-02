@@ -685,7 +685,7 @@ namespace LethalIntelligence.Patches
         //public LNetworkVariable<Quaternion>? maskedRotation;
         public LNetworkVariable<int>? maskedPersonalityInt, maskedFocusInt, maskedActivityInt;
         public LNetworkVariable<bool>? useWalkie;
-        public LNetworkVariable<bool>? isCrouched, isDancing, isRunning, isJumped;
+        public LNetworkVariable<bool>? isCrouched, isDancing, isRunning, isJumped, isTired;
         //public LNetworkVariable<int>? enterTermianlSpecialCodeInt;
         public LNetworkVariable<float>? terminalTimeFloat, delayMaxTime, transmitMessageTimer, enterTerminalCodeTimer;
         public LNetworkVariable<string>? terminalCode;
@@ -738,6 +738,7 @@ namespace LethalIntelligence.Patches
             maxDanceCount = LNetworkVariable<int>.Connect("maxDanceCount" + id, -1, LNetworkVariableWritePerms.Everyone);
             isRunning = LNetworkVariable<bool>.Connect("isRunning" + id, false, LNetworkVariableWritePerms.Everyone);
             isJumped = LNetworkVariable<bool>.Connect("isJumped" + id, false, LNetworkVariableWritePerms.Everyone);
+            isTired = LNetworkVariable<bool>.Connect("isTired" + id, false, LNetworkVariableWritePerms.Everyone);
 
             //terminal values
             //enterTermianlSpecialCodeInt = LNetworkVariable<int>.Connect("enterTermianlSpecialCodeInt" + id, -1, LNetworkVariableWritePerms.Everyone);
@@ -2352,16 +2353,19 @@ namespace LethalIntelligence.Patches
             //else if (maskedEnemy.running)
             else if (isRunning.Value)
             {
-                //running
-                isCrouched.Value = false;
-                creatureAnimator.ResetTrigger("Crouching");
-                isDancing.Value = false;
-                creatureAnimator.ResetTrigger("Dancing");
-                maskedEnemy.running = true; //so vanilla code does running so there isnt some weird speed difference.
-                creatureAnimator.SetTrigger("Running");
-                //maskedEnemy.staminaTimer -= Time.deltaTime * 0.05f;
-                maskedEnemy.staminaTimer -= updateFrequency * 0.05f; //fixing timing
-                agent.speed = 7f;
+                if (!isStaminaDowned)
+                {
+                    //running
+                    isCrouched.Value = false;
+                    creatureAnimator.ResetTrigger("Crouching");
+                    isDancing.Value = false;
+                    creatureAnimator.ResetTrigger("Dancing");
+                    maskedEnemy.running = true; //so vanilla code does running so there isnt some weird speed difference.
+                    creatureAnimator.SetTrigger("Running");
+                    //maskedEnemy.staminaTimer -= Time.deltaTime * 0.05f;
+                    maskedEnemy.staminaTimer -= updateFrequency * 0.05f; //fixing timing
+                    agent.speed = 7f;
+                }
             }
             else if (isDancing.Value)
             {
@@ -2391,11 +2395,20 @@ namespace LethalIntelligence.Patches
                 creatureAnimator.ResetTrigger("Running");
                 agent.speed = 3.8f;
             }
-            if (maskedEnemy.staminaTimer >= 5f && !isStaminaDowned) //is this jumping???
+            if (isTired.Value)
+            {
+                maskedEnemy.creatureAnimator.SetTrigger("Tired");
+            }
+            else
+            { 
+                maskedEnemy.creatureAnimator.ResetTrigger("Tired");
+            }
+            //Plugin.mls.LogError("running? = " + isRunning.Value + " | jumping? = " + isJumped.Value + "| StamDowned = " + isStaminaDowned + " | stamina = " + maskedEnemy.staminaTimer);
+            if (maskedEnemy.staminaTimer >= 2f && !isStaminaDowned) //is this jumping???
             {
                 if (!isJumped.Value)
                 {
-
+                    //maskedEnemy.staminaTimer -= 0.08f; reduce stamina when jumping?
                     isJumped.Value = true;
                 }
                 else
@@ -2406,21 +2419,25 @@ namespace LethalIntelligence.Patches
                 isRunning.Value = true;
             }
             //this code is required.. vanilla "LookAndRunRandomly" doesnt lead to running like we desire.
-            if (maskedEnemy.staminaTimer < 0f)
+            if (maskedEnemy.staminaTimer < 0f && !isStaminaDowned)
             {
                 isStaminaDowned = true;
+                maskedEnemy.staminaTimer = -1.5f;
                 maskedEnemy.running = false; //to stop the vanilla code making a weird run?
                 isRunning.Value = false;
-                ((EnemyAI)maskedEnemy).creatureAnimator.SetTrigger("Tired");
+                isTired.Value = true;
             }
             if (isStaminaDowned)
             {
                 //maskedEnemy.staminaTimer += Time.deltaTime * 0.2f;
                 maskedEnemy.staminaTimer += updateFrequency * 0.2f; //fixing timing
-                if (maskedEnemy.staminaTimer < 3f)
+                if (maskedEnemy.staminaTimer > 6f)
                 {
                     isStaminaDowned = false;
-                    ((EnemyAI)maskedEnemy).creatureAnimator.ResetTrigger("Tired");
+                }
+                if(maskedEnemy.staminaTimer > 1f)
+                {
+                    isTired.Value = false;
                 }
             }
             if (__instance.targetPlayer != null)
