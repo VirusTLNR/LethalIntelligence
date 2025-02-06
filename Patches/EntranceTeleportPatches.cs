@@ -340,18 +340,22 @@ namespace LethalIntelligence.Patches
             return startingPoint;
         }
 
-        private static void earlyCallSetExitIDs()
+        private static void earlyCallSetExitIDs(Vector3 mainEntrancePosition)
         {
-            float startTime = Time.timeSinceLevelLoad;
-            while (RoundManager.FindMainEntrancePosition(false, false) == Vector3.zero && Time.timeSinceLevelLoad - startTime < 15f)
+            //float startTime = Time.timeSinceLevelLoad;
+            //while (RoundManager.FindMainEntrancePosition(false, false) == Vector3.zero && Time.timeSinceLevelLoad - startTime < 15f)
+            //{
+            //    new WaitForSeconds(1f);
+            //}
+            //Vector3 mep = RoundManager.FindMainEntrancePosition(false, false);
+            if (mainEntrancePosition == Vector3.zero)
             {
-                new WaitForSeconds(1f);
+                Plugin.mls.LogWarning("Main entrance teleport was not spawned on local client within 12 seconds. Early Setting ExitIDs based on origin instead. (this is a vanilla issue!)");
             }
-            Vector3 mep = RoundManager.FindMainEntrancePosition(false, false);
             //===================== START SetExitID()s code (literally) ================================
             int num = 1;
             EntranceTeleport[] array = (from x in Object.FindObjectsOfType<EntranceTeleport>() 
-                                        orderby (x.transform.position - mep).sqrMagnitude
+                                        orderby (x.transform.position - mainEntrancePosition).sqrMagnitude
                                         select x).ToArray<EntranceTeleport>();
             for (int i = 0; i < array.Length; i++)
             {
@@ -365,11 +369,13 @@ namespace LethalIntelligence.Patches
             //RoundManager.Instance.SetExitIDs(mep);
         }
 
-
-        [HarmonyPostfix]
-        [HarmonyPatch("SpawnSyncedProps")] //works but requires calling "SetExitIDs" early
-        //[HarmonyPatch("SetExitIDs")] //works but comes after door locking (not good!)
-        public static void PathingAccessibilityTestPostfix()
+        //when the main entrance isnt found, this returns an error repeatedly.. so need to do it differently
+        //[HarmonyPostfix]
+        //[HarmonyPatch("SpawnSyncedProps")] //works but requires calling "SetExitIDs" early //when the main entrance isnt found, this returns an error repeatedly]
+        //                                   //[HarmonyPatch("SetExitIDs")] //works but comes after door locking (not good!)
+        [HarmonyPrefix]
+        [HarmonyPatch("SetLockedDoors")]
+        public static void PathingAccessibilityChecking(Vector3 mainEntrancePosition)
         {
             if (GameNetworkManager.Instance.isHostingGame)
             {
@@ -389,7 +395,7 @@ namespace LethalIntelligence.Patches
                     return;
                 }
                 Plugin.mls.LogInfo("Checking which Entrance Teleports are Valid...( " + RoundManager.Instance.currentLevel.name.ToString() + " | " + RoundManager.Instance.dungeonGenerator.Generator.DungeonFlow.name.ToString() + " )");
-                earlyCallSetExitIDs();
+                earlyCallSetExitIDs(mainEntrancePosition);
                 entrancesChecked = 0;
                 matchesChecked = 0;
                 badCombinations.Clear();
