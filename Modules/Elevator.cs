@@ -1,9 +1,9 @@
-﻿using UnityEngine;
-using static LethalIntelligence.Patches.MaskedAIRevamp;
+﻿using LethalIntelligence.Patches;
+using UnityEngine;
 
-namespace LethalIntelligence.Patches
+namespace LethalIntelligence.Modules
 {
-    internal static class ElevatorModule
+    internal static class Elevator
     {
         internal static bool HandleElevators(MaskedPlayerEnemy maskedEnemy, MaskedAIRevamp mair, string currentMoon, string currentInterior)
         {
@@ -44,31 +44,30 @@ namespace LethalIntelligence.Patches
 
         private static bool ElevatorFirst(MaskedPlayerEnemy maskedEnemy, MaskedAIRevamp mair, string currentMoon, string currentInterior)
         {
-            if (mair.maskedFocus != Focus.Player)
+            if (mair.maskedFocus != MaskedAIRevamp.Focus.Player)
             {
                 if (currentInterior == "Level3Flow")
                 {
-                    if (!maskedEnemy.isOutside && !maskedEnemy.isInElevatorStartRoom && mair.maskedActivity == Activity.MainEntrance && mair.maskedFocus != Focus.Player)
+                    if (!maskedEnemy.isOutside && !maskedEnemy.isInElevatorStartRoom && mair.maskedActivity == MaskedAIRevamp.Activity.MainEntrance && mair.maskedFocus != MaskedAIRevamp.Focus.Player)
                     {
                         return true; //mineshaft + inside + not in elevator start room + heading to main entrance and not focusing on players
                     }
-                    if (!maskedEnemy.isOutside && maskedEnemy.isInElevatorStartRoom && mair.maskedActivity != Activity.MainEntrance && mair.maskedFocus != Focus.Player)
+                    if (!maskedEnemy.isOutside && maskedEnemy.isInElevatorStartRoom && mair.maskedActivity != MaskedAIRevamp.Activity.MainEntrance && mair.maskedFocus != MaskedAIRevamp.Focus.Player)
                     {
                         return true; //mineshaft + inside + not in elevator start room + heading away from main entrance and not focusing on players
                     }
                 }
-                if (currentMoon == "SynthesisLevel") 
+                if (currentMoon == "SynthesisLevel")
                 {
                     //masked phase through the elevator and use the ladder below so no scripting required
                 }
-                if (currentInterior == "OfficeDungeonFlow") 
+                if (currentInterior == "OfficeDungeonFlow")
                 {
                     //no elevator script so masked cant use the elevator
                 }
             }
             return false;
         }
-
 
         //buttery's implementation of UseElevator and CanPathToPoint with some tweaks to fit my code
         private static bool CanPathToPoint(MaskedPlayerEnemy maskedAI, Vector3 pos)
@@ -97,7 +96,7 @@ namespace LethalIntelligence.Patches
             {
                 return true;
             }
-            Vector3 moveInsidePointFurtherBack = (-maskedAI.elevatorScript.elevatorInsidePoint.forward * 0.25f);
+            Vector3 moveInsidePointFurtherBack = -maskedAI.elevatorScript.elevatorInsidePoint.forward * 0.25f;
             Vector3 elevatorCustomInsidePoint = maskedAI.elevatorScript.elevatorInsidePoint.position + moveInsidePointFurtherBack;
 
             bool ridingElevator = Vector3.Distance(maskedAI.transform.position, elevatorCustomInsidePoint) < 1f;

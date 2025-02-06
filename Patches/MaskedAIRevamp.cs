@@ -13,6 +13,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using static Mirage.Unity.AudioStream;
 using static Mirage.Unity.AudioStream.AudioStreamEvent;
+using LethalIntelligence.Modules;
 
 namespace LethalIntelligence.Patches
 {
@@ -919,7 +920,7 @@ namespace LethalIntelligence.Patches
             //TestConfig();
         }
 
-        float updateFrequency = 0.02f;
+        internal float updateFrequency = 0.02f;
 
         private void Jump(bool enable)
         {
@@ -1742,7 +1743,7 @@ namespace LethalIntelligence.Patches
                 writeSyncedVariables(); //for syncing variables between host and client
                 DetectAndSelectRandomPlayer();
                 TargetAndKillPlayer(); //potentially, this should change the focus to NONE and "Activity" to killing the player..depending on the personality, this should cancel current activity as well.
-                if (!ElevatorModule.HandleElevators(maskedEnemy, this, currentMoon, currentInterior) && maskedFocus != Focus.Player)
+                if (!Elevator.HandleElevators(maskedEnemy, this, currentMoon, currentInterior) && maskedFocus != Focus.Player)
                 {
                     return;
                 }
