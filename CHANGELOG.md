@@ -1,5 +1,10 @@
 ## Changelog
 
+### 0.4.6
+- fixed Mineshaft Elevator issues so masked can now leave and enter via the Main Entrance
+- fixed an error where my entrances code ran too early so entrances were throwing errors due to them not being found leading to the game to freeze during level loading.
+- fixed an audio bug when a masked uses an entrance (previously the audio sound would always play on the main entrance, now it plays on the entrance used, on both sides of the entrance (like when players use them))
+
 ### 0.4.5
 - Improved masked's usage of stamina to prevent graphical issues due to wrong animations being used.
 - fixed some (cant fix all as this shouldent be a thing) error spam when masked are spawned in orbit.
