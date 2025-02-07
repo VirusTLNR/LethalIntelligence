@@ -55,6 +55,72 @@ namespace LethalIntelligence.Patches
             return false;
         }
 
+        [HarmonyPatch("TeleportMaskedEnemy")]
+        [HarmonyPrefix]
+        private static bool TeleportMaskedEnemy_Prefix(MaskedPlayerEnemy __instance, Vector3 pos, bool setOutside)
+        {
+            __instance.timeAtLastUsingEntrance = Time.realtimeSinceStartup;
+            Vector3 navMeshPosition = RoundManager.Instance.GetNavMeshPosition(pos, default(UnityEngine.AI.NavMeshHit), 5f, -1);
+            if (RoundManager.Instance.IsHost)
+            {
+                __instance.agent.enabled = false;
+                __instance.agent.transform.position = navMeshPosition;
+                ((Component)__instance).transform.position = navMeshPosition;
+                __instance.agent.enabled = true;
+            }
+            else
+            {
+                ((Component)__instance).transform.position = navMeshPosition;
+            }
+            __instance.serverPosition = navMeshPosition;
+            __instance.SetEnemyOutside(setOutside);
+            EntranceTeleport entranceTeleport = findEntranceScript(setOutside, null, pos);
+            if (entranceTeleport.doorAudios != null && entranceTeleport.doorAudios.Length != 0)
+            {
+                //both sides of the entrance should be heard.
+                if(!entranceTeleport.FindExitPoint())
+                {
+                    return false;
+                }
+                entranceTeleport.PlayAudioAtTeleportPositions();
+                WalkieTalkie.TransmitOneShotAudio(entranceTeleport.entrancePointAudio, entranceTeleport.doorAudios[0], 1f);
+            }
+            return false;
+        }
+
+        private static EntranceTeleport findEntranceScript(bool setOutside, int? id = null, Vector3? pos = null)
+        {
+            EntranceTeleport[] array = Object.FindObjectsOfType<EntranceTeleport>(false);
+            for (int i = 0; i < array.Length; i++)
+            {
+                if (pos != null)
+                {
+                    //Plugin.mls.LogError("pos is NOT null!");
+                    if (array[i].entrancePoint.position == pos && setOutside == array[i].isEntranceToBuilding)
+                    {
+                        //Plugin.mls.LogError("entrance found by Pos!= " + array[i].entranceId + "|outside?=" + array[i].isEntranceToBuilding + "|EntP=" + array[i].entrancePoint.position + "|ExitP=" + (array[i].exitPoint.position==null?"null": array[i].exitPoint.position));
+                        return array[i];
+                    }
+                }
+                if(id != null)
+                {
+                    //Plugin.mls.LogError("ID is NOT null!");
+                    if (array[i].entranceId == id && setOutside == array[i].isEntranceToBuilding)
+                    {
+                        //Plugin.mls.LogError("entrance found by ID!= " + array[i].entranceId + "|outside?=" + array[i].isEntranceToBuilding + "|EntP=" + array[i].entrancePoint.position + "|ExitP=" + (array[i].exitPoint.position == null ? "null" : array[i].exitPoint.position));
+                        return array[i];
+                    }
+                }
+            }
+            if (array.Length == 0)
+            {
+                Plugin.mls.LogError("No Entrances Exist, returning Null");
+                return null;
+            }
+            Plugin.mls.LogError("Entrance at " + pos + " could not be found. Returning first entrance teleport script found.");
+            return array[0];
+        }
+
         //stop masked looking at weird places randomly.. also stops them running...
         [HarmonyPatch("LookAndRunRandomly")]
         [HarmonyPrefix]

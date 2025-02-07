@@ -369,6 +369,14 @@ namespace LethalIntelligence.Patches
             //RoundManager.Instance.SetExitIDs(mep);
         }
 
+        private static void preloadExitPoints(EntranceTeleport[] entrancesArray)
+        {
+            foreach (EntranceTeleport et in entrancesArray)
+            {
+                et.FindExitPoint();
+            }
+        }
+
         //when the main entrance isnt found, this returns an error repeatedly.. so need to do it differently
         //[HarmonyPostfix]
         //[HarmonyPatch("SpawnSyncedProps")] //works but requires calling "SetExitIDs" early //when the main entrance isnt found, this returns an error repeatedly]
@@ -520,6 +528,7 @@ namespace LethalIntelligence.Patches
 
                 }
                 analysePathingData();
+                preloadExitPoints(entrancesTeleportArray); //at end of the check, load exit points so they are never null
                 Plugin.mls.LogInfo("Entrance Teleport Checks completed.");
             }
         }
