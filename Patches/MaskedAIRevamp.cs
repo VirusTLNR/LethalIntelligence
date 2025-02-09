@@ -1099,7 +1099,7 @@ namespace LethalIntelligence.Patches
                         {
                             if (NavMesh.SamplePosition(apparatus.transform.position + -apparatus.transform.forward, out hitApparatus, 10f, -1))
                             {
-                                apparatusReachable.Value = agent.CalculatePath(hitApparatus.position, nmpApparatus);
+                                if(IsHost) apparatusReachable.Value = agent.CalculatePath(hitApparatus.position, nmpApparatus);
                                 //Plugin.mls.LogError("Reachable=" + apparatusReachable);
                                 //breakerBoxDistance = Vector3.Distance(((Component)this).transform.position, hitBreaker.position);
                                 //apparatusDistance = Vector3.Distance(maskedEnemy.transform.position, hitApparatus.position);
@@ -1149,7 +1149,7 @@ namespace LethalIntelligence.Patches
                             //-up = the forward for the breaker box... thanks zeekers.. :)
                             if (NavMesh.SamplePosition(breakerBox.transform.position + -breakerBox.transform.up, out hitBreaker, 10f, -1))
                             {
-                                breakerBoxReachable.Value = agent.CalculatePath(hitBreaker.position, nmpBreaker);
+                                if (IsHost) breakerBoxReachable.Value = agent.CalculatePath(hitBreaker.position, nmpBreaker);
                                 //breakerBoxDistance = Vector3.Distance(((Component)this).transform.position, hitBreaker.position);
                                 breakerBoxDistance = Vector3.Distance(agent.transform.position, hitBreaker.position);
                                 breakerClosestPoint = Vector3.Distance(hitBreaker.position, breakerBox.transform.position);
@@ -1195,7 +1195,7 @@ namespace LethalIntelligence.Patches
                         {
                             if (NavMesh.SamplePosition(terminal.transform.position, out hitTerminal, 10f, -1))
                             {
-                                terminalReachable.Value = agent.CalculatePath(hitTerminal.position, nmpTerminal);
+                                if (IsHost) terminalReachable.Value = agent.CalculatePath(hitTerminal.position, nmpTerminal);
                                 //terminalDistance = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position);
                                 terminalDistance = Vector3.Distance(agent.transform.position, hitTerminal.position);
                                 terminalClosestPoint = Vector3.Distance(hitTerminal.position, terminal.transform.position);
