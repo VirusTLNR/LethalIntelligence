@@ -14,7 +14,7 @@ namespace LethalIntelligence.Patches
         /// should maybe change this to check each entrance vs all the others.. if the entrance has ONE+ complete path's then it is fine to use, check inside and outside at the same time, i guess.
         /// </summary>
         private static float validDistance = 2f;
-        private static EntranceTeleport[] entrancesTeleportArray = null!;
+        internal static EntranceTeleport[] entrancesTeleportArray = null!;
         private static List<EntranceTeleport> eta = new List<EntranceTeleport>();
         private static List<string> badCombinations = new List<string>();
         private static List<string> goodCombinations = new List<string>();
@@ -369,6 +369,14 @@ namespace LethalIntelligence.Patches
             //RoundManager.Instance.SetExitIDs(mep);
         }
 
+        private static void resetExitPointToNull(EntranceTeleport[] entrancesArray)
+        {
+            foreach (EntranceTeleport et in entrancesArray)
+            {
+                et.exitPoint = null;
+            }
+        }
+
         private static void preloadExitPoints(EntranceTeleport[] entrancesArray)
         {
             foreach (EntranceTeleport et in entrancesArray)
@@ -385,6 +393,7 @@ namespace LethalIntelligence.Patches
         [HarmonyPatch("SetLockedDoors")]
         public static void PathingAccessibilityChecking(Vector3 mainEntrancePosition)
         {
+            entrancesTeleportArray = Object.FindObjectsOfType<EntranceTeleport>(includeInactive: false);
             if (GameNetworkManager.Instance.isHostingGame)
             {
                 /*if (RoundManager.Instance.currentLevel.name.ToString() == "CompanyBuildingLevel")
@@ -408,7 +417,6 @@ namespace LethalIntelligence.Patches
                 matchesChecked = 0;
                 badCombinations.Clear();
                 goodCombinations.Clear();
-                entrancesTeleportArray = Object.FindObjectsOfType<EntranceTeleport>(includeInactive: false);
                 for (int i = 0; i < entrancesTeleportArray.Length; i++)
                 {
                     //comment out with /* below to remove debug logging
@@ -528,9 +536,36 @@ namespace LethalIntelligence.Patches
 
                 }
                 analysePathingData();
-                preloadExitPoints(entrancesTeleportArray); //at end of the check, load exit points so they are never null
                 Plugin.mls.LogInfo("Entrance Teleport Checks completed.");
             }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch("SetPowerOffAtStart")] //should be late enough.
+        private static void fixExitPointsPostfix()
+        {
+            //DebugInfoCollectors.logAllEntranceDetails("Pre-LI-fixExitPatching");
+            resetExitPointToNull(entrancesTeleportArray); //non vanilla function to fix a bug with entrance teleports being pre-linked to the wrong exit point (usually only happens with entrance IDs 0 and 1 on the outside.. entrance 1 often being linked to the interior of exit 2/3
+            //DebugInfoCollectors.logAllEntranceDetails("Mid-LI-fixExitPatching");
+            preloadExitPoints(entrancesTeleportArray); //at end of the check, load exit points so they are never null so masked dont have issue using unused fire exits
+            //DebugInfoCollectors.logAllEntranceDetails("Post-LI-fixExitPatching");
+
+            //checking all exit points are correct, shouldent need to be checked, adds a lot of delay
+            //for (int i = 0; i < entrancesTeleportArray.Length; i++)
+            //{
+            //    EntranceTeleport orig = entrancesTeleportArray[i];
+            //    for (int j = 0; j < entrancesTeleportArray.Length; j++)
+            //    {
+            //        EntranceTeleport other = entrancesTeleportArray[j];
+            //        if (orig.entranceId == other.entranceId && orig.isEntranceToBuilding != other.isEntranceToBuilding)
+            //        {
+            //            if (orig.exitPoint.transform.position != other.entrancePoint.transform.position)
+            //            {
+            //                Plugin.mls.LogWarning("Entrance #" + i + "(" + (orig.isEntranceToBuilding ? "Outside" : "Inside") + "ID=" + orig.entranceId + ") is not properly linked to its exit point at Entrance #" + j + "(" + (other.isEntranceToBuilding ? "Outside" : "Inside") + "ID=" + other.entranceId + ")");
+            //            }
+            //        }
+            //    }
+            //}
         }
     }
 }
