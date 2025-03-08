@@ -15,5 +15,25 @@ namespace LethalIntelligence.Patches
                 Plugin.mls.LogWarning(item.itemName);
             }
         }
+
+        public static void logAllEntranceDetails(string pointInCode = "unknown")
+        {
+            Plugin.mls.LogError("logAllEntranceDetails Start @ " + pointInCode);
+            EntranceTeleport[] entrancesTeleportArray = UnityEngine.Object.FindObjectsOfType<EntranceTeleport>(includeInactive: false);
+            for (int i = 0; i < entrancesTeleportArray.Length; i++)
+            {
+                EntranceTeleport ent = entrancesTeleportArray[i];
+                Plugin.mls.LogWarning("==============================" +
+                    "\nEntrance # " + i +
+                    //"\nEntName -> " + ent.name +
+                    "\nEntID -> " + ent.entranceId +
+                    "\nEntIsEntranceToBuilding (is outside?) -> " + ent.isEntranceToBuilding +
+                    //"\nEntPosition -> " + ent.transform.position +
+                    "\nEntEntrancePoint -> " + ent.entrancePoint.transform.position +
+                    "\nEntExitPoint -> " + (ent.exitPoint == null ? "null" : ent.exitPoint.transform.position)
+                    );
+            }
+            Plugin.mls.LogError("logAllEntranceDetails End @ " + pointInCode);
+        }
     }
 }
