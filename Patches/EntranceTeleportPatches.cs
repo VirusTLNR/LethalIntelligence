@@ -29,7 +29,7 @@ namespace LethalIntelligence.Patches
         {
             path = new NavMeshPath();
             NavMeshHit hit1, hit2;
-            if (s == new Vector3(0,0,0))
+            if (s == new Vector3(0, 0, 0))
             {
                 Plugin.mls.LogDebug("   (random check)start position is null");
                 return false;
@@ -52,7 +52,7 @@ namespace LethalIntelligence.Patches
                     Plugin.mls.LogDebug("   start random position is not near the navmesh? (hit is null)");
                     return false;
                 }
-                if(entrancesTeleportArray[d].entrancePoint == null)
+                if (entrancesTeleportArray[d].entrancePoint == null)
                 {
                     Plugin.mls.LogDebug("   (random check)entrance cant be used from this side");
                     return false;
@@ -87,8 +87,6 @@ namespace LethalIntelligence.Patches
             if (path.status == NavMeshPathStatus.PathComplete) return true;
             return false;
         }
-
-
 
         private static bool isEntrancePathComplete(int s, int d)
         {
