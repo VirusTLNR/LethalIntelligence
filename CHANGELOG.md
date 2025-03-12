@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.4.7
+- fixed some more "CalculatePolygonPath" can only be called on an active agent that has been placed on a NavMesh" errors
+- fixed a potentially vanilla bug (origin is unknown) which causes fire exit 1 (outside) to lead to fire exit 2/3 (inside), which then means when you leave via the same fire exit, you are not in the right location. (this bug is nothing to do with LI, i just needed to fix it myself as masked use fire exits, it will fix it for masked and players). Other fixes using vanilla methods will not interfere with this fix.
+
 ### 0.4.6
 - fixed Mineshaft Elevator issues so masked can now leave and enter via the Main Entrance
 - fixed an error where my entrances code ran too early so entrances were throwing errors due to them not being found leading to the game to freeze during level loading.

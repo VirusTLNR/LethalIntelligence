@@ -50,8 +50,10 @@ if this is on.. OR Imperium is installed.. debug mode will be turned on, this wi
  </details>
 
 ## Known Issues
+- big fps drops if more than 10 masked spawn at once (vanilla limits you to 2? 4? 10 shouldent be spawning that often! if a mod spawns 10+ at once and you want to use it with LI, please let me know, ill try to disable my mod when that situation is occuring)
 - pathing to objects behind locked doors/walls will cause "stuck motion" (as does any route to which the masked cannot reach the destination) - working on a solution to this
 - if you despawn a masked (using a mod to remove them from the game) while it is on the terminal, the terminal is unusable and the lobby must be restarted - not planning to fix as shouldent occur in an actual game. (if you kill them before you despawn them, this wont happen).
+- problematic interiors (usually due to navmesh issues): PeachesCastle,
 
 If you have any of the above issues, or any other issue, dont hesitate to send me the full log file after your session has ended (either on discord, or as an issue on github)
 
@@ -65,13 +67,13 @@ If you have any of the above issues, or any other issue, dont hesitate to send m
 + 'AlwaysHearActiveWalkies' by Suskitech
 + 'Remnants' by KawaiiBone
 + '2StoryShip' by MelanieMelanicious
++ 'Wider Ship Mod' by mborsch
++ 'ProblematicPilotry' by windblownleaves
 
 Not 100% Compatible (and how to get the best compatibility with these mods.. feel free to suggest other things that need adding to this list as i dont use every mod!):
 + General Improvements - Disable all settings related to the masked, if you turn some on and get no issues, do let me know which ones so i can add them here as "fine". The "map dot" should be a 100% turn off as its part of this mod too.
 + TooManyEmotes - Turn off "stop and stare duration override"? on, or off, one or the other, this may make masked look weird!
 + Welcome to Ooblaterra - the ghost masked on this moon are seemingly causing errors.. i d k why yet.
-+ ProblematicPilotry - masked cannot path into the ship unless a mod like 2story ship regenerates the ship navmesh.
-+ WiderShipMod - this might require 2StoryShip being installed for the navmesh regen.
 
 ## Thanks to...
 - Piggy for the original Masked AI Revamp to which this mod is built on and inspired me to do more, and for the permission to use your code as a base point.
