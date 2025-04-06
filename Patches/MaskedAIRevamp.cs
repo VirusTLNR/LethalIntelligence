@@ -507,18 +507,11 @@ namespace LethalIntelligence.Patches
                             return;
                         }
                         //if exit is in LOS.. use exit.. this should prevent masked from standing at exits.
-                        Vector3? opposingTeleportPosition = getTeleportDestination(et);
+                        //Vector3? opposingTeleportPosition = getTeleportDestination(et);
                         maskedGoal = "using entrance (" + et.entranceId + "/" + et.entrancePoint.position.ToString() + ")";
                         TimeSinceTeleporting = 0;
-                        TeleportMaskedEnemyAndSync((Vector3)opposingTeleportPosition, !maskedEnemy.isOutside);
-                        agent.transform.position = (Vector3)opposingTeleportPosition;
-                        //changing focus and activity will also break the cycle of entities being stuck at the main entrance... UNLESS this code doesnt run when they get stuck there
-                        if ((maskedPersonality == Personality.Deceiving && maskedFocus == Focus.Items) || (maskedPersonality == Personality.Insane && maskedFocus == Focus.Escape))
-                        {
-                            break; //break without changing focus/activity.
-                        }
-                        mustChangeFocus = true;
-                        mustChangeActivity = true;
+                        TeleportMaskedEnemyAndSync(et);
+                        //agent.transform.position = (Vector3)opposingTeleportPosition;
                         break;
                     }
                 }
@@ -707,6 +700,7 @@ namespace LethalIntelligence.Patches
         //event bools
         public static LNetworkVariable<bool> appTrigger, signalTranslatorTrigger, landDropshipTrigger, objectCodeTrigger;
         public static LNetworkVariable<string> signalTranslatorMessage, objectCode;
+        public static LNetworkVariable<int> maskedUsingEntranceId;
 
         private void setupLNAPIvariables(string id)
         {
@@ -725,13 +719,17 @@ namespace LethalIntelligence.Patches
             //maskedPosition = LNetworkVariable<Vector3>.Connect("maskedPosition" + id, Vector3.negativeInfinity, LNetworkVariableWritePerms.Everyone); //probably should be server only.
             //maskedPosition.OnValueChanged += (oldVal, newVal) => { updatePosition(oldVal, newVal); };
             //maskedRotation = LNetworkVariable<Quaternion>.Connect("maskedRotation" + id, new Quaternion(), LNetworkVariableWritePerms.Everyone); //probably should be server only.
-            currentDestinationDistance = LNetworkVariable<float>.Connect("currentDestinationDistance" + id, -1,LNetworkVariableWritePerms.Everyone); //probably should be server only.
-            maskedTargetId = LNetworkVariable<ulong>.Connect("maskedTarget" + id, ulong.MaxValue , LNetworkVariableWritePerms.Everyone); //probably should be server only.
+            currentDestinationDistance = LNetworkVariable<float>.Connect("currentDestinationDistance" + id, -1, LNetworkVariableWritePerms.Everyone); //probably should be server only.
+            maskedTargetId = LNetworkVariable<ulong>.Connect("maskedTarget" + id, ulong.MaxValue, LNetworkVariableWritePerms.Everyone); //probably should be server only.
             maskedTargetId.OnValueChanged += (oldVal, newVal) => { updateTargetPlayer(oldVal, newVal); };
             maskedInSpecialAnimation = LNetworkVariable<bool>.Connect("maskedInSpecialAnimation" + id, false, LNetworkVariableWritePerms.Everyone); //probably should be server only.
-            maskedPersonalityInt = LNetworkVariable<int>.Connect("maskedPersonalityInt" + id, -1 , LNetworkVariableWritePerms.Everyone);
+            maskedPersonalityInt = LNetworkVariable<int>.Connect("maskedPersonalityInt" + id, -1, LNetworkVariableWritePerms.Everyone);
             maskedFocusInt = LNetworkVariable<int>.Connect("maskedFocusInt" + id, -1, LNetworkVariableWritePerms.Everyone);
             maskedActivityInt = LNetworkVariable<int>.Connect("maskedActivityInt" + id, -1, LNetworkVariableWritePerms.Everyone);
+
+            //entrance teleport variables
+            maskedUsingEntranceId = LNetworkVariable<int>.Connect("maskedUsingEntranceId" + id, -1, LNetworkVariableWritePerms.Everyone);
+            maskedUsingEntranceId.OnValueChanged += (oldVal, newVal) => { teleportMaskedForAllPlayers(oldVal, newVal); };
 
             //animation variables
             isCrouched = LNetworkVariable<bool>.Connect("isCrouched" + id, false, LNetworkVariableWritePerms.Everyone);
@@ -6532,14 +6530,85 @@ namespace LethalIntelligence.Patches
         #endregion mirageRequired
 
         //my replacement for MaskedEnemy.TeleportMaskedEnemyAndSync ... killing off the original function and using this will disable the vanilla behaviour for masked to teleport.
-        private void TeleportMaskedEnemyAndSync(Vector3 pos, bool setOutside)
+        //private void TeleportMaskedEnemyAndSync(Vector3 pos, bool setOutside)
+        //{
+        //    if (!base.IsOwner)
+        //    {
+        //        return;
+        //    }
+        //    maskedEnemy.TeleportMaskedEnemy(pos, setOutside);
+        //    maskedEnemy.TeleportMaskedEnemyServerRpc(pos, setOutside);
+        //}
+
+        public class EntranceUsedValues
+        {
+            EntranceTeleport entrance;
+            Vector3 teleportedEndPosition;
+            bool setOutside;
+        }
+
+        private void TeleportMaskedEnemyAndSync(EntranceTeleport et)
         {
             if (!base.IsOwner)
             {
                 return;
             }
-            maskedEnemy.TeleportMaskedEnemy(pos, setOutside);
-            maskedEnemy.TeleportMaskedEnemyServerRpc(pos, setOutside);
+            //maskedUsingEntranceSetOutside.Value = setOutside;
+            //maskedUsingTeleportedPosition.Value = pos;
+            Plugin.mls.LogError((Time.realtimeSinceStartup - maskedEnemy.timeAtLastUsingEntrance));
+            if((Time.realtimeSinceStartup - maskedEnemy.timeAtLastUsingEntrance) < 20f)
+            {
+                return;
+            }
+            maskedUsingEntranceId.Value = et.entranceId;
+
+            /*maskedEnemy.TeleportMaskedEnemy(pos, setOutside);
+            maskedEnemy.TeleportMaskedEnemyServerRpc(pos, setOutside);*/
+        }
+
+        public void teleportMaskedForAllPlayers(int oldVal, int newVal)
+        {
+            if (newVal == null)
+            {
+                return;
+            }
+            Plugin.mls.LogError("TeleportingMasked!");
+            //teleport player
+            bool isOutside = maskedEnemy.isOutside;
+            EntranceTeleport entranceTeleport = getEntranceFromId(isOutside, newVal);
+            Vector3 teleportDestination = (Vector3)getTeleportDestination(entranceTeleport);
+            maskedEnemy.timeAtLastUsingEntrance = Time.realtimeSinceStartup;
+            Vector3 navMeshPosition = RoundManager.Instance.GetNavMeshPosition(teleportDestination, default(NavMeshHit), 5f, -1);
+            if (base.IsOwner)
+            {
+                maskedEnemy.agent.enabled = false;
+                base.transform.position = navMeshPosition;
+                maskedEnemy.agent.enabled = true;
+            }
+            else
+            {
+                base.transform.position = navMeshPosition;
+            }
+            maskedEnemy.serverPosition = navMeshPosition;
+            maskedEnemy.SetEnemyOutside(!isOutside);
+            //EntranceTeleport entranceTeleport = RoundManager.FindMainEntranceScript(setOutside);
+            if (entranceTeleport.doorAudios != null && entranceTeleport.doorAudios.Length != 0)
+            {
+                entranceTeleport.entrancePointAudio.PlayOneShot(entranceTeleport.doorAudios[0]);
+                WalkieTalkie.TransmitOneShotAudio(entranceTeleport.entrancePointAudio, entranceTeleport.doorAudios[0], 1f);
+            }
+            maskedUsingEntranceId.Value = -1;
+            if (IsHost)
+            {
+                agent.transform.position = teleportDestination;
+            }
+            //changing focus and activity will also break the cycle of entities being stuck at the main entrance... UNLESS this code doesnt run when they get stuck there
+            if ((maskedPersonality == Personality.Deceiving && maskedFocus == Focus.Items) || (maskedPersonality == Personality.Insane && maskedFocus == Focus.Escape))
+            {
+                return; ; //break without changing focus/activity.
+            }
+            mustChangeFocus = true;
+            mustChangeActivity = true;
         }
 
 
@@ -6556,11 +6625,47 @@ namespace LethalIntelligence.Patches
                 if (otherEntrance.entranceId == entrance.entranceId
                     && otherEntrance.isEntranceToBuilding != entrance.isEntranceToBuilding)
                 {
-                    Plugin.mls.LogDebug("SettingEntranceExitPointFor#=" + i + " | EID=" + entrance.entranceId + " | OID=" + otherEntrance.entranceId + " | IETB?=" + entrance.isEntranceToBuilding);
+                    if(entrance == null)
+                    {
+                        return null;
+                    }
+                    Plugin.mls.LogDebug("SettingEntranceExitPointFor#=" + i + " | EID=" + entrance.entranceId + " | OID=" + otherEntrance.entranceId + " | IETB?=" + entrance.isEntranceToBuilding + " | TPPOS?=" + otherEntrance.entrancePoint.position);
                     return otherEntrance.entrancePoint.position;
                 }
             }
             return null;
+        }
+
+        private EntranceTeleport? getEntranceFromId(bool isOutside, int entranceID = -1)
+        {
+            float closestDistance = 1000f;
+            EntranceTeleport? closestEntrance = null;
+            foreach(EntranceTeleport et in entrancesTeleportArray)
+            {
+                if(entranceID != -1)
+                {
+                    if (et.entranceId != entranceID)
+                    {
+                        continue; //not the same entrance ID if one is required
+                    }
+                }
+                if(RoundManagerPatch.invalidEntrances.Contains(et.entranceId))
+                {
+                    continue; //is an invalid entrance for this round
+                }
+                if(isOutside != et.isEntranceToBuilding)
+                {
+                    continue; //its not in/out the same as the masked
+                }
+                float tempDistance = Vector3.Distance(maskedEnemy.transform.position, et.transform.position);
+                if(tempDistance < closestDistance && tempDistance < 10f)
+                {
+                    closestDistance = tempDistance;
+                    closestEntrance = et;
+                }
+            }
+            Plugin.mls.LogError("closestEntranceID = " + closestEntrance.entranceId + " | dist = " + closestDistance + " | coords = " + closestEntrance.entrancePoint.position);
+            return closestEntrance;
         }
 
         private void findEntranceTeleports(bool useMainEntrance, bool useFireExits)
