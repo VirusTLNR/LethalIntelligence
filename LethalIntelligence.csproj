@@ -5,7 +5,7 @@
         <AssemblyName>LethalIntelligence</AssemblyName>
         <Product>LethalIntelligence</Product>
         <!-- Change to whatever version you're currently on. -->
-        <Version>0.4.7</Version>
+        <Version>0.4.4.1</Version>
 		<!-- Hiding the "Git Commit Hash" from the product version in file properties -->
 		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     </PropertyGroup>
@@ -27,8 +27,7 @@
     <PropertyGroup>
         <RestoreAdditionalProjectSources>
             https://api.nuget.org/v3/index.json;
-            https://nuget.bepinex.dev/v3/index.json;
-            https://nuget.windows10ce.com/nuget/v3/index.json
+            https://nuget.bepinex.dev/v3/index.json
         </RestoreAdditionalProjectSources>
     </PropertyGroup>
 
@@ -45,17 +44,67 @@
         <PackageId>$(AssemblyName)</PackageId>
         <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     </PropertyGroup>
+	<ItemGroup>
+		<Reference Include="SkinwalkerMod">
+			<HintPath>CompatibilityDLLs\SkinwalkerMod.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+	</ItemGroup>
+	<ItemGroup>
+		<ApplicationDefinition Include="CompatibilityDLLs\SkinwalkerMod.dll">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</ApplicationDefinition>
+	</ItemGroup>
+	<ItemGroup>
+		<Reference Include="Wendigos">
+			<HintPath>CompatibilityDLLs\Wendigos.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+	</ItemGroup>
+	<ItemGroup>
+		<ApplicationDefinition Include="CompatibilityDLLs\Wendigos.dll">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</ApplicationDefinition>
+	</ItemGroup>
+	<ItemGroup>
+		<Reference Include="Mirage">
+			<HintPath>CompatibilityDLLs\Mirage.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+	</ItemGroup>
+	<ItemGroup>
+		<ApplicationDefinition Include="CompatibilityDLLs\Mirage.dll">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</ApplicationDefinition>
+	</ItemGroup>
+	<ItemGroup>
+		<Reference Include="Mirage.Core">
+			<HintPath>CompatibilityDLLs\Mirage.Core.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+	</ItemGroup>
+	<ItemGroup>
+		<ApplicationDefinition Include="CompatibilityDLLs\Mirage.Core.dll">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</ApplicationDefinition>
+	</ItemGroup>
+	<ItemGroup>
+		<Reference Include="Imperium">
+			<HintPath>CompatibilityDLLs\giosuel.Imperium.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+	</ItemGroup>
+	<ItemGroup>
+		<ApplicationDefinition Include="CompatibilityDLLs\giosuel.Imperium.dll">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</ApplicationDefinition>
+	</ItemGroup>
 
     <!-- Primary Package References -->
     <ItemGroup>
         <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
         <PackageReference Include="BepInEx.Core" Version="5.*" PrivateAssets="all" />
-        <PackageReference Include="giosuel-Imperium" Version="0.2.8" />
         <PackageReference Include="LethalCompany.GameLibs.Steam" Version="*-*" PrivateAssets="all" />
-        <PackageReference Include="qwbarch-Mirage" Version="1.19.0" />
-        <PackageReference Include="qwbarch-MirageCore" Version="1.0.3" />
-        <PackageReference Include="RugbugRedfern-Skinwalkers" Version="5.0.0" />
-        <PackageReference Include="Tim_Shaw-Wendigos_Voice_Cloning" Version="1.0.9" />
         <PackageReference Include="UnityEngine.Modules" Version="2022.3.9" IncludeAssets="compile" PrivateAssets="all" />
         <PackageReference Include="TeamBMX.LobbyCompatibility" Version="1.*" PrivateAssets="all" />
         <PackageReference Include="Xilophor.LethalNetworkAPI" Version="3.3.2" />
