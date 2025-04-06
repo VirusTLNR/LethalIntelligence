@@ -12,8 +12,7 @@ using Random = UnityEngine.Random;
 using System.Linq;
 using System.Threading.Tasks;
 using static Mirage.Unity.AudioStream;
-using static Mirage.Unity.AudioStream.AudioStreamEvent;
-using LethalIntelligence.Modules;
+using DunGen;
 
 namespace LethalIntelligence.Patches
 {
@@ -169,7 +168,6 @@ namespace LethalIntelligence.Patches
         public enum Activity
         {
             None,
-            Idle,
             MainEntrance,
             FireExit,
             ItemLocker,
@@ -183,13 +181,11 @@ namespace LethalIntelligence.Patches
         private void TestConfig()
         {
             maskedPersonality = Personality.Insane; //for testing a specific personality
-            maskedPersonalityInt.Value = 0; //for testing a specific personality
+            SelectPersonalityInt.Value = 0; //for testing a specific personality
             lastMaskedPersonality = Personality.Insane;
-            maskedFocusInt.Value = (int)Focus.Escape;
-            maskedActivityInt.Value = (int)Activity.None;
+            maskedFocus = Focus.Apparatus;
+            maskedActivity = Activity.None;
             mustChangeFocus = false;
-            mustChangeActivity = false;
-            SyncTerminalValues(10);
         }
 
         public Personality maskedPersonality;
@@ -197,12 +193,12 @@ namespace LethalIntelligence.Patches
         public Personality lastMaskedPersonality;
 
         public Focus maskedFocus;
-        //public LethalNetworkVariable<int> maskedFocusInt = new LethalNetworkVariable<int>("maskedFocusInt");
+        public LethalNetworkVariable<int> maskedFocusInt = new LethalNetworkVariable<int>("maskedFocusInt");
 
         public Focus lastMaskedFocus;
 
         public Activity maskedActivity;
-        //public LethalNetworkVariable<int> maskedActivityInt = new LethalNetworkVariable<int>("maskedActivityInt");
+        public LethalNetworkVariable<int> maskedActivityInt = new LethalNetworkVariable<int>("maskedActivityInt");
 
         public bool mustChangeFocus, mustChangeActivity;
 
@@ -238,47 +234,49 @@ namespace LethalIntelligence.Patches
 
         public GrabbableObject closestGrabbable;
 
-        public GrabbableObject heldGrabbable; //only for status report!
+        public GrabbableObject nearestGrabbable, heldGrabbable; //only for status report!
 
         private bool targetPlayerReachable;
 
-        //private bool closestGrabbableReachable;
+        private bool closestGrabbableReachable;
+
+        private bool nearestGrabbableReachable;
 
         private bool justPickedUpItem = false;
 
         public CheckItemCollision itemSystem;
 
-        //public float enterTermianlCodeTimer;
+        public float enterTermianlCodeTimer;
 
-        //public float transmitMessageTimer; //for transmitting a signal translator message
+        public float transmitMessageTimer; //for transmitting a signal translator message
 
         public float transmitPauseTimer; //for adding a delay between messages
 
         public int enterTermianlSpecialCodeTime;
 
-        //public LethalNetworkVariable<int> enterTermianlSpecialCodeInt = new LethalNetworkVariable<int>("enterTermianlSpecialCodeInt");
+        public LethalNetworkVariable<int> enterTermianlSpecialCodeInt = new LethalNetworkVariable<int>("enterTermianlSpecialCodeInt");
 
-        //public LethalNetworkVariable<bool> isCrouched = new LethalNetworkVariable<bool>("isCrouched");
+        public LethalNetworkVariable<bool> isCrouched = new LethalNetworkVariable<bool>("isCrouched");
 
-        //public LethalNetworkVariable<bool> dropItem = new LethalNetworkVariable<bool>("dropItem");
+        public LethalNetworkVariable<bool> dropItem = new LethalNetworkVariable<bool>("dropItem");
 
-        //public LethalNetworkVariable<bool> isDancing = new LethalNetworkVariable<bool>("isDancing");
+        public LethalNetworkVariable<bool> isDancing = new LethalNetworkVariable<bool>("isDancing");
 
-        //public LethalNetworkVariable<bool> isRunning = new LethalNetworkVariable<bool>("isRunning");
+        public LethalNetworkVariable<bool> isRunning = new LethalNetworkVariable<bool>("isRunning");
 
-        //public LethalNetworkVariable<bool> useWalkie = new LethalNetworkVariable<bool>("useWalkie");
+        public LethalNetworkVariable<bool> useWalkie = new LethalNetworkVariable<bool>("useWalkie");
 
-        //public LethalNetworkVariable<bool> isJumped = new LethalNetworkVariable<bool>("isJumped");
+        public LethalNetworkVariable<bool> isJumped = new LethalNetworkVariable<bool>("isJumped");
 
-        //public LethalNetworkVariable<int> SelectPersonalityInt = new LethalNetworkVariable<int>("SelectPersonalityInt");
+        public LethalNetworkVariable<int> SelectPersonalityInt = new LethalNetworkVariable<int>("SelectPersonalityInt");
 
-        ////public LNetworkVariable<int> SelectPersonalityInt = LNetworkVariable<int>.Create("SelectPersonalityInt");
+        //public LNetworkVariable<int> SelectPersonalityInt = LNetworkVariable<int>.Create("SelectPersonalityInt");
 
-        //public LethalNetworkVariable<int> maxDanceCount = new LethalNetworkVariable<int>("maxDanceCount");
+        public LethalNetworkVariable<int> maxDanceCount = new LethalNetworkVariable<int>("maxDanceCount");
 
-        //public LethalNetworkVariable<float> terminalTimeFloat = new LethalNetworkVariable<float>("terminalTimeFloat");
+        public LethalNetworkVariable<float> terminalTimeFloat = new LethalNetworkVariable<float>("terminalTimeFloat");
 
-        //public LethalNetworkVariable<float> delayMaxTime = new LethalNetworkVariable<float>("delayMaxTime");
+        public LethalNetworkVariable<float> delayMaxTime = new LethalNetworkVariable<float>("delayMaxTime");
 
         public float jumpTime = 1f;
 
@@ -340,19 +338,19 @@ namespace LethalIntelligence.Patches
 
         private float terminalDistance = 1000f;
 
-        //private bool terminalReachable;
+        private bool terminalReachable;
 
         private float breakerBoxDistance = 1000f;
 
         private float apparatusDistance = 1000f;
 
-        //private float closestGrabbableDistance = 1000f;
+        private float closestGrabbableDistance = 1000f;
 
-        //private float nearestGrabbableDistance = 1000f;
+        private float nearestGrabbableDistance = 1000f;
 
-        //private bool apparatusReachable;
+        private bool apparatusReachable;
 
-        //private bool breakerBoxReachable;
+        private bool breakerBoxReachable;
 
         private float bushDistance = 1000f;
 
@@ -422,109 +420,6 @@ namespace LethalIntelligence.Patches
         Vector3 destination;
         float distanceToDestination;
 
-        private void CheckForEntrancesNearby()
-        {
-            if (maskedEnemy == null)
-            {
-                Plugin.mls.LogError("MaskedEnemy is NULL (CheckForEntrancesNearby)");
-                mustChangeFocus = true;
-                mustChangeActivity = true;
-                return;
-            }
-            if (agent == null)
-            {
-                Plugin.mls.LogError("Agent is NULL (CheckForEntrancesNearby)");
-                mustChangeFocus = true;
-                mustChangeActivity = true;
-
-            }
-            //check for exits regularly..
-            TimeSinceTeleporting += updateFrequency; //tick up for 3f after using an entrance
-            //check distance to destination
-
-            //if (Vector3.Distance(maskedEnemy.transform.position, agent.pathEndPosition) < 5f)
-            if (Vector3.Distance(agent.transform.position, agent.pathEndPosition) < 5f)
-            {
-                //get a list of exits and loop through them
-                foreach (EntranceTeleport et in entrancesTeleportArray)
-                {
-                    if (et == null)
-                    {
-                        //Plugin.mls.LogWarning("An EntranceTeleport was found to be NULL on " + currentMoon + " (" + currentInterior + ")");
-                        continue;
-                    }
-                    if (et.entrancePoint == null)
-                    {
-                        /*if (et.isEntranceToBuilding)
-                        {
-                            Plugin.mls.LogWarning("An Outside EntranceTeleport.entrancePoint for entrance " + et.entranceId + " was found to be NULL on " + currentMoon + "(" + currentInterior + ")");
-                        }
-                        else
-                        {
-                            Plugin.mls.LogWarning("An Inside EntranceTeleport.entrancePoint for entrance " + et.entranceId + " was found to be NULL on " + currentMoon + "(" + currentInterior + ")");
-
-                        }*/
-                        continue;
-                    }
-                    if (et.entrancePoint.position == null)
-                    {
-                        /*if (et.isEntranceToBuilding)
-                        {
-                            Plugin.mls.LogWarning("An Outside EntranceTeleport.entrancePoint.position for entrance " + et.entranceId + " was found to be NULL on " + currentMoon + "(" + currentInterior + ")");
-                        }
-                        else
-                        {
-                            Plugin.mls.LogWarning("An Inside EntranceTeleport.entrancePoint.position for entrance " + et.entranceId + " was found to be NULL on " + currentMoon + "(" + currentInterior + ")");
-
-                        }*/
-                        continue;
-                    }
-                    /*foreach (var iet in RoundManagerPatch.invalidEntrances)
-                    {
-                        Plugin.mls.LogError("Invalid Entrance ID -> " + iet.ToString());
-                    }*/
-                    if(RoundManagerPatch.invalidEntrances.Contains(et.entranceId))
-                    {
-                        continue; //shouldent use entrance when its invalid.
-                    }
-                    //if (Vector3.Distance(maskedEnemy.transform.position, et.entrancePoint.position) < 4f)
-                    if (Vector3.Distance(agent.transform.position, et.entrancePoint.position) < 4f)
-                    {
-                        //Plugin.mls.LogError("I SEE ENTRANCE ID:-" + et.entranceId);
-                        //Vector3 headStraightPositon = new Vector3(((Component)et).transform.position.x, ((Component)this).transform.position.y, ((Component)et).transform.position.z);
-                        //LookAtPos(headStraightPositon);
-                        //not working
-                        //Vector3 headStraightPositon = new Vector3(((Component)et).transform.position.x, ((Component)this).transform.position.y - 1, ((Component)et).transform.position.z);
-                        //LookAtPos(headStraightPositon, 0.5f, false);
-                    }
-                    //check LOS for each exit
-                    //if (objectInLOSCheck(maskedEnemy, et.gameObject) == 2 || Vector3.Distance(maskedEnemy.transform.position, et.entrancePoint.position) < 1f) //re-adding distance as an alternative option for deciding if masked use the entrance.
-                    if (objectInLOSCheck(maskedEnemy, et.gameObject) == 2 || Vector3.Distance(agent.transform.position, et.entrancePoint.position) < 1f) //re-adding distance as an alternative option for deciding if masked use the entrance.
-                    {
-                        if (TimeSinceTeleporting < 3f)
-                        {
-                            maskedGoal = "waiting to use entrance (" + et.entranceId + "/" + et.entrancePoint.position.ToString() + ") (less than 3 seconds)";
-                            return;
-                        }
-                        //if exit is in LOS.. use exit.. this should prevent masked from standing at exits.
-                        Vector3? opposingTeleportPosition = getTeleportDestination(et);
-                        maskedGoal = "using entrance (" + et.entranceId + "/" + et.entrancePoint.position.ToString() + ")";
-                        TimeSinceTeleporting = 0;
-                        TeleportMaskedEnemyAndSync((Vector3)opposingTeleportPosition, !maskedEnemy.isOutside);
-                        agent.transform.position = (Vector3)opposingTeleportPosition;
-                        //changing focus and activity will also break the cycle of entities being stuck at the main entrance... UNLESS this code doesnt run when they get stuck there
-                        if ((maskedPersonality == Personality.Deceiving && maskedFocus == Focus.Items) || (maskedPersonality == Personality.Insane && maskedFocus == Focus.Escape))
-                        {
-                            break; //break without changing focus/activity.
-                        }
-                        mustChangeFocus = true;
-                        mustChangeActivity = true;
-                        break;
-                    }
-                }
-            }
-        }
-
         int delayNumber = 0;
         int delayMax = Plugin.debugStatusDelay;
 
@@ -549,15 +444,16 @@ namespace LethalIntelligence.Patches
             {
                 try
                 {
+                    string ng = "null";
                     string hg = "null";
-                    string cgd = "null";
+                    string ngd = "null";
                     string cg = "null";
-                    string bbr = "null";
-                    string bbo = "null";
-                    string ar = "null";
-                    string caf = "null";
-                    string cm = "null";
-                    string ci = "null";
+                    if (nearestGrabbable != null)
+                    {
+                        ng = nearestGrabbable.name.ToString();
+                        ngd = nearestGrabbableDistance.ToString();
+
+                    }
                     if (heldGrabbable != null)
                     {
                         hg = heldGrabbable.name.ToString();
@@ -565,25 +461,6 @@ namespace LethalIntelligence.Patches
                     if (closestGrabbable != null)
                     {
                         cg = closestGrabbable.name.ToString();
-                        cgd = closestGrabbableDistance.Value.ToString();
-                    }
-                    if (breakerBox != null)
-                    {
-                        bbr = breakerBoxReachable.Value.ToString();
-                        bbo = breakerBox.isPowerOn.ToString();
-                    }
-                    if (apparatus != null)
-                    {
-                        ar = apparatusReachable.Value.ToString();
-                        caf = completedApparatusFocus.ToString();
-                    }
-                    if (currentMoon != null)
-                    {
-                        cm = currentMoon.ToString();
-                    }
-                    if (currentInterior != null)
-                    {
-                        ci = currentInterior.ToString();
                     }
                     string bbcp = breakerClosestPoint.ToString();
                     string tcp = terminalClosestPoint.ToString();
@@ -591,36 +468,33 @@ namespace LethalIntelligence.Patches
                     string td = terminalDistance.ToString();
 
                     destination = maskedEnemy.destination;
-                    //distanceToDestination = Vector3.Distance(maskedEnemy.transform.position, destination);
-                    distanceToDestination = Vector3.Distance(agent.transform.position, destination);
+                    distanceToDestination = Vector3.Distance(maskedEnemy.transform.position, destination);
 
                     string focusStart = "\n------------ Focus Details ------------";
                     string focusDetails = "";
                     if (maskedFocus == Focus.Items || (maskedFocus == Focus.None && maskedActivity == Activity.RandomItem))
                     {
                         focusDetails = focusStart +
-                            "\nclosestGrabbableReachable = " + closestGrabbableReachable.Value +
-                            //"\nclosestGrabbableDistance = " + cgd + //disabled because its spammy
+                            "\nnearestGrabbableReachable = " + nearestGrabbableReachable +
+                            "\nnearestGrabbable = " + ng +
                             "\nclosestGrabbable = " + cg;
                     }
                     else if (maskedFocus == Focus.BreakerBox || (maskedFocus == Focus.None && maskedActivity == Activity.BreakerBox))
                     {
                         focusDetails = focusStart +
-                            "\nBreakerBoxReachable = " + bbr +
-                            "\nbreakerBox.isPowerOn = " + bbo;
+                            "\nBreakerBoxReachable = " + breakerBoxReachable +
+                            "\nbreakerBox.isPowerOn = " + breakerBox.isPowerOn;
                     }
                     else if (maskedFocus == Focus.Terminal)
                     {
                         focusDetails = focusStart +
-                        "\nTerminalReachable = " + terminalReachable.Value +
-                        "\nisUsingTerminal = " + isUsingTerminal;
-
+                        "\nTerminalReachable = " + terminalReachable;
                     }
                     else if (maskedActivity == Activity.Apparatus || maskedFocus == Focus.Apparatus)
                     {
                         focusDetails = focusStart +
-                        "\nApparatusReachable = " + ar +
-                        "\nThisMaskedSabotagedApparatus? = " + caf;
+                        "\nApparatusReachable = " + apparatusReachable +
+                        "\nThisMaskedSabotagedApparatus? = " + completedApparatusFocus;
                     }
                     else if (maskedFocus == Focus.Escape)
                     {
@@ -629,16 +503,9 @@ namespace LethalIntelligence.Patches
                         "\ntermianlSpecialCodeTime = " + enterTermianlSpecialCodeTime +
                         "\nisLeverEscaping = " + isLeverEscaping;
                     }
-
-                    string hostTimeStampPlaceholder = "ReplaceWithDateAndTimeNeverLogThis";
-                    string hostTimeStampReplacement = hostTimeStamp.Value.ToString("dd/MM/yyyy @ hh:mm:ss"); //add in time stamp AFTER it is checked to prevent spam.
-
-                    string HoC = (IsHost) ? "Host" : "Client";
-
-                    string debugMsg = "DebugMode..." + //because the first line is empty
-                    "\n===== MaskedStatusReport("+HoC+") Start =====" +
+                    string debugMsg =
+                    "\n===== MaskedStatusReport() Start =====" +
                     "\nMaskedID = " + maskedId +
-                    "\nHostTimeStamp = " + hostTimeStampPlaceholder +
                     "\nMaskedPersonality = " + maskedPersonality.ToString() +
                     "\nMaskedFocus = " + maskedFocus.ToString() +
                     "\nMustChangeFocus = " + mustChangeFocus.ToString() +
@@ -648,8 +515,8 @@ namespace LethalIntelligence.Patches
                     //"\nDestination = " + destination.ToString() +
                     //"\nDistance to Destination = " + distanceToDestination.ToString() +
                     //"\nNavMeshPathStatus = " + nms +
-                    "\nMoon = " + cm +
-                    "\nInterior = " + ci +
+                    "\nMoon = " + currentMoon +
+                    "\nInterior = " + currentInterior +
                     "\nisDead = " + maskedEnemy.isEnemyDead +
                     "\n\nisOutside = " + maskedEnemy.isOutside +
                     "\nisInsidePlayerShip = " + maskedEnemy.isInsidePlayerShip +
@@ -665,8 +532,7 @@ namespace LethalIntelligence.Patches
                     if (debugMsg != lastDebugModeStatus)
                     {
                         lastDebugModeStatus = debugMsg;
-                        string fixedReport = debugMsg.Replace(hostTimeStampPlaceholder, hostTimeStampReplacement);
-                        Plugin.mls.LogInfo(fixedReport);
+                        Plugin.mls.LogInfo(debugMsg);
                     }
                     if (maskedEnemy.isEnemyDead)
                     {
@@ -680,113 +546,6 @@ namespace LethalIntelligence.Patches
                 }
             }
         }
-
-        //public LNetworkVariable<Vector3>? maskedPosition;
-        public LNetworkVariable<float>? currentDestinationDistance;
-        //public LNetworkVariable<Quaternion>? maskedRotation;
-        public LNetworkVariable<int>? maskedPersonalityInt, maskedFocusInt, maskedActivityInt;
-        public LNetworkVariable<bool>? useWalkie;
-        public LNetworkVariable<bool>? isCrouched, isDancing, isRunning, isJumped, isTired;
-        //public LNetworkVariable<int>? enterTermianlSpecialCodeInt;
-        public LNetworkVariable<float>? terminalTimeFloat, delayMaxTime, transmitMessageTimer, enterTerminalCodeTimer;
-        public LNetworkVariable<string>? terminalCode;
-        //public LNetworkVariable<bool> isUsingTerminal;
-        public LNetworkVariable<int>? maxDanceCount;
-        public LNetworkVariable<bool>? dropItem;
-        public LNetworkVariable<bool> terminalReachable, breakerBoxReachable, apparatusReachable;
-        public LNetworkVariable<DateTime>? hostTimeStamp;
-        public LNetworkVariable<ulong>? maskedTargetId;
-        public LNetworkVariable<bool>? maskedInSpecialAnimation;
-        public LNetworkVariable<ulong> closestGrabbableId, maskedWalkieId;
-        public LNetworkVariable<float> closestGrabbableDistance;
-        public LNetworkVariable<bool> closestGrabbableReachable;
-        public LNetworkVariable<int> idleModeVersion;
-
-        public LNetworkVariable<Vector3>? terminalPosition, breakerPosition, lockerPosition, apparatusPosition, fireExitPosition, mainEntrancePosition; //positions to save
-
-        //event bools
-        public static LNetworkVariable<bool> appTrigger, signalTranslatorTrigger, landDropshipTrigger, objectCodeTrigger;
-        public static LNetworkVariable<string> signalTranslatorMessage, objectCode;
-
-        private void setupLNAPIvariables(string id)
-        {
-            //host time
-            hostTimeStamp = LNetworkVariable<DateTime>.Connect("hostTimeStamp" + id, DateTime.FromBinary(-1), LNetworkVariableWritePerms.Server);
-
-            //positions of objects masked may use
-            terminalPosition = LNetworkVariable<Vector3>.Connect("terminalPosition" + id, Vector3.negativeInfinity, LNetworkVariableWritePerms.Everyone);
-            breakerPosition = LNetworkVariable<Vector3>.Connect("breakerPosition" + id, Vector3.negativeInfinity, LNetworkVariableWritePerms.Everyone);
-            lockerPosition = LNetworkVariable<Vector3>.Connect("lockerPosition" + id, Vector3.negativeInfinity, LNetworkVariableWritePerms.Everyone);
-            apparatusPosition = LNetworkVariable<Vector3>.Connect("apparatusPosition" + id, Vector3.negativeInfinity, LNetworkVariableWritePerms.Everyone);
-            fireExitPosition = LNetworkVariable<Vector3>.Connect("fireExitPosition" + id, Vector3.negativeInfinity, LNetworkVariableWritePerms.Everyone);
-            mainEntrancePosition = LNetworkVariable<Vector3>.Connect("mainEntrancePosition" + id, Vector3.negativeInfinity, LNetworkVariableWritePerms.Everyone);
-
-            //basic masked variables.
-            //maskedPosition = LNetworkVariable<Vector3>.Connect("maskedPosition" + id, Vector3.negativeInfinity, LNetworkVariableWritePerms.Everyone); //probably should be server only.
-            //maskedPosition.OnValueChanged += (oldVal, newVal) => { updatePosition(oldVal, newVal); };
-            //maskedRotation = LNetworkVariable<Quaternion>.Connect("maskedRotation" + id, new Quaternion(), LNetworkVariableWritePerms.Everyone); //probably should be server only.
-            currentDestinationDistance = LNetworkVariable<float>.Connect("currentDestinationDistance" + id, -1,LNetworkVariableWritePerms.Everyone); //probably should be server only.
-            maskedTargetId = LNetworkVariable<ulong>.Connect("maskedTarget" + id, ulong.MaxValue , LNetworkVariableWritePerms.Everyone); //probably should be server only.
-            maskedTargetId.OnValueChanged += (oldVal, newVal) => { updateTargetPlayer(oldVal, newVal); };
-            maskedInSpecialAnimation = LNetworkVariable<bool>.Connect("maskedInSpecialAnimation" + id, false, LNetworkVariableWritePerms.Everyone); //probably should be server only.
-            maskedPersonalityInt = LNetworkVariable<int>.Connect("maskedPersonalityInt" + id, -1 , LNetworkVariableWritePerms.Everyone);
-            maskedFocusInt = LNetworkVariable<int>.Connect("maskedFocusInt" + id, -1, LNetworkVariableWritePerms.Everyone);
-            maskedActivityInt = LNetworkVariable<int>.Connect("maskedActivityInt" + id, -1, LNetworkVariableWritePerms.Everyone);
-
-            //animation variables
-            isCrouched = LNetworkVariable<bool>.Connect("isCrouched" + id, false, LNetworkVariableWritePerms.Everyone);
-            isDancing = LNetworkVariable<bool>.Connect("isDancing" + id, false, LNetworkVariableWritePerms.Everyone);
-            maxDanceCount = LNetworkVariable<int>.Connect("maxDanceCount" + id, -1, LNetworkVariableWritePerms.Everyone);
-            isRunning = LNetworkVariable<bool>.Connect("isRunning" + id, false, LNetworkVariableWritePerms.Everyone);
-            isJumped = LNetworkVariable<bool>.Connect("isJumped" + id, false, LNetworkVariableWritePerms.Everyone);
-            isTired = LNetworkVariable<bool>.Connect("isTired" + id, false, LNetworkVariableWritePerms.Everyone);
-
-            //terminal values
-            //enterTermianlSpecialCodeInt = LNetworkVariable<int>.Connect("enterTermianlSpecialCodeInt" + id, -1, LNetworkVariableWritePerms.Everyone);
-            terminalTimeFloat = LNetworkVariable<float>.Connect("terminalTimeFloat" + id, -1f, LNetworkVariableWritePerms.Everyone);
-            transmitMessageTimer = LNetworkVariable<float>.Connect("transmitMessageTimer" + id, -1f, LNetworkVariableWritePerms.Everyone);
-            enterTerminalCodeTimer = LNetworkVariable<float>.Connect("enterTerminalCodeTimer" + id, -1f, LNetworkVariableWritePerms.Everyone);
-            delayMaxTime = LNetworkVariable<float>.Connect("delayMaxTime" + id, -1f, LNetworkVariableWritePerms.Everyone);
-            //isUsingTerminal = LNetworkVariable<bool>.Connect("isUsingTerminal" + id, false, LNetworkVariableWritePerms.Everyone);
-
-            //for masked walkies
-            useWalkie = LNetworkVariable<bool>.Connect("useWalkie" + id, false, LNetworkVariableWritePerms.Everyone);
-            maskedWalkieId = LNetworkVariable<ulong>.Connect("MaskedWalkieId" + id, ulong.MaxValue, LNetworkVariableWritePerms.Everyone);
-
-            //for grabbing normal items
-            closestGrabbableId = LNetworkVariable<ulong>.Connect("closestGrabbableId" + id, ulong.MaxValue, LNetworkVariableWritePerms.Everyone);
-            closestGrabbableDistance = LNetworkVariable<float>.Connect("closestGrabbableDistance" + id, -1, LNetworkVariableWritePerms.Everyone);
-            closestGrabbableReachable = LNetworkVariable<bool>.Connect("closestGrabbableReachable" + id, false, LNetworkVariableWritePerms.Everyone);
-
-            //other
-            dropItem = LNetworkVariable<bool>.Connect("dropItem" + id, false, LNetworkVariableWritePerms.Everyone);
-            dropItem.OnValueChanged += (oldVal, newVal) => { DropItemsNew(oldVal,newVal); };
-
-            //bools for checking if something is reachable
-            terminalReachable = LNetworkVariable<bool>.Connect("terminalReachable" + id, false, LNetworkVariableWritePerms.Everyone);
-            breakerBoxReachable = LNetworkVariable<bool>.Connect("breakerBoxReachable" + id, false, LNetworkVariableWritePerms.Everyone);
-            apparatusReachable = LNetworkVariable<bool>.Connect("apparatusReachable" + id, false, LNetworkVariableWritePerms.Everyone);
-
-            //for idle mode only..
-            idleModeVersion = LNetworkVariable<int>.Connect("idleModeVersion" + id, 0, LNetworkVariableWritePerms.Everyone); //int idleModeVersion;
-
-            //event bools
-            appTrigger = LNetworkVariable<bool>.Connect("appTrigger" + id, false, LNetworkVariableWritePerms.Server);
-            appTrigger.OnValueChanged += (oldVal, newVal) => { sabotageApparatus(newVal); };
-
-            landDropshipTrigger = LNetworkVariable<bool>.Connect("landDropshipTrigger" + id, false, LNetworkVariableWritePerms.Server);
-            landDropshipTrigger.OnValueChanged += (oldVal, newVal) => { landDropship(newVal); };
-
-            signalTranslatorTrigger = LNetworkVariable<bool>.Connect("signalTranslatorTrigger" + id, false, LNetworkVariableWritePerms.Server);
-            signalTranslatorMessage = LNetworkVariable<string>.Connect("signalTranslatorMessage" + id, null, LNetworkVariableWritePerms.Server);
-            signalTranslatorMessage.OnValueChanged += (oldVal, newVal) => { sendSignalTranslatorMessage(newVal); };
-
-            objectCodeTrigger = LNetworkVariable<bool>.Connect("objectCodeTrigger" + id, false, LNetworkVariableWritePerms.Server);
-            terminalCode = LNetworkVariable<string>.Connect("terminalCode" + id, null, LNetworkVariableWritePerms.Server);
-            terminalCode.OnValueChanged += (oldVal, newVal) => { useObjectCode(newVal); };
-
-        }
-
 
         string currentMoon = null;
         string currentInterior = null;
@@ -826,34 +585,17 @@ namespace LethalIntelligence.Patches
 
         public void Start()
         {
+            selectAvailablePersonalities();
+            currentMoon = RoundManager.Instance.currentLevel.PlanetName;
+            currentInterior = RoundManager.Instance.dungeonGenerator.Generator.DungeonFlow.name.ToString();
             //IL_00ed: Unknown result type (might be due to invalid IL or missing references)
             //IL_00f7: Expected O, but got Unknown
             //IL_0169: Unknown result type (might be due to invalid IL or missing references)
             //IL_018e: Unknown result type (might be due to invalid IL or missing references)
-            maskedId = this.gameObject.GetComponent<NetworkObject>().NetworkObjectId.ToString();
-            //maskedId = this.GetInstanceID().ToString();
-            //if (GameNetworkManager.Instance.isHostingGame)
-            //{
-            //    enterTermianlSpecialCodeInt.Value = Random.Range(0, Enum.GetNames(typeof(Personality)).Length);
-            //}
-            setupLNAPIvariables(maskedId);
-            selectAvailablePersonalities();
-            if (RoundManager.Instance.currentLevel == null)
-            {//no moon, should be in orbit.. but this isnt correct, this should only occur when masked are SPAWNED in the ship anyway, so not a big deal
-                Plugin.mls.LogDebug("MoonWasNotFound:- " + RoundManager.Instance.currentLevel.ToString());
-                return;
-            }
-            else if(RoundManager.Instance.dungeonGenerator == null)
-            {//company moon (no interior)
-                currentMoon = RoundManager.Instance.currentLevel.name;
-                currentInterior = "null";
-                Plugin.mls.LogDebug("MoonWithoutInteriorFound:- " + currentMoon);
-            }
-            else
-            {//normal moon with interior
-                currentMoon = RoundManager.Instance.currentLevel.name;
-                currentInterior = RoundManager.Instance.dungeonGenerator.Generator.DungeonFlow.name.ToString();
-                Plugin.mls.LogDebug("MoonWithInteriorFound:- " + currentMoon + "(" + currentInterior + ")");
+            if (GameNetworkManager.Instance.isHostingGame)
+            {
+                maskedId = this.GetInstanceID().ToString();
+                enterTermianlSpecialCodeInt.Value = Random.Range(0, Enum.GetNames(typeof(Personality)).Length);
             }
             if ((Object)(object)GameObject.FindGameObjectWithTag("Bush") != (Object)null)
             {
@@ -890,10 +632,10 @@ namespace LethalIntelligence.Patches
             if (GameNetworkManager.Instance.isHostingGame)
             {
                 maxDanceCount.Value = Random.Range(2, 4);
-            }
-            if (Plugin.mirageIntegrated)
-            {
-                enableMirageAudio();
+                if (Plugin.mirageIntegrated)
+                {
+                    enableMirageAudio();
+                }
             }
             if ((Object)(object)creatureAnimator.runtimeAnimatorController != (Object)(object)Plugin.MaskedAnimController)
             {
@@ -907,20 +649,15 @@ namespace LethalIntelligence.Patches
             terminalAccessibleObject = Object.FindObjectsOfType<TerminalAccessibleObject>();
             // Entrances
             entrancesTeleportArray = Object.FindObjectsOfType<EntranceTeleport>(includeInactive: false);
-            //TimeSinceTeleporting = MaxTimeBeforeTeleporting;
+            TimeSinceTeleporting = MaxTimeBeforeTeleporting;
             /*Plugin.mls.LogError("Name|entranceId|entrancePointPosition|transformPosition|isEntranceToBuilding|isActiveAndEnabled");
             for (int i = 0; i < entrancesTeleportArray.Length; i++)
             {
                 Plugin.mls.LogError(entrancesTeleportArray[i].name + "|" + entrancesTeleportArray[i].entranceId + "|" + entrancesTeleportArray[i].entrancePoint.position.ToString() + "|" + entrancesTeleportArray[i].transform.position.ToString() + "|" + entrancesTeleportArray[i].isEntranceToBuilding + "|" + entrancesTeleportArray[i].isActiveAndEnabled);
             }*/
-            if (IsHost)
-            {
-                mainEntrancePosition.Value = maskedEnemy.mainEntrancePosition;
-            }
-            //TestConfig();
         }
 
-        internal float updateFrequency = 0.02f;
+        float updateFrequency = 0.02f;
 
         private void Jump(bool enable)
         {
@@ -982,20 +719,12 @@ namespace LethalIntelligence.Patches
             }
         }
 
-        private void SyncTerminalValues(int num)
-        {
-            enterTermianlSpecialCodeTime = num;
-            transmitMessageTimer.Value = 0.01f;
-            enterTerminalCodeTimer.Value = 0.01f;
-            terminalTimeFloat.Value = 6f;
-            //delayMaxTime.Value = 11f;
-        }
         private void SyncTermianlInt(int num)
         {
             enterTermianlSpecialCodeTime = num;
         }
 
-        //Vector3 terminalPosition, breakerPosition, lockerPosition, apparatusPosition, fireExitPosition, mainEntrancePosition; //positions to save
+        Vector3 terminalPosition, breakerPosition, lockerPosition, apparatusPosition, fireExitPosition, mainEntrancePosition; //positions to save
 
         float lockerDistance;
 
@@ -1046,14 +775,11 @@ namespace LethalIntelligence.Patches
 
         int calculationDelay = 0;
         bool lateGameChoices = false;
-        bool firstRun = true;
+
         private void CalculatingVariables()
         {
             NavMeshPath nmpBreaker = new NavMeshPath(), nmpTerminal = new NavMeshPath(), nmpLocker = new NavMeshPath(), nmpApparatus = new NavMeshPath();
             NavMeshHit hitBreaker, hitTerminal, hitLocker, hitApparatus;
-
-//TimeSinceTeleporting += updateFrequency;
-            //Plugin.mls.LogError("tst = " + TimeSinceTeleporting);
 
             if (calculationDelay > 0)
             {
@@ -1063,6 +789,7 @@ namespace LethalIntelligence.Patches
             {
                 calculationDelay = 250; //update is 50 times a second, so this is once every 5 seconds... compared to the 10 updates a second making this 1 update per 5 seconds previously
 
+                TimeSinceTeleporting++;
                 /*if (TimeSinceTeleporting < MaxTimeBeforeTeleporting)
                 {
                     Plugin.mls.LogError("TimeToTp = " + TimeSinceTeleporting);
@@ -1072,24 +799,23 @@ namespace LethalIntelligence.Patches
                 {
                     lateGameChoices = true;
                 }
-                if (firstRun || mustChangeFocus || maskedFocus == Focus.Items)
+                if (mustChangeFocus || maskedFocus == Focus.Items || maskedActivity == Activity.RandomItem)
                 {
                     setNearestGrabbable();
-                    //findRandomItem();
                     //this is in setNearestGrabbable();
                     /*if (!closestGrabbableReachable)
                     {
                         nearestGrabbableDistance = 1000f;
                     }*/
                 }
-                if (firstRun || mustChangeFocus || maskedFocus == Focus.Apparatus || maskedActivity == Activity.Apparatus)
+                if (mustChangeFocus || maskedFocus == Focus.Apparatus || maskedActivity == Activity.Apparatus)
                 {
                     //not working for now use original code
                     //DetectObject(breakerBox, ref breakerBoxReachable, ref noMoreBreakerBox, ref breakerBoxDistance, ref breakerClosestPoint, ref breakerPosition);
                     if (apparatus == null)
                     {
                         Plugin.mls.LogDebug("Apparatus is Null");
-                        apparatusReachable.Value = false;
+                        apparatusReachable = false;
                         apparatusDistance = 1000f;
                         noMoreApparatus = true;
                     }
@@ -1097,22 +823,21 @@ namespace LethalIntelligence.Patches
                     {
                         try
                         {
-                            if (NavMesh.SamplePosition(apparatus.transform.position + -apparatus.transform.forward, out hitApparatus, 10f, -1))
+                            if (NavMesh.SamplePosition(apparatus.transform.position, out hitApparatus, 3.0f, -1))
                             {
-                                if(IsHost) apparatusReachable.Value = agent.CalculatePath(hitApparatus.position, nmpApparatus);
+                                apparatusReachable = agent.CalculatePath(hitApparatus.position, nmpApparatus);
                                 //Plugin.mls.LogError("Reachable=" + apparatusReachable);
                                 //breakerBoxDistance = Vector3.Distance(((Component)this).transform.position, hitBreaker.position);
-                                //apparatusDistance = Vector3.Distance(maskedEnemy.transform.position, hitApparatus.position);
-                                apparatusDistance = Vector3.Distance(agent.transform.position, hitApparatus.position);
+                                apparatusDistance = Vector3.Distance(((Component)this).transform.position, ((Component)apparatus).transform.position);
                                 //Plugin.mls.LogError("dis:- " + apparatusDistance);
                                 apparatusClosestPoint = Vector3.Distance(hitApparatus.position, apparatus.transform.position);
-                                apparatusPosition.Value = hitApparatus.position;
+                                apparatusPosition = apparatus.transform.position;
                             }
                             else
                             {
-                                apparatusReachable.Value = false;
+                                apparatusReachable = false;
                             }
-                            if (!apparatusReachable.Value)
+                            if (!apparatusReachable)
                             {
                                 apparatusDistance = 1000f;
                             }
@@ -1120,25 +845,25 @@ namespace LethalIntelligence.Patches
                         catch (NullReferenceException nre)
                         {
                             Plugin.mls.LogDebug("Apparatus NullReferenceException() Caught!\n" + nre.Message);
-                            apparatusReachable.Value = false;
+                            apparatusReachable = false;
                             noMoreApparatus = true;
                         }
                         catch (Exception e)
                         {
                             Plugin.mls.LogDebug("Apparatus Exception() Caught!\n" + e.Message);
-                            apparatusReachable.Value = false;
+                            apparatusReachable = false;
                             noMoreApparatus = true;
                         }
                     }
                 }
-                if (firstRun || mustChangeFocus || maskedFocus == Focus.BreakerBox || maskedActivity == Activity.BreakerBox)
+                if (mustChangeFocus || maskedFocus == Focus.BreakerBox || maskedActivity == Activity.BreakerBox)
                 {
                     //not working for now use original code
                     //DetectObject(breakerBox, ref breakerBoxReachable, ref noMoreBreakerBox, ref breakerBoxDistance, ref breakerClosestPoint, ref breakerPosition);
                     if (breakerBox == null)
                     {
                         Plugin.mls.LogDebug("BreakerBox is Null");
-                        breakerBoxReachable.Value = false;
+                        breakerBoxReachable = false;
                         breakerBoxDistance = 1000f;
                         noMoreBreakerBox = true;
                     }
@@ -1146,20 +871,19 @@ namespace LethalIntelligence.Patches
                     {
                         try
                         {
-                            //-up = the forward for the breaker box... thanks zeekers.. :)
-                            if (NavMesh.SamplePosition(breakerBox.transform.position + -breakerBox.transform.up, out hitBreaker, 10f, -1))
+                            if (NavMesh.SamplePosition(breakerBox.transform.position, out hitBreaker, 3.0f, -1))
                             {
-                                if (IsHost) breakerBoxReachable.Value = agent.CalculatePath(hitBreaker.position, nmpBreaker);
+                                breakerBoxReachable = agent.CalculatePath(hitBreaker.position, nmpBreaker);
                                 //breakerBoxDistance = Vector3.Distance(((Component)this).transform.position, hitBreaker.position);
-                                breakerBoxDistance = Vector3.Distance(agent.transform.position, hitBreaker.position);
+                                breakerBoxDistance = Vector3.Distance(((Component)this).transform.position, ((Component)breakerBox).transform.position);
                                 breakerClosestPoint = Vector3.Distance(hitBreaker.position, breakerBox.transform.position);
-                                breakerPosition.Value = hitBreaker.position;
+                                breakerPosition = hitBreaker.position;
                             }
                             else
                             {
-                                breakerBoxReachable.Value = false;
+                                breakerBoxReachable = false;
                             }
-                            if (!breakerBoxReachable.Value)
+                            if (!breakerBoxReachable)
                             {
                                 breakerBoxDistance = 1000f;
                             }
@@ -1167,25 +891,25 @@ namespace LethalIntelligence.Patches
                         catch (NullReferenceException nre)
                         {
                             Plugin.mls.LogDebug("BreakerBox NullReferenceException() Caught!\n" + nre.Message);
-                            breakerBoxReachable.Value = false;
+                            breakerBoxReachable = false;
                             noMoreBreakerBox = true;
                         }
                         catch (Exception e)
                         {
                             Plugin.mls.LogDebug("BreakerBox Exception() Caught!\n" + e.Message);
-                            breakerBoxReachable.Value = false;
+                            breakerBoxReachable = false;
                             noMoreBreakerBox = true;
                         }
                     }
                 }
-                if (firstRun || mustChangeFocus || maskedFocus == Focus.Terminal || maskedFocus == Focus.Escape)
+                if (mustChangeFocus || maskedFocus == Focus.Terminal || maskedFocus == Focus.Escape)
                 {
                     //not working for now use original code
                     //DetectObject(terminal, ref terminalReachable, ref noMoreTerminal, ref terminalDistance, ref terminalClosestPoint, ref terminalPosition);
                     if (terminal == null)
                     {
                         Plugin.mls.LogDebug("Terminal is Null");
-                        terminalReachable.Value = false;
+                        terminalReachable = false;
                         terminalDistance = 1000f;
                         noMoreTerminal = true;
                     }
@@ -1193,19 +917,18 @@ namespace LethalIntelligence.Patches
                     {
                         try
                         {
-                            if (NavMesh.SamplePosition(terminal.transform.position, out hitTerminal, 10f, -1))
+                            if (NavMesh.SamplePosition(terminal.transform.position, out hitTerminal, 3.0f, -1))
                             {
-                                if (IsHost) terminalReachable.Value = agent.CalculatePath(hitTerminal.position, nmpTerminal);
-                                //terminalDistance = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position);
-                                terminalDistance = Vector3.Distance(agent.transform.position, hitTerminal.position);
+                                terminalReachable = agent.CalculatePath(hitTerminal.position, nmpTerminal);
+                                terminalDistance = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position);
                                 terminalClosestPoint = Vector3.Distance(hitTerminal.position, terminal.transform.position);
-                                terminalPosition.Value = new Vector3(terminal.transform.position.x, terminal.transform.position.y - 1.44f, terminal.transform.position.z) - (terminal.transform.right * 0.8f);
+                                terminalPosition = hitTerminal.position;
                             }
                             else
                             {
-                                terminalReachable.Value = false;
+                                terminalReachable = false;
                             }
-                            if (!terminalReachable.Value)
+                            if (!terminalReachable)
                             {
                                 terminalDistance = 1000f;
                             }
@@ -1213,18 +936,18 @@ namespace LethalIntelligence.Patches
                         catch (NullReferenceException nre)
                         {
                             Plugin.mls.LogDebug("Terminal NullReferenceException() Caught!\n" + nre.Message);
-                            terminalReachable.Value = false;
+                            terminalReachable = false;
                             noMoreTerminal = true;
                         }
                         catch (Exception e)
                         {
                             Plugin.mls.LogDebug("Terminal Exception() Caught!\n" + e.Message);
-                            terminalReachable.Value = false;
+                            terminalReachable = false;
                             noMoreTerminal = true;
                         }
                     }
                 }
-                if (firstRun || mustChangeFocus || maskedActivity == Activity.ItemLocker)
+                if (mustChangeFocus || maskedActivity == Activity.ItemLocker)
                 {
                     if (GameObject.Find("LockerAudio") == null)
                     {
@@ -1237,7 +960,7 @@ namespace LethalIntelligence.Patches
                     {
                         try
                         {
-                            lockerPosition.Value = GameObject.Find("LockerAudio").transform.position; // so use this for now
+                            lockerPosition = GameObject.Find("LockerAudio").transform.position; // so use this for now
                                                                                                 //this isnt working right now.. it routes the masked on to above the ship..
                             /*if (NavMesh.SamplePosition(GameObject.Find("LockerAudio").transform.position,out hitLocker,10,-1))
                             {
@@ -1261,7 +984,6 @@ namespace LethalIntelligence.Patches
                         }
                     }
                 }
-                firstRun = false;
             }
         }
 
@@ -1269,19 +991,12 @@ namespace LethalIntelligence.Patches
         {
             if (GameNetworkManager.Instance.isHostingGame)
             {
-                if (mustChangeFocus /*|| maskedFocusInt.Value == -1 || maskedActivityInt.Value == -1 || (maskedFocus != Focus.None && maskedActivity != Activity.None) || (maskedFocus == Focus.None && maskedActivity == Activity.None)*/)
+                if (mustChangeFocus)
                 {
                     lastMaskedFocus = maskedFocus;
 
-                    if (__instance.targetPlayer != null && lastMaskedFocus != Focus.Player)
-                    {
-                        maskedFocusInt.Value = (int)Focus.Player; //syncing variables
-                                                                  //maskedFocus = Focus.Player;
-                        maskedActivityInt.Value = (int)Activity.None; //syncing variables
-                                                                      //maskedActivity = Activity.None;
-                        mustChangeActivity = true;
-                    }
-                    else if (maskedPersonality == Personality.Cunning && breakerBoxDistance < 40f && lastMaskedFocus != Focus.BreakerBox && breakerBoxReachable.Value && !noMoreBreakerBox)
+                    //new line
+                    if (maskedPersonality == Personality.Cunning && breakerBoxDistance < 40f && lastMaskedFocus != Focus.BreakerBox && breakerBoxReachable && !noMoreBreakerBox)
                     //this was a cunning only line
                     //if (breakerBoxDistance < terminalDistance && breakerBoxDistance < closestGrabbableDistance && lastMaskedFocus != Focus.BreakerBox && breakerBoxReachable && !noMoreBreakerBox && maskedPersonality==Personality.Cunning)
                     {
@@ -1293,7 +1008,7 @@ namespace LethalIntelligence.Patches
                         mustChangeActivity = true;
                     }
                     //new line
-                    else if ((maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane) && terminalDistance < 40f && lastMaskedFocus != Focus.Terminal && terminalReachable.Value && !noMoreTerminal)
+                    else if ((maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane) && terminalDistance < 40f && lastMaskedFocus != Focus.Terminal && terminalReachable && !noMoreTerminal)
                     //this was a cunning only line
                     //else if (terminalDistance < breakerBoxDistance && terminalDistance < closestGrabbableDistance && lastMaskedFocus != Focus.Terminal && terminalReachable && !noMoreTerminal && (maskedPersonality==Personality.Cunning || maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane))
                     {
@@ -1305,17 +1020,10 @@ namespace LethalIntelligence.Patches
                         mustChangeActivity = true;
                     }
                     //new line
-                    else if ((maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Aggressive) && closestGrabbableDistance.Value < 40f && lastMaskedFocus != Focus.Items && closestGrabbableReachable.Value && !noMoreItems && TimeOfDay.Instance.hour > lastItemErrorHour)
+                    else if ((maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Aggressive) && nearestGrabbableDistance < 40f && lastMaskedFocus != Focus.Items && nearestGrabbableReachable && !noMoreItems)
                     //this was a cunning only line
                     //else if (closestGrabbableDistance < breakerBoxDistance && closestGrabbableDistance < terminalDistance && lastMaskedFocus != Focus.Items && closestGrabbableReachable && !noMoreItems)
                     {
-                        if(maskedPersonality == Personality.Aggressive)
-                        {
-                            noMoreItems = true;
-                            mustChangeFocus = true;
-                            mustChangeActivity = true;
-                            return; //prevent aggressive picking up weapons as it breaks aggressive
-                        }
                         //all masked
                         maskedFocusInt.Value = (int)Focus.Items; //syncing variables
                                                                  //maskedFocus = Focus.Items;
@@ -1339,17 +1047,17 @@ namespace LethalIntelligence.Patches
                                                                       //maskedActivity = Activity.None;
                         mustChangeActivity = true;
                     }
-                    else if (maskedPersonality == Personality.Insane && lastMaskedFocus != Focus.Apparatus && lateGameChoices && !maskedEnemy.isOutside && apparatus != null)
+                    else if ((maskedPersonality == Personality.Aggressive || maskedPersonality == Personality.Deceiving) && __instance.targetPlayer != null && lastMaskedFocus != Focus.Player)
                     {
-                        maskedFocusInt.Value = (int)Focus.Apparatus; //syncing variables
-                                                                     //maskedFocus = Focus.Apparatus;
+                        maskedFocusInt.Value = (int)Focus.Player; //syncing variables
+                                                                  //maskedFocus = Focus.Player;
                         maskedActivityInt.Value = (int)Activity.None; //syncing variables
                                                                       //maskedActivity = Activity.None;
                         mustChangeActivity = true;
                     }
-                    else if (maskedPersonality == Personality.Insane && lastMaskedFocus != Focus.Escape && lateGameChoices && completedApparatusFocus && maskedEnemy.isOutside)
+                    else if (maskedPersonality == Personality.Insane && lastMaskedFocus != Focus.Apparatus && lateGameChoices)
                     {
-                        maskedFocusInt.Value = (int)Focus.Escape; //syncing variables
+                        maskedFocusInt.Value = (int)Focus.Apparatus; //syncing variables
                                                                      //maskedFocus = Focus.Apparatus;
                         maskedActivityInt.Value = (int)Activity.None; //syncing variables
                                                                       //maskedActivity = Activity.None;
@@ -1398,10 +1106,6 @@ namespace LethalIntelligence.Patches
                     //maskedActivity = Activity.ItemLocker;
                     maskedActivityInt.Value = (int)Activity.ItemLocker;
                 }
-                else if (maskedActivity != Activity.RandomItem)
-                {
-                    maskedActivityInt.Value = (int)Activity.RandomItem;
-                }
             }
             else if (!maskedEnemy.isOutside)
             {
@@ -1415,14 +1119,9 @@ namespace LethalIntelligence.Patches
                     //maskedActivity = Activity.Apparatus;
                     maskedActivityInt.Value = (int)Activity.Apparatus;
                 }
-                else if (maskedActivity != Activity.RandomItem)
-                {
-                    maskedActivityInt.Value = (int)Activity.RandomItem;
-                }
             }
             else
             {
-                maskedActivityInt.Value = (int)Activity.Idle;
                 //do idle stuff i guess.
                 //maskedEnemy.LookAndRunRandomly();
             }
@@ -1516,163 +1215,62 @@ namespace LethalIntelligence.Patches
             }
         }*/
 
-        private void writeSyncedVariables() //update hosts network variables
-        {
-            hostTimeStamp.Value = DateTime.Now;
-            //maskedPosition.Value = this.transform.position;
-            //maskedRotation.Value = this.transform.rotation;
-            currentDestinationDistance.Value = Vector3.Distance(agent.transform.position, agent.pathEndPosition);
-            if (maskedEnemy.targetPlayer != null)
-            {
-                maskedTargetId.Value = maskedEnemy.targetPlayer.GetClientId();
-            }
-            else
-            {
-                maskedTargetId.Value = ulong.MaxValue; //to make it null;
-            }
-            //maskedInSpecialAnimation.Value = maskedEnemy.inSpecialAnimation; //this is breaking the mod currently need to look into this.
-            if (closestGrabbable != null)
-            {
-                closestGrabbableId.Value = closestGrabbable.NetworkObjectId;
-            }
-            else
-            {
-                closestGrabbableId.Value = ulong.MaxValue; //to make it null;
-            }
-        }
-
-        private void readSyncedVariables() //update network variables (host + all clients).
-        {
-            //all clients (including host) - receiving variables
-            maskedFocus = (Focus)maskedFocusInt.Value;
-            maskedActivity = (Activity)maskedActivityInt.Value;
-            /*if (maskedTargetId.Value == ulong.MaxValue)
-            {
-                maskedEnemy.targetPlayer = null;
-            }
-            else
-            {
-                maskedEnemy.targetPlayer = maskedTargetId.Value.GetPlayerController();
-            }*/
-            //maskedEnemy.inSpecialAnimation = maskedInSpecialAnimation.Value;
-            if (closestGrabbableId.Value == ulong.MaxValue)
-            {
-                closestGrabbable = null;
-            }
-            else
-            {
-                foreach (GrabbableObject go in GlobalItemList.Instance.allitems)
-                {
-                    if(go.NetworkObjectId == closestGrabbableId.Value)
-                    {
-                        closestGrabbable = go;
-                        //Plugin.mls.LogError("FOUND ITEM!:- " + go.name);
-                        break;
-                    }
-                }
-            }
-            //Plugin.mls.LogError(closestGrabbableId.Value);
-        }
-
-        private void LateUpdate()
-        {
-            if(agent == null)
-            {
-                return;
-            }
-            CalculatingVariables();
-            readSyncedVariables(); //for syncing variables between host and client
-        }
-
         public void FixedUpdate()
         {
-            /*if (!StartOfRound.Instance.shipHasLanded)
+            if (Plugin.imperiumFound)
             {
-                if (!((Component)this).TryGetComponent<NavMeshAgent>(out agent))
+                try
                 {
-                    agent = ((Component)this).GetComponent<NavMeshAgent>();
+                    ImperiumPatches.maskedVisualization(maskedPersonality, maskedActivity, maskedFocus);
                 }
-                //agent.enabled = false; //error spam will occur if masked spawn in the ship in orbit due to lack of navmesh.. cant avoid this.
-                return; //in orbit so nothing should be going past this point.
-            }*/ //need to check this code properly before implementing
-            if (currentMoon == null || currentInterior == null)
-            {
-                if (!(currentMoon == null && currentInterior == null))
+                catch (MissingMethodException mme)
                 {
-                    //Plugin.mls.LogError(currentMoon.ToString() + @" \|/ " + currentInterior.ToString());
-                    //currentMoon = null;
-                    //currentInterior = null;
-                    //do nothing because null
-                    return;
+                    //v50 error.. just ignore. (imperium 0.1.9 and before only)
+                    Plugin.mls.LogWarning("Imperium Visualisers Integeration has an (MME)xception...\n\r" + mme.Message);
+                }
+                catch (Exception e)
+                {
+                    Plugin.mls.LogWarning("Imperium Visualisers Integeration has an (E)xception...\n\r" + e.Message);
                 }
             }
-            if (maskedPersonality != Personality.None) //why bother doing a report if personality is none.
+            MaskedStatusReport();
+            if (((EnemyAI)maskedEnemy).isEnemyDead && isHoldingObject)
             {
-                MaskedStatusReport();
+                maskedGoal = "died, dropping objects!";
+                closestGrabbable.parentObject = null;
+                closestGrabbable.isHeld = false;
+                closestGrabbable.isHeldByEnemy = false;
+                isHoldingObject = false;
             }
-            //if (((EnemyAI)maskedEnemy).isEnemyDead && isHoldingObject)
-            //{
-            //    maskedGoal = "died, dropping objects!";
-            //    dropItem.Value = true;
-            //    //DropItem(); //using dropitem function to drop the items
-            //    /*closestGrabbable.parentObject = null;
-            //    closestGrabbable.isHeld = false;
-            //    closestGrabbable.isHeldByEnemy = false;
-            //    isHoldingObject = false;*/
-            //}
-            if (maskedEnemy.isEnemyDead || StartOfRound.Instance.shipIsLeaving || StartOfRound.Instance.shipLeftAutomatically) //masked died or ship is leaving.
+            if (__instance.isEnemyDead)
             {
-                maskedGoal = "none (dead or ship is leaving)!";
-                if (agent != null)
+                maskedGoal = "none, he died!";
+                ((Behaviour)agent).enabled = false;
+                if (isUsingTerminal == true)
                 {
-                    ((Behaviour)agent).enabled = false;
-                }
-                if(isHoldingObject)
-                {
-                    dropItem.Value = true;
-                }
-                if (isUsingTerminal)
-                {
-                    isUsingTerminal = false;
                     Plugin.isTerminalBeingUsed = false; //attempting to fix a killed/despawned mask locking out others from the terminal
                     terminal.SetTerminalNoLongerInUse(); //makes it so terminal is useable after they die
-                    terminalAccess(true);
                 }
                 return; //stops them doing anything if they are dead?
             }
             if (useWalkie.Value)
             {
-                if ((maskedFocus == Focus.Escape || maskedFocus == Focus.Apparatus) && maskedPersonality == Personality.Insane)
-                {
-                    maskedGoal = "insane is ignoring walkie due to its current focus being urgent";
-                }
-                else
-                {
-                    maskedGoal = "use walkie";
-                    GrabWalkie();
-                    HoldWalkie();
-                    useWalkie.Value = false;
-                }
+                maskedGoal = "use walkie";
+                GrabWalkie();
+                HoldWalkie();
+                useWalkie.Value = false;
             }
             if (GameNetworkManager.Instance.isHostingGame)
             {
-                //updateSyncedVariables(); //for syncing variables between host and client
                 //for testing purposes only
                 if (maskedPersonality == Personality.None)
                 {
                     //SelectPersonalityInt.Value = Random.Range(0, Enum.GetNames(typeof(Personality)).Length);
-                    maskedPersonalityInt.Value = Random.Range(0, useablePersonalities.Count);
+                    SelectPersonalityInt.Value = Random.Range(0, useablePersonalities.Count);
                     //Plugin.mls.LogError(useablePersonalities.Count);
                 }
             }
-            if (maskedPersonalityInt.Value == -1)
-            {
-                Plugin.mls.LogDebug("Masked Has No Personality yet (non-hosts should get this once...)"); //dont report this as an error as all clients will receive this.
-                //maskedPersonalityInt.Value = 0;
-                return;
-            }
-            //maskedPersonality = useablePersonalities[SelectPersonalityInt.Value];
-            maskedPersonality = useablePersonalities[maskedPersonalityInt.Value];
+            maskedPersonality = useablePersonalities[SelectPersonalityInt.Value];
             /*if (SelectPersonalityInt.Value == 0)
             {
                 maskedPersonality = Personality.Aggressive;
@@ -1699,15 +1297,13 @@ namespace LethalIntelligence.Patches
                 lastMaskedPersonality = maskedPersonality;
                 if (maskedPersonality == Personality.Deceiving)
                 {
-                    SyncTerminalValues(15);
-                    //SyncTermianlInt(15);
+                    SyncTermianlInt(15);
                 }
                 else if (maskedPersonality == Personality.Insane)
                 {
-                    //SyncTermianlInt(10);
-                    SyncTerminalValues(10);
+                    SyncTermianlInt(10);
                 }
-                Plugin.mls.LogInfo("Masked '" + maskedId + "' personality changed to '" + maskedPersonality.ToString() + "' (Moon:" + currentMoon + " & Interior:" + currentInterior + ")");
+                Plugin.mls.LogInfo("Masked '" + maskedId + "' personality changed to '" + maskedPersonality.ToString() + "'");
                 mustChangeFocus = true;
                 mustChangeActivity = true;
             }
@@ -1715,9 +1311,9 @@ namespace LethalIntelligence.Patches
             {
                 agent = ((Component)this).GetComponent<NavMeshAgent>();
             }
-            if ((((Plugin.wendigosIntegrated || Plugin.skinWalkersIntegrated) && ((NetworkBehaviour)this).IsHost) || Plugin.mirageIntegrated) && (maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane || maskedPersonality == Personality.Stealthy))
+            if ((Plugin.wendigosIntegrated || Plugin.skinWalkersIntegrated || Plugin.mirageIntegrated) && ((NetworkBehaviour)this).IsHost && (maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane || maskedPersonality == Personality.Stealthy))
             {
-                //maskedGoal = "confirming WalkieTalkie usage! (Skinwalkers/Wendigos/Mirage integration)"; //this overwrites many other goals, so we kinda need to not have this appearing unless issues start occuring with walkies
+                maskedGoal = "confirming WalkieTalkie usage! (Skinwalkers/Wendigos/Mirage integration)";
                 useWalkie.Value = true;
             }
             if ((Object)(object)creatureAnimator == (Object)null)
@@ -1736,31 +1332,17 @@ namespace LethalIntelligence.Patches
                 return;
             }
             MovementAnimationSelector(creatureAnimator, maskedEnemy);
-            HeadPositionSelector(creatureAnimator, maskedEnemy);
             ItemAnimationSelector(creatureAnimator, __instance);
-            if (IsHost)
-            {
-                writeSyncedVariables(); //for syncing variables between host and client
-                DetectAndSelectRandomPlayer();
-                TargetAndKillPlayer(); //potentially, this should change the focus to NONE and "Activity" to killing the player..depending on the personality, this should cancel current activity as well.
-                if (!Elevator.HandleElevators(maskedEnemy, this, currentMoon, currentInterior) && maskedFocus != Focus.Player)
-                {
-                    return;
-                }
-                CheckForEntrancesNearby(); //use entrances here
-                //host only (set in function) - setting variables of masked choices
-                SetFocus();
-            }
-            OnCollideWithPlayer();
-            ///////////////////////////////
-            //for testing only, do not use
-            /*agent.transform.position = maskedPosition.Value;
-            agent.speed = 0f;
-            agent.enabled = false;
-            PlayerControllerB test = RoundManager.Instance.playersManager.allPlayerScripts[0].playerClientId.GetPlayerController();
-            LookAtPos(test.playerEye.transform.position -test.playerEye.forward,1,false);
-            return;/**/
-            //////////////////////////////
+            checkForPathBlocked();
+            CalculatingVariables();
+            DetectAndSelectRandomPlayer();
+            TargetAndKillPlayer(); //potentially, this should change the focus to NONE and "Activity" to killing the player..depending on the personality, this should cancel current activity as well.
+
+            //host only (set in function) - setting variables of masked choices
+            SetFocus();
+            //all clients (including host) - receiving variables
+            maskedFocus = (Focus)maskedFocusInt.Value;
+            maskedActivity = (Activity)maskedActivityInt.Value;
 
             if (maskedFocus != Focus.None)
             {
@@ -1793,13 +1375,13 @@ namespace LethalIntelligence.Patches
                 {
                     Plugin.mls.LogError("Personality = None???");
                     Plugin.mls.LogWarning("maskedPersonality = " + maskedPersonality);
-                    Plugin.mls.LogWarning("maskedPersonalityInt.Value" + maskedPersonalityInt.Value);
+                    Plugin.mls.LogWarning("SelectPersonalityInt.Value" + SelectPersonalityInt.Value);
                     Plugin.mls.LogWarning("No Personality Found => changing personality!");
                     foreach (Personality p in useablePersonalities)
                     {
                         Plugin.mls.LogWarning(p.ToString() + " is available");
                     }
-                    maskedPersonalityInt.Value = Random.Range(0, useablePersonalities.Count);
+                    SelectPersonalityInt.Value = Random.Range(0, useablePersonalities.Count);
                 }
             }
             else if (maskedFocus == Focus.None && maskedActivity != Activity.None)
@@ -1813,39 +1395,29 @@ namespace LethalIntelligence.Patches
                 else if (maskedActivity == Activity.MainEntrance)
                 {
                     maskedGoal = "pathing to main entrance";
-                    //findMainEntrance();
-                    findEntranceTeleports(true, false);
+                    findMainEntrance();
                 }
                 else if (maskedActivity == Activity.FireExit)
                 {
                     maskedGoal = "pathing to closest fire exit";
-                    //findFireExit();
-                    findEntranceTeleports(false, true);
+                    //not done this yet
+                    maskedActivity = Activity.FireExit;
+                    findFireExit();
                 }
                 else if (maskedActivity == Activity.BreakerBox)
                 {
                     maskedGoal = "pathing to breaker box";
                     findBreakerBox();
                 }
-                /*else if (maskedActivity == Activity.RandomPlayer)
+                else if (maskedActivity == Activity.RandomPlayer)
                 {
                     maskedGoal = "finding random player";
-                    findPlayer();
-                }*/
+                    findRandomPlayer();
+                }
                 else if (maskedActivity == Activity.Apparatus)
                 {
                     maskedGoal = "finding Apparatus";
                     findApparatus();
-                }
-                else if (maskedActivity == Activity.RandomItem)
-                {
-                    maskedGoal = "finding RandomItem";
-                    findRandomItem();
-                }
-                else if(maskedActivity == Activity.Idle)
-                {
-                    maskedGoal = "being idle, wandering until a player is targeted";
-                    idleMode();
                 }
             }
             /*if (Plugin.useTerminal && (maskedPersonality == Personality.Cunning || maskedPersonality == Personality.Deceiving || maskedPersonality == Personality.Insane) && !noMoreTerminal)
@@ -1945,9 +1517,9 @@ namespace LethalIntelligence.Patches
             }*/
         }
 
-        public void LookAtPos(Vector3 pos, float lookAtTime = 1f, bool needsToSeePosition = true)
+        public void LookAtPos(Vector3 pos, float lookAtTime = 1f)
         {
-            maskedGoal = "Looking at Position for " + lookAtTime + "f";
+            maskedGoal = "Looking at where player was last seen";
             //IL_0006: Unknown result type (might be due to invalid IL or missing references)
             //IL_0023: Unknown result type (might be due to invalid IL or missing references)
             //IL_0024: Unknown result type (might be due to invalid IL or missing references)
@@ -1959,41 +1531,17 @@ namespace LethalIntelligence.Patches
             //IL_0068: Unknown result type (might be due to invalid IL or missing references)
             //bool canSeePos = __instance.CheckLineOfSightForPosition(pos, 160f, 40, -1, null);
             bool canSeePos = __instance.CheckLineOfSightForPosition(pos, 80f, 60, -1, null);
-            if (canSeePos || !needsToSeePosition)
+            if (canSeePos)
             {
                 //maskedGoal = $"Look at position {pos} called! lookatpositiontimer setting to {lookAtTime}"; //this is laggy sadly..
-                maskedEnemy.focusOnPosition = new Vector3(pos.x,pos.y-1f,pos.z);
+                maskedEnemy.focusOnPosition = pos;
                 maskedEnemy.lookAtPositionTimer = lookAtTime;
-                //float num = Vector3.Angle(((Component)this).transform.forward, pos - ((Component)this).transform.position);
-                //float num = Vector3.Angle(((Component)this).transform.forward, pos - maskedEnemy.eye.transform.position); //not networked.
-                Vector3 eyeXZ = new Vector3(maskedEnemy.eye.transform.position.x, 0, maskedEnemy.eye.transform.position.z);
-                Vector3 posXZ = new Vector3(pos.x, 0, pos.z);
-                float dist = Vector3.Distance(eyeXZ, posXZ);
-                if(dist < 1f)
-                {
-                    dist = 1f;
-                }
-                float num = Vector3.Angle(maskedEnemy.eye.transform.forward, pos - maskedEnemy.eye.transform.position); //not networked.
-                //float num = Vector3.Angle(((Component)this).transform.forward, pos - maskedPosition.Value);
-                float numMultiplier = 2f*dist;
+                float num = Vector3.Angle(((Component)this).transform.forward, pos - ((Component)this).transform.position);
                 if (pos.y - maskedEnemy.headTiltTarget.position.y < 0f)
                 {
-                    num /= -numMultiplier;
-                    /*if(num < -60f)
-                    {
-                        num = -60f;
-                    }*/
+                    num *= -1f;
                 }
-                else if( pos.y - maskedEnemy.headTiltTarget.position.y > 0f)
-                {
-                    num /= numMultiplier;
-                    /*if (num > 60f)
-                    {
-                        num = 60f;
-                    }*/
-                }
-                maskedEnemy.verticalLookAngle = -(num-2f);
-                //Plugin.mls.LogError("CurrPos=" + maskedEnemy.eye.transform.position + " | LookingAt=" + pos + " | tiltAngle=" + num);
+                maskedEnemy.verticalLookAngle = num;
             }
             else
             {
@@ -2004,168 +1552,152 @@ namespace LethalIntelligence.Patches
             }
         }
 
-        int lastItemErrorHour = 0;
-
         private void setNearestGrabbable()
         {
-            if (IsHost)
+            NavMeshHit hitGrabbable;
+            NavMeshPath nmpNearGrabbable = new NavMeshPath();
+            List<GrabbableObject> allItemsList;
+            float num = float.PositiveInfinity;
+            /*if (maskedPersonality == Personality.Cunning)
             {
-                if (agent == null)
+                //cunning items
+                //filtering out only items cunning wants (in the ship, this doesnt work as "in the ship" only takes from items in the ship before the round starts.)
+                //allItemsList = GlobalItemList.Instance.allitems.FindAll(item => item.isInShipRoom == true).ToList();
+                //filtering out only items cunning wants (near the ship)
+                allItemsList = GlobalItemList.Instance.allitems.Where(item => (Vector3.Distance(item.transform.position, ((Component)terminal).transform.position) < 15f || item.name == "Walkie-talkie")).ToList();
+            }
+            else if (maskedPersonality == Personality.Deceiving)
+            {
+                allItemsList = GlobalItemList.Instance.allitems.Where(item => (Vector3.Distance(item.transform.position, ((Component)terminal).transform.position) > 30f || item.name=="Walkie-talkie")).ToList();
+            }
+            else
+            {*/
+            //all items
+            allItemsList = GlobalItemList.Instance.allitems;
+            //}
+
+            if (allItemsList.Count == 0)
+            {
+                Plugin.mls.LogDebug("allItemsList is empty so setting no more items=true");
+                noMoreItems = true;
+                mustChangeFocus = true;
+            }
+
+            //items to ignore because they shouldent be touched.
+            /*allItemsList.Remove(allItemsList.Find(cbm => cbm.name == "ClipboardManual")); //removing clipboard from the list
+            allItemsList.Remove(allItemsList.Find(sn => sn.name == "StickyNoteItem")); //removing sticky note on the wall from the list)
+            allItemsList.RemoveAll(rlh => rlh.name == "RedLocustHive");*/ //removing red locust bee hive as its held by an enemy by default and cunning just stands there looking at it
+                                                                          //allItemsList.Remove(allItemsList.Find(rlh => rlh.name == "RedLocustHive")); 
+                                                                          //closestGrabbable = null;
+                                                                          //allItemsList.OrderBy(x => x.scrapValue); // dont use but this allows sorting by scrap value in future.
+
+
+            //wont work.. needs a lot of recoding to make work i think but should be better going forward
+            //  closestGrabbable = allItemsList.Aggregate((curMin, x) => (
+            //    curMin == null ||
+            //    Vector3.Distance(this.transform.position, curMin.transform.position) > 20f ||
+            //    curMin.isHeld ||
+            //    curMin.isHeldByEnemy ||
+            //    //need to check it item is in a bush here.. needs some recoding..
+            //    (Vector3.Distance(this.transform.position, x.transform.position)) < Vector3.Distance(this.transform.position, curMin.transform.position)
+            //   ) ? x : curMin);
+            foreach (GrabbableObject allitem in allItemsList)
+            {
+                //Plugin.mls.LogDebug("allitem = "+allitem);
+                //null reference exception fix here
+                if ((Component)this == null)
                 {
-                    return; //happens once right at the start of the round due to this happening before agent is assigned.
+                    //Plugin.mls.LogDebug("SetNearestGrabbable() NullReferenceFix - Masked Entity was NULL");
+                    return;
                 }
-                NavMeshHit hitGrabbable;
-                NavMeshPath nmpClosestGrabbable = new NavMeshPath();
-                List<GrabbableObject> allItemsList;
-                float num = float.PositiveInfinity;
-                /*if (maskedPersonality == Personality.Cunning)
+                else if (((Component)this).transform.position == null)
                 {
-                    //cunning items
-                    //filtering out only items cunning wants (in the ship, this doesnt work as "in the ship" only takes from items in the ship before the round starts.)
-                    //allItemsList = GlobalItemList.Instance.allitems.FindAll(item => item.isInShipRoom == true).ToList();
-                    //filtering out only items cunning wants (near the ship)
-                    allItemsList = GlobalItemList.Instance.allitems.Where(item => (Vector3.Distance(item.transform.position, ((Component)terminal).transform.position) < 15f || item.name == "Walkie-talkie")).ToList();
+                    //Plugin.mls.LogDebug("SetNearestGrabbable() NullReferenceFix - Masked Entity position was NULL");
+                    //Plugin.mls.LogDebug("this.name = " + ((Component)this).name.ToString());
+                    return;
                 }
-                else if (maskedPersonality == Personality.Deceiving)
+                if ((Component)allitem == null)
                 {
-                    allItemsList = GlobalItemList.Instance.allitems.Where(item => (Vector3.Distance(item.transform.position, ((Component)terminal).transform.position) > 30f || item.name=="Walkie-talkie")).ToList();
+                    //Plugin.mls.LogDebug("SetNearestGrabbable() NullReferenceFix - Item Entity was NULL");
+                    continue;
+                }
+                else if (((Component)allitem).transform.position == null)
+                {
+                    //Plugin.mls.LogDebug("SetNearestGrabbable() NullReferenceFix - Item Entity position was NULL");
+                    //Plugin.mls.LogDebug("allitem.name = " + ((Component)allitem).name.ToString());
+                    continue;
+                }
+                //null reference exception fix above
+
+
+                //Plugin.mls.LogError(allitem.ToString());
+
+                //ignore items from the list after checking if they are null.
+                if (allitem.name == "ClipboardManual" || allitem.name == "StickyNoteItem")
+                {
+                    continue;
+                }
+                if (allitem.name == "RedLocustHive")
+                {
+                    continue;
+                }
+
+                //ignore non-"cunning" items if cunning
+                if (maskedPersonality == Personality.Cunning && Vector3.Distance(allitem.transform.position, ((Component)terminal).transform.position) >= 15f)
+                {
+                    continue;
+                }
+
+                //ignore non-deceiving items if deceiving
+                if (maskedPersonality == Personality.Deceiving && Vector3.Distance(allitem.transform.position, ((Component)terminal).transform.position) <= 30f)
+                {
+                    continue;
+                }
+
+
+                //end removing items
+
+                float num2 = Vector3.Distance(((Component)this).transform.position, ((Component)allitem).transform.position);
+                if (allitem.GetComponent<CheckItemCollision>() != null)
+                {
+                    itemSystem = allitem.GetComponent<CheckItemCollision>();
+                }
+                if (itemSystem.hidedByMasked)
+                {
+                    //Plugin.mls.LogDebug("item was hidden by the masked, ignore this item");
+                    continue;
+                }
+                bool isReachable = agent.CalculatePath(allitem.transform.position, nmpNearGrabbable); //because we only want items from the FLOOR
+                if (!isReachable)
+                {
+                    //Plugin.mls.LogDebug("item is not reachable and closestgrabbable is null");
+                    continue;
+                }
+                if (!(num2 < num) || !(num2 <= 30f) || allitem.isHeld || allitem.isHeldByEnemy || notGrabClosestItem)
+                {
+                    //Plugin.mls.LogDebug("item is either, not closest, further than 30f away, is held, is held by an enemy, or told not to grab closest item");
+                    continue;
+                }
+
+                num = num2;
+                nearestGrabbable = allitem;
+                if (NavMesh.SamplePosition(nearestGrabbable.transform.position, out hitGrabbable, 10, -1))
+                {
+                    //closestGrabbableReachable = agent.CalculatePath(hitGrabbable.position, nmpGrabbable);
+                    nearestGrabbableReachable = agent.CalculatePath(nearestGrabbable.transform.position, nmpNearGrabbable);
+                    nearestGrabbableDistance = Vector3.Distance(((Component)this).transform.position, ((Component)nearestGrabbable).transform.position);
+                    //grabbableClosestPoint = Vector3.Distance(hitGrabbable.position, nearestGrabbable.transform.position);
                 }
                 else
-                {*/
-                //all items
-                allItemsList = GlobalItemList.Instance.allitems;
-                //}
-
-                if (allItemsList.Count == 0)
                 {
-                    Plugin.mls.LogDebug("allItemsList is empty so setting no more items=true");
-                    noMoreItems = true;
-                    mustChangeFocus = true;
-                }
-
-                //items to ignore because they shouldent be touched.
-                /*allItemsList.Remove(allItemsList.Find(cbm => cbm.name == "ClipboardManual")); //removing clipboard from the list
-                allItemsList.Remove(allItemsList.Find(sn => sn.name == "StickyNoteItem")); //removing sticky note on the wall from the list)
-                allItemsList.RemoveAll(rlh => rlh.name == "RedLocustHive");*/ //removing red locust bee hive as its held by an enemy by default and cunning just stands there looking at it
-                                                                              //allItemsList.Remove(allItemsList.Find(rlh => rlh.name == "RedLocustHive")); 
-                                                                              //closestGrabbable = null;
-                                                                              //allItemsList.OrderBy(x => x.scrapValue); // dont use but this allows sorting by scrap value in future.
-
-
-                //wont work.. needs a lot of recoding to make work i think but should be better going forward
-                //  closestGrabbable = allItemsList.Aggregate((curMin, x) => (
-                //    curMin == null ||
-                //    Vector3.Distance(this.transform.position, curMin.transform.position) > 20f ||
-                //    curMin.isHeld ||
-                //    curMin.isHeldByEnemy ||
-                //    //need to check it item is in a bush here.. needs some recoding..
-                //    (Vector3.Distance(this.transform.position, x.transform.position)) < Vector3.Distance(this.transform.position, curMin.transform.position)
-                //   ) ? x : curMin);
-                foreach (GrabbableObject allitem in allItemsList)
-                {
-                    //Plugin.mls.LogDebug("allitem = "+allitem);
-                    //null reference exception fix here
-                    if ((Component)this == null)
-                    {
-                        //Plugin.mls.LogDebug("SetNearestGrabbable() NullReferenceFix - Masked Entity was NULL");
-                        return;
-                    }
-                    else if (((Component)this).transform.position == null)
-                    {
-                        //Plugin.mls.LogDebug("SetNearestGrabbable() NullReferenceFix - Masked Entity position was NULL");
-                        //Plugin.mls.LogDebug("this.name = " + ((Component)this).name.ToString());
-                        return;
-                    }
-                    if ((Component)allitem == null)
-                    {
-                        //Plugin.mls.LogDebug("SetNearestGrabbable() NullReferenceFix - Item Entity was NULL");
-                        continue;
-                    }
-                    else if (((Component)allitem).transform.position == null)
-                    {
-                        //Plugin.mls.LogDebug("SetNearestGrabbable() NullReferenceFix - Item Entity position was NULL");
-                        //Plugin.mls.LogDebug("allitem.name = " + ((Component)allitem).name.ToString());
-                        continue;
-                    }
-                    //null reference exception fix above
-
-
-                    //Plugin.mls.LogError(allitem.ToString());
-
-                    //ignore items from the list after checking if they are null.
-                    if (allitem.name == "ClipboardManual" || allitem.name == "StickyNoteItem")
-                    {
-                        continue;
-                    }
-                    if (allitem.name == "RedLocustHive")
-                    {
-                        continue;
-                    }
-
-                    //ignore non-"cunning" items if cunning
-                    if (maskedPersonality == Personality.Cunning && Vector3.Distance(allitem.transform.position, ((Component)terminal).transform.position) >= 15f)
-                    {
-                        continue;
-                    }
-
-                    //ignore non-deceiving items if deceiving
-                    if (maskedPersonality == Personality.Deceiving && Vector3.Distance(allitem.transform.position, ((Component)terminal).transform.position) <= 30f)
-                    {
-                        continue;
-                    }
-
-
-                    //end removing items
-
-                    //float num2 = Vector3.Distance(((Component)this).transform.position, ((Component)allitem).transform.position);
-                    float num2 = Vector3.Distance(agent.transform.position, ((Component)allitem).transform.position);
-                    if (allitem.GetComponent<CheckItemCollision>() != null)
-                    {
-                        itemSystem = allitem.GetComponent<CheckItemCollision>();
-                    }
-                    if (itemSystem.hidedByMasked)
-                    {
-                        //Plugin.mls.LogDebug("item was hidden by the masked, ignore this item");
-                        continue;
-                    }
-                    bool isReachable = agent.CalculatePath(allitem.transform.position, nmpClosestGrabbable); //because we only want items from the FLOOR
-                    if (!isReachable)
-                    {
-                        //Plugin.mls.LogDebug("item is not reachable and closestgrabbable is null");
-                        continue;
-                    }
-                    if (!(num2 < num) || !(num2 <= 30f) || allitem.isHeld || allitem.isHeldByEnemy || notGrabClosestItem)
-                    {
-                        //Plugin.mls.LogDebug("item is either, not closest, further than 30f away, is held, is held by an enemy, or told not to grab closest item");
-                        continue;
-                    }
-
-                    num = num2;
-                    closestGrabbable = allitem;
-                    //Plugin.mls.LogError("ClosestGrabbable=" + (closestGrabbable==null?"null":closestGrabbable.name.ToString()));
-                    if (NavMesh.SamplePosition(closestGrabbable.transform.position, out hitGrabbable, 10f, -1))
-                    {
-                        //closestGrabbableReachable = agent.CalculatePath(hitGrabbable.position, nmpGrabbable);
-                        closestGrabbableReachable.Value = agent.CalculatePath(closestGrabbable.transform.position, nmpClosestGrabbable);
-                        //nearestGrabbableDistance = Vector3.Distance(((Component)this).transform.position, ((Component)nearestGrabbable).transform.position);
-                        closestGrabbableDistance.Value = Vector3.Distance(agent.transform.position, ((Component)closestGrabbable).transform.position);
-                        //grabbableClosestPoint = Vector3.Distance(hitGrabbable.position, nearestGrabbable.transform.position);
-                    }
-                    else
-                    {
-                        closestGrabbableReachable.Value = false;
-                        closestGrabbableDistance.Value = 1000f;
-                    }
+                    nearestGrabbableReachable = false;
+                    nearestGrabbableDistance = 1000f;
                 }
             }
         }
 
         private void DetectAndSelectRandomPlayer()
         {
-            if(targetedPlayer != null)
-            {
-                return; //you already have a target so stop looking for a new one.
-            }
             //PlayerControllerB[] players = maskedEnemy.GetAllPlayersInLineOfSight(160f, 60, null, -1, -1);
             PlayerControllerB[] players = maskedEnemy.GetAllPlayersInLineOfSight(80f, 60, null, -1, -1);
             if (players == null)
@@ -2194,14 +1726,11 @@ namespace LethalIntelligence.Patches
                 //target the random player
                 mustChangeActivity = false;
                 mustChangeFocus = false;
-                maskedFocus = Focus.Player;
-                maskedActivity = Activity.None;
+                maskedFocus = Focus.None;
+                maskedActivity = Activity.RandomPlayer;
                 mustChangeActivity = false;
                 mustChangeFocus = false;
-                if (__instance.targetPlayer == null)
-                {
-                    __instance.targetPlayer = players[random];
-                }
+                __instance.targetPlayer = players[random];
             }
         }
 
@@ -2214,8 +1743,7 @@ namespace LethalIntelligence.Patches
             //IL_0084: Unknown result type (might be due to invalid IL or missing references)
             foreach (GrabbableObject allitem in GlobalItemList.Instance.allitems)
             {
-                //float num = Vector3.Distance(((Component)this).transform.position, ((Component)allitem).transform.position);
-                float num = Vector3.Distance(agent.transform.position, ((Component)allitem).transform.position);
+                float num = Vector3.Distance(((Component)this).transform.position, ((Component)allitem).transform.position);
                 if (num < float.PositiveInfinity && num <= 10f && ((NetworkBehaviour)this).IsHost)
                 {
                     if (num > 0.5f)
@@ -2226,10 +1754,7 @@ namespace LethalIntelligence.Patches
                     }
                     else
                     {
-                        maskedFocusInt.Value = (int)Focus.None;
-                        maskedActivityInt.Value = (int)Activity.MainEntrance;
-                        //have to disable this as it potentially leads to masked standing at the main entrance unable to go through it
-                        //__instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
+                        __instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
                         __instance.moveTowardsDestination = false;
                     }
                 }
@@ -2251,8 +1776,7 @@ namespace LethalIntelligence.Patches
             {
                 return;
             }
-            //float num = Vector3.Distance(((Component)this).transform.position, ((Component)item).transform.position);
-            float num = Vector3.Distance(agent.transform.position, ((Component)item).transform.position);
+            float num = Vector3.Distance(((Component)this).transform.position, ((Component)item).transform.position);
             if (num < 0.9f)
             {
                 float num2 = Vector3.Angle(((Component)__instance).transform.forward, ((Component)closestGrabbable).transform.position - ((Component)__instance).transform.position);
@@ -2302,39 +1826,6 @@ namespace LethalIntelligence.Patches
         }
 
         //pre-focus methods that should always run
-        public void HeadPositionSelector(Animator creatureAnimator, MaskedPlayerEnemy maskedEnemy)
-        {
-            if (maskedEnemy.stopAndStareTimer == 0f && maskedEnemy.lookAtPositionTimer == 0f)
-            {
-                //trying to add tilting of the head up and down (minor adjustments) and failing
-                //int cornersToLook = 1;
-                //if(agent.path.corners.Length <= cornersToLook + 1)
-                //{
-                //    cornersToLook = agent.path.corners.Length;
-                //}
-                ////default head position for when they arent staring at something
-                //if (agent.path.corners.Length > cornersToLook + 1)
-                //{
-                //    Vector3 futurePathPosition = agent.path.corners.ElementAt(cornersToLook - 1);
-                //    if (futurePathPosition.y != agent.transform.position.y)
-                //    {
-                //        float diff = futurePathPosition.y - agent.transform.position.y;
-                //        Vector3 lookDirection = this.transform.position + (this.transform.forward * 5) + (this.transform.up * -(diff*10));
-                //        LookAtPos(lookDirection);
-                //        //LookAtPos(new Vector3(((Component)this).transform.forward.x, ((Component)this).transform.forward.y, ((Component)this).transform.forward.z),0.1f,false);
-                //        Plugin.mls.LogError("HeadPositionSelected is Tilted=" + -diff);
-                //    }
-                //    else
-                //    {//straight position
-                //        LookAtPos(new Vector3(((Component)this).transform.forward.x, ((Component)this).transform.forward.y, ((Component)this).transform.forward.z));
-                //    }
-                //}
-                //else
-                {//straight position
-                    LookAtPos(new Vector3(((Component)this).transform.forward.x, ((Component)this).transform.forward.y, ((Component)this).transform.forward.z));
-                }
-            }
-        }
 
         public void MovementAnimationSelector(Animator creatureAnimator, MaskedPlayerEnemy maskedEnemy)
         {
@@ -2349,7 +1840,7 @@ namespace LethalIntelligence.Patches
                 isDancing.Value = false;
                 creatureAnimator.ResetTrigger("Dancing");
                 isRunning.Value = false;
-                maskedEnemy.running = false; //to stop the vanilla code making a weird run?
+                //maskedEnemy.running = false; //not needed once isRunning.Value is added?
                 creatureAnimator.ResetTrigger("Running");
                 creatureAnimator.SetTrigger("Crouching");
                 agent.speed = 1.9f;
@@ -2357,33 +1848,26 @@ namespace LethalIntelligence.Patches
             //else if (maskedEnemy.running)
             else if (isRunning.Value)
             {
-                if (!isStaminaDowned)
-                {
-                    //running
-                    isCrouched.Value = false;
-                    creatureAnimator.ResetTrigger("Crouching");
-                    isDancing.Value = false;
-                    creatureAnimator.ResetTrigger("Dancing");
-                    maskedEnemy.running = true; //so vanilla code does running so there isnt some weird speed difference.
-                    creatureAnimator.SetTrigger("Running");
-                    //maskedEnemy.staminaTimer -= Time.deltaTime * 0.05f;
-                    maskedEnemy.staminaTimer -= updateFrequency * 0.05f; //fixing timing
-                    agent.speed = 7f;
-                }
+                //running
+                isCrouched.Value = false;
+                creatureAnimator.ResetTrigger("Crouching");
+                isDancing.Value = false;
+                creatureAnimator.ResetTrigger("Dancing");
+                creatureAnimator.SetTrigger("Running");
+                //maskedEnemy.staminaTimer -= Time.deltaTime * 0.05f;
+                maskedEnemy.staminaTimer -= updateFrequency * 0.05f; //fixing timing
+                agent.speed = 7f;
             }
             else if (isDancing.Value)
             {
                 //dancing
                 isCrouched.Value = false;
                 creatureAnimator.ResetTrigger("Crouching");
-                maskedEnemy.running = false; //to stop the vanilla code making a weird run?
+                //maskedEnemy.running = false; //not needed once isRunning.Value is added?
                 isRunning.Value = false;
                 creatureAnimator.ResetTrigger("Running");
                 creatureAnimator.SetTrigger("Dancing");
-                if (IsHost)
-                {
-                    __instance.SetDestinationToPosition(((Component)__instance).transform.position, false);
-                }
+                __instance.SetDestinationToPosition(((Component)__instance).transform.position, false);
                 agent.speed = 0f;
                 Plugin.mls.LogInfo((object)"Dancing");
             }
@@ -2394,60 +1878,45 @@ namespace LethalIntelligence.Patches
                 creatureAnimator.ResetTrigger("Crouching");
                 isDancing.Value = false;
                 creatureAnimator.ResetTrigger("Dancing");
-                maskedEnemy.running = false; //to stop the vanilla code making a weird run?
+                //maskedEnemy.running = false; //not needed once isRunning.Value is added?
                 isRunning.Value = false;
                 creatureAnimator.ResetTrigger("Running");
                 agent.speed = 3.8f;
             }
-            if (isTired.Value)
-            {
-                maskedEnemy.creatureAnimator.SetTrigger("Tired");
-            }
-            else
-            { 
-                maskedEnemy.creatureAnimator.ResetTrigger("Tired");
-            }
-            //Plugin.mls.LogError("running? = " + isRunning.Value + " | jumping? = " + isJumped.Value + "| StamDowned = " + isStaminaDowned + " | stamina = " + maskedEnemy.staminaTimer);
-            if (maskedEnemy.staminaTimer >= 2f && !isStaminaDowned) //is this jumping???
+            if (maskedEnemy.staminaTimer >= 5f && !isStaminaDowned) //is this jumping???
             {
                 if (!isJumped.Value)
                 {
-                    //maskedEnemy.staminaTimer -= 0.08f; reduce stamina when jumping?
+
                     isJumped.Value = true;
                 }
                 else
                 {
                     creatureAnimator.ResetTrigger("FakeJump");
                 }
-                maskedEnemy.running = true; //so vanilla code does running so there isnt some weird speed difference.
+                //maskedEnemy.running = true; //not needed once isRunning.Value is added?
                 isRunning.Value = true;
             }
-            //this code is required.. vanilla "LookAndRunRandomly" doesnt lead to running like we desire.
-            if (maskedEnemy.staminaTimer < 0f && !isStaminaDowned)
+            if (maskedEnemy.staminaTimer < 0f)
             {
                 isStaminaDowned = true;
-                maskedEnemy.staminaTimer = -1.5f;
-                maskedEnemy.running = false; //to stop the vanilla code making a weird run?
+                //maskedEnemy.running = false; //not needed once isRunning.Value is added?
                 isRunning.Value = false;
-                isTired.Value = true;
+                ((EnemyAI)maskedEnemy).creatureAnimator.SetTrigger("Tired");
             }
             if (isStaminaDowned)
             {
                 //maskedEnemy.staminaTimer += Time.deltaTime * 0.2f;
                 maskedEnemy.staminaTimer += updateFrequency * 0.2f; //fixing timing
-                if (maskedEnemy.staminaTimer > 6f)
+                if (maskedEnemy.staminaTimer < 3f)
                 {
                     isStaminaDowned = false;
-                }
-                if(maskedEnemy.staminaTimer > 1f)
-                {
-                    isTired.Value = false;
+                    ((EnemyAI)maskedEnemy).creatureAnimator.ResetTrigger("Tired");
                 }
             }
             if (__instance.targetPlayer != null)
             {
-                LookAtPos(__instance.targetPlayer.playerEye.transform.position - __instance.targetPlayer.playerEye.forward, 0.5f);
-                //LookAtPos(((Component)((EnemyAI)maskedEnemy).targetPlayer).transform.position, 0.5f);
+                LookAtPos(((Component)((EnemyAI)maskedEnemy).targetPlayer).transform.position, 0.5f);
             }
             //crouched
             //running
@@ -2493,10 +1962,6 @@ namespace LethalIntelligence.Patches
 
         public void ItemAnimationSelector(Animator creatureAnimator, EnemyAI __instance)
         {
-            /*if (dropItem.Value)
-            {
-                DropItem();
-            }*/
             if (isHoldingObject)
             {
                 //upperBodyAnimationsWeight = Mathf.Lerp(upperBodyAnimationsWeight, 0.9f, 25f * Time.deltaTime);
@@ -2652,8 +2117,6 @@ namespace LethalIntelligence.Patches
             }
         }
         GrabbableObject walkieToGrab = null;
-        //LethalNetworkVariable<GrabbableObject> maskedWalkie = new LethalNetworkVariable<GrabbableObject>("maskedWalkie");
-        int countOfNullWalkieError = 0;
         private void GrabWalkie()
         {
             if (((NetworkBehaviour)this).IsHost)
@@ -2679,137 +2142,76 @@ namespace LethalIntelligence.Patches
                 {
                     foreach (var walkie in walkieTalkies)
                     {
-                        if (walkie == null)
-                        {
-                            if (countOfNullWalkieError < 1)
-                            {
-                                countOfNullWalkieError++;
-                                Plugin.mls.LogWarning("walkie is Null (GrabWalkie) - dont worry about this, its usually happening because the walkie is not on the navmesh");
-                            }
-                            continue;
-                        }
-                        if (walkie.transform == null)
-                        {
-                            Plugin.mls.LogError("walkie.transform is Null (GrabWalkie)");
-                            continue;
-                        }
-                        if (walkie.transform.position == null)
-                        {
-
-                            Plugin.mls.LogError("walkie.transform.position is Null (GrabWalkie)");
-                            continue;
-                        }
                         if (__instance.CheckLineOfSightForPosition(walkie.transform.position, 60f))
                         {
                             if (walkie.isHeld || walkie.isHeldByEnemy)
                             {
                                 continue; //this walkie is already held so you shouldent be trying to take it.
                             }
-                            maskedGoal = "spotted walkie talkie, going to go pick it up";
                             walkieToGrab = walkie;
-                            //maskedWalkie.Value = walkie;
-                            if (walkieToGrab != null)
-                            {
-                                maskedWalkieId.Value = walkieToGrab.NetworkObjectId;
-                            }
-                            else
-                            {
-                                maskedWalkieId.Value = ulong.MaxValue; //to make it null;
-                            }
-                            //Plugin.mls.LogError("walkie @ POS:-" + walkieToGrab.transform.position);
-                            //Plugin.mls.LogError("walkie @ FLO:-" + walkieToGrab.targetFloorPosition);
                             maskedFocusInt.Value = (int)Focus.None; //syncing variables
                             maskedActivityInt.Value = (int)Activity.WalkieTalkie; //syncing variables
                             break; //masked has chosen their walkie.
                         }
                     }
                 }
-            }
-            else
-            {
-                if (maskedWalkieId.Value == ulong.MaxValue)
+                if (walkieToGrab == null) //if still null...
                 {
-                    walkieToGrab = null;
+                    return; //there is no walkie to grab in sight.. so dont continue.
                 }
-                else
-                {
-                    foreach (GrabbableObject go in GlobalItemList.Instance.allitems)
-                    {
-                        if (go.NetworkObjectId == maskedWalkieId.Value)
-                        {
-                            walkieToGrab = go;
-                            //Plugin.mls.LogError("FOUND ITEM!:- " + go.name);
-                            break;
-                        }
-                    }
-                }
-            }
-            //walkieToGrab = maskedWalkie.Value;
-            if(agent == null)
-            {
-                return; //agent was null, this shouldent happen
-            }
-            if (walkieToGrab == null) //if still null...
-            {
-                return; //there is no walkie to grab in sight.. so dont continue.
-            }
-            if (walkieToGrab.isHeld || walkieToGrab.isHeldByEnemy)
-            {
-                walkieToGrab = null;
-                isCrouched.Value = false;
-                mustChangeFocus = true;
-                mustChangeActivity = true;
-                return; //sorry buddy, someone else got there first
-            }
-            //var distance = Vector3.Distance(__instance.transform.position, walkieToGrab.transform.position);
-            var distance = Vector3.Distance(agent.transform.position, walkieToGrab.transform.position);
-            if (distance < 1.0f && !isHoldingObject)
-            {
-                isCrouched.Value = true;
-            }
-            if (distance > 0.5f)
-            {
-                maskedGoal = "walkiing to selected walkie @ " + walkieToGrab.transform.position;
-                if (IsHost)
-                {
-                    __instance.SetDestinationToPosition(((Component)walkieToGrab).transform.position, true);
-                    __instance.moveTowardsDestination = true;
-                    __instance.movingTowardsTargetPlayer = false;
-                }
-            }
-            if (distance > 0.5f && distance < 3f)
-            {
-                maskedEnemy.focusOnPosition = ((Component)walkieToGrab).transform.position;
-                maskedEnemy.lookAtPositionTimer = 1.5f;
-            }
-            if (distance < 0.9f)
-            {
-                if (isHoldingObject)
-                {
-                    return;
-                }
-                //NotGrabItemsTime(); //may not be a fix
-                float num3 = Vector3.Angle(((Component)__instance).transform.forward, ((Component)walkieToGrab).transform.position - ((Component)__instance).transform.position);
-                if (((Component)walkieToGrab).transform.position.y - maskedEnemy.headTiltTarget.position.y < 0f)
-                {
-                    num3 *= -1f;
-                }
-                maskedEnemy.verticalLookAngle = num3;
-                heldGrabbable = walkieToGrab;
-                walkieToGrab.parentObject = itemHolder.transform;
-                walkieToGrab.hasHitGround = false;
-                walkieToGrab.isHeld = true;
-                walkieToGrab.isHeldByEnemy = true;
-                walkieToGrab.grabbable = false;
-                isHoldingObject = true;
-                itemDroped = false;
-                walkieToGrab.GrabItemFromEnemy(__instance);
-                if (isHoldingObject)
+                if(walkieToGrab.isHeld || walkieToGrab.isHeldByEnemy)
                 {
                     walkieToGrab = null;
                     isCrouched.Value = false;
                     mustChangeFocus = true;
                     mustChangeActivity = true;
+                    return; //sorry buddy, someone else got there first
+                }
+                var distance = Vector3.Distance(__instance.transform.position, walkieToGrab.transform.position);
+                if (distance < 1.0f && !isHoldingObject)
+                {
+                    isCrouched.Value = true;
+                }
+                if (distance > 0.5f)
+                {
+                    __instance.SetDestinationToPosition(((Component)walkieToGrab).transform.position, true);
+                    __instance.moveTowardsDestination = true;
+                    __instance.movingTowardsTargetPlayer = false;
+                }
+                if (distance > 0.5f && distance < 3f)
+                {
+                    maskedEnemy.focusOnPosition = ((Component)walkieToGrab).transform.position;
+                    maskedEnemy.lookAtPositionTimer = 1.5f;
+                }
+                if (distance < 0.9f)
+                {
+                    if (isHoldingObject)
+                    {
+                        return;
+                    }
+                    //NotGrabItemsTime(); //may not be a fix
+                    float num3 = Vector3.Angle(((Component)__instance).transform.forward, ((Component)walkieToGrab).transform.position - ((Component)__instance).transform.position);
+                    if (((Component)walkieToGrab).transform.position.y - maskedEnemy.headTiltTarget.position.y < 0f)
+                    {
+                        num3 *= -1f;
+                    }
+                    maskedEnemy.verticalLookAngle = num3;
+                    heldGrabbable = walkieToGrab;
+                    walkieToGrab.parentObject = itemHolder.transform;
+                    walkieToGrab.hasHitGround = false;
+                    walkieToGrab.isHeld = true;
+                    walkieToGrab.isHeldByEnemy = true;
+                    walkieToGrab.grabbable = false;
+                    isHoldingObject = true;
+                    itemDroped = false;
+                    walkieToGrab.GrabItemFromEnemy(__instance);
+                    if (isHoldingObject)
+                    {
+                        walkieToGrab = null;
+                        isCrouched.Value = false;
+                        mustChangeFocus = true;
+                        mustChangeActivity = true;
+                    }
                 }
             }
         }
@@ -2980,14 +2382,11 @@ namespace LethalIntelligence.Patches
                     continue;
                 }
                 nearestPlayer = val;
-                //float num2 = Vector3.Distance(((Component)this).transform.position, ((Component)val).transform.position);
-                float num2 = Vector3.Distance(agent.transform.position, ((Component)val).transform.position);
+                float num2 = Vector3.Distance(((Component)this).transform.position, ((Component)val).transform.position);
                 if (num2 < 4f && (Object)(object)__instance.targetPlayer != (Object)null)
                 {
-                    //Vector3 val2 = ((Component)this).transform.position - ((Component)val).transform.position;
-                    //Vector3 val3 = ((Component)this).transform.position + ((Vector3)(val2)).normalized * 5f;
-                    Vector3 val2 = agent.transform.position - ((Component)val).transform.position;
-                    Vector3 val3 = agent.transform.position + ((Vector3)(val2)).normalized * 5f;
+                    Vector3 val2 = ((Component)this).transform.position - ((Component)val).transform.position;
+                    Vector3 val3 = ((Component)this).transform.position + ((Vector3)(val2)).normalized * 5f;
                     if (originDestination != agent.destination)
                     {
                         originDestination = agent.destination;
@@ -3001,31 +2400,19 @@ namespace LethalIntelligence.Patches
                     {
                         if (__instance.isOutside)
                         {
-                            if (IsHost)
-                            {
-                                __instance.SetDestinationToPosition(maskedEnemy.shipHidingSpot, true);
-                            }
+                            __instance.SetDestinationToPosition(maskedEnemy.shipHidingSpot, true);
                         }
                         else
                         {
-                            maskedFocusInt.Value = (int)Focus.None;
-                            maskedActivityInt.Value = (int)Activity.MainEntrance;
-                            //have to disable this as it potentially leads to masked standing at the main entrance unable to go through it
-                            //__instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
+                            __instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
                         }
                         originTimer = 0f;
                     }
-                    if (IsHost)
-                    {
-                        __instance.SetDestinationToPosition(val3, true);
-                    }
+                    __instance.SetDestinationToPosition(val3, true);
                 }
                 else
                 {
-                    if (IsHost)
-                    {
-                        __instance.SetDestinationToPosition(originDestination, true);
-                    }
+                    __instance.SetDestinationToPosition(originDestination, true);
                 }
             }
         }
@@ -3053,14 +2440,11 @@ namespace LethalIntelligence.Patches
             //IL_015c: Unknown result type (might be due to invalid IL or missing references)
             //IL_013d: Unknown result type (might be due to invalid IL or missing references)
             //IL_0121: Unknown result type (might be due to invalid IL or missing references)
-            //float num = Vector3.Distance(((Component)this).transform.position, ((Component)nearestPlayer).transform.position);
-            float num = Vector3.Distance(agent.transform.position, ((Component)nearestPlayer).transform.position);
+            float num = Vector3.Distance(((Component)this).transform.position, ((Component)nearestPlayer).transform.position);
             if (num < 4f && (Object)(object)__instance.targetPlayer != (Object)null)
             {
-                //Vector3 val = ((Component)this).transform.position - ((Component)nearestPlayer).transform.position;
-                //Vector3 val2 = ((Component)this).transform.position + ((Vector3)(val)).normalized * 5f;
-                Vector3 val = agent.transform.position - ((Component)nearestPlayer).transform.position;
-                Vector3 val2 = agent.transform.position + ((Vector3)(val)).normalized * 5f;
+                Vector3 val = ((Component)this).transform.position - ((Component)nearestPlayer).transform.position;
+                Vector3 val2 = ((Component)this).transform.position + ((Vector3)(val)).normalized * 5f;
                 if (originDestination != agent.destination)
                 {
                     originDestination = agent.destination;
@@ -3074,31 +2458,19 @@ namespace LethalIntelligence.Patches
                 {
                     if (__instance.isOutside)
                     {
-                        if (IsHost)
-                        {
-                            __instance.SetDestinationToPosition(maskedEnemy.shipHidingSpot, true);
-                        }
+                        __instance.SetDestinationToPosition(maskedEnemy.shipHidingSpot, true);
                     }
                     else
                     {
-                        maskedFocusInt.Value = (int)Focus.None;
-                        maskedActivityInt.Value = (int)Activity.MainEntrance;
-                        //have to disable this as it potentially leads to masked standing at the main entrance unable to go through it
-                        //__instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
+                        __instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
                     }
                     originTimer = 0f;
                 }
-                if (IsHost)
-                {
-                    __instance.SetDestinationToPosition(val2, true);
-                }
+                __instance.SetDestinationToPosition(val2, true);
             }
             else
             {
-                if (IsHost)
-                {
-                    __instance.SetDestinationToPosition(originDestination, true);
-                }
+                __instance.SetDestinationToPosition(originDestination, true);
             }
         }
 
@@ -3140,48 +2512,31 @@ namespace LethalIntelligence.Patches
             }
             else if (maskedFocus == Focus.BreakerBox)
             {
-                if(seenCheckNum <= 0)
-                {
-                    Plugin.mls.LogWarning("BreakerBox was seen, but could not be reached! Not Critical, but please report this!");
-                    mustChangeFocus = true;
-                    mustChangeActivity = true;
-                    noMoreBreakerBox = true;
-                }
                 if (breakerBoxDistance < 15f && breakerBoxDistance > 3.5f && Plugin.isBreakerBoxBeingUsed)
                 {
                     Plugin.mls.LogDebug("BreakerBox is being used by another entity");
                     noMoreBreakerBox = true;
                     mustChangeFocus = true;
-                    mustChangeActivity = true;
                     return;
                 }
                 if (!noMoreBreakerBox)
                 {
-                    breakerBoxDistance = Vector3.Distance(agent.transform.position, breakerPosition.Value);
-                    //Plugin.mls.LogError("bbd=" + breakerBoxDistance + "||nmt = " + noMoreTerminal);
                     //breakerbox
                     if (breakerBoxDistance < 40f || noMoreTerminal) //add logic for breaker box being turned off so if breaker box is turned OFF, then do nothing.
                     {
-                        maskedGoal = "walking to breaker box (" + breakerPosition.Value.ToString() + ")";
+                        maskedGoal = "walking to breaker box";
                         //turn off the breaker box.
                         //noMoreTerminal = true;
                         //noMoreItems = true;
                         //focusingPersonality = true;
-                        if (IsHost)
-                        {
-                            maskedEnemy.SetDestinationToPosition(breakerPosition.Value);
-                            maskedEnemy.moveTowardsDestination = true;
-                        }
+                        maskedEnemy.SetDestinationToPosition(breakerBox.transform.position);
+                        maskedEnemy.moveTowardsDestination = true;
 
-                        //breakerBoxDistance = Vector3.Distance(__instance.transform.position, breakerPosition);
-                        //breakerBoxDistance = Vector3.Distance(maskedPosition.Value, breakerPosition);
-                        //Plugin.mls.LogError("BB Forward * 2 = " + breakerBox.transform.position + -breakerBox.transform.up * 2);
-                        if (breakerBoxDistance < 0.5f && !isUsingBreakerBox)
+                        if (breakerBoxDistance < 3.5f && !isUsingBreakerBox)
                         {
-                            //Plugin.mls.LogWarning("BB Distance IS Reached = " +breakerBoxDistance);
                             Plugin.isBreakerBoxBeingUsed = true;
                             maskedGoal = "using breaker box";
-                            maskedEnemy.LookAtFocusedPosition(); //#lookupISSUE?
+                            maskedEnemy.LookAtFocusedPosition();
                             isUsingBreakerBox = true;
                             creatureAnimator.ResetTrigger("Crouching");
                             //LookAtPos(breakerBox.transform.position, 8.5f);
@@ -3196,7 +2551,7 @@ namespace LethalIntelligence.Patches
                             else
                             {
                                 breakerBoxSwitchLogic(breakerBoxDistance, true);
-                                //maskedEnemy.SetDestinationToPosition(terminal.transform.position); //shouldent be needed tbh
+                                maskedEnemy.SetDestinationToPosition(terminal.transform.position);
                             }
                             Plugin.isBreakerBoxBeingUsed = false;
                         }
@@ -3221,19 +2576,16 @@ namespace LethalIntelligence.Patches
                     //items
                     if (!isHoldingObject)
                     {
-                        setNearestGrabbable();
-                        if (closestGrabbable == null || closestGrabbableReachable.Value == false)
+                        if (nearestGrabbable == null)
                         {
                             maskedGoal = "cant find any grabbable items, switching focus";
-                            lastItemErrorHour = TimeOfDay.Instance.hour;
-                            //noMoreItems = true;
+                            noMoreItems = true;
                             mustChangeFocus = true;
                         }
                         else
                         {
                             maskedGoal = "grabbing item from inside ship";
-                            PickupItem();
-                            //GrabItem();
+                            GrabItem();
                         }
                     }
                     else
@@ -3255,7 +2607,7 @@ namespace LethalIntelligence.Patches
                         {
                             Plugin.mls.LogDebug("all bushes have an item, dropping item and changing focus");
                             dropItem.Value = true;
-                            //DropItem(); //shouldent be needed, dropItem.Value = true should be enough.
+                            DropItem();
                             noMoreItems = true;
                             mustChangeFocus = true;
                         }
@@ -3267,20 +2619,17 @@ namespace LethalIntelligence.Patches
                             {
                                 if (bushDistance > 2f && bushDistance < float.PositiveInfinity && !val.GetComponent<BushSystem>().bushWithItem)
                                 {
-                                    maskedGoal = "walking to bush (" + val.transform.position.ToString() + ")";
-                                    if (IsHost)
-                                    {
-                                        maskedEnemy.SetDestinationToPosition(val.transform.position, true);
-                                    }
+                                    maskedGoal = "walking to bush";
+                                    maskedEnemy.SetDestinationToPosition(val.transform.position, true);
                                     moveSpecial = true;
                                 }
                                 if (bushDistance < 2f)
                                 {
-                                    maskedGoal = "hiding item in bush (" + val.transform.position.ToString() + ")";
+                                    maskedGoal = "hiding item in bush";
                                     Plugin.mls.LogDebug("Cunning Is Hiding an Item");
                                     itemSystem.hidedByMasked = true;
                                     dropItem.Value = true;
-                                    //DropItem(); //shouldent be needed, dropItem.Value = true should be enough.
+                                    DropItem();
                                     itemsToHide--;
                                     mustChangeFocus = true;
                                     val.GetComponent<BushSystem>().bushWithItem = true;
@@ -3296,10 +2645,6 @@ namespace LethalIntelligence.Patches
                 {
                     mustChangeFocus = true;
                 }
-            }
-            else if(maskedFocus == Focus.Player)
-            {
-                focusingOnPlayer();
             }
         }
 
@@ -3324,48 +2669,39 @@ namespace LethalIntelligence.Patches
                     //items
                     if (!isHoldingObject)
                     {
-                        setNearestGrabbable();
-                        if (closestGrabbable == null || closestGrabbableReachable.Value == false)
+                        if (closestGrabbable == null)
                         {
-                            maskedGoal = "cant find any grabbable items, switching focus";
-                            lastItemErrorHour = TimeOfDay.Instance.hour;
-                            //noMoreItems = true; //dont do this or items will always be unavailable
+                            maskedGoal = "locating new grabbable item";
+                            noMoreItems = true;
                             mustChangeFocus = true;
                         }
                         else
                         {
-                            maskedGoal = "grabbing nearest item outside of the ship";
-                            PickupItem();
-                            //GrabItem();
+                            maskedGoal = "grabbing nearest item";
+                            GrabItem();
                         }
                     }
                     else
                     {
                         isCrouched.Value = false; //stop crouching after picking up an item
-                        if(!maskedEnemy.isOutside)
+                        if (maskedEnemy.isInsidePlayerShip)
                         {
-                            findEntranceTeleports(true, true);
-                        }
-                        else
-                        {
-                            //float num2 = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position);
-                            float num2 = Vector3.Distance(agent.transform.position, terminalPosition.Value);
+                            float num2 = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position);
                             if (num2 > 6f)
                             {
                                 maskedGoal = "heading to player ship to drop an item";
-                                if (IsHost)
-                                {
-                                    maskedEnemy.SetDestinationToPosition(terminalPosition.Value);
-                                }
+                                maskedEnemy.SetDestinationToPosition(terminal.transform.position);
                             }
-                            else if (num2 < 6f && maskedEnemy.isInsidePlayerShip)
+                            else if (num2 < 6f)
                             {
                                 maskedGoal = "dropping item in player ship";
                                 dropItem.Value = true;
-                                mustChangeFocus = true;
-                                mustChangeActivity = true;
-                                //DropItem(); //shouldent be needed, dropItem.Value = true should be enough.
+                                DropItem();
                             }
+                        }
+                        else
+                        {
+                            findLockerAudio();
                         }
                     }
                 }
@@ -3376,43 +2712,42 @@ namespace LethalIntelligence.Patches
             }
             else if (maskedFocus == Focus.Player)
             {
-                focusingOnPlayer();
-                //if (distanceToPlayer >= 17f)
-                //{
-                //    //find player
-                //    PlayerControllerB player = __instance.GetClosestPlayer();
-                //    __instance.SetMovingTowardsTargetPlayer(player);
-                //}
-                //else
-                //{
-                //    if (enableDance)
-                //    {
-                //        isDancing.Value = true;
-                //        maskedEnemy.stopAndStareTimer = 0.9f;
-                //        agent.speed = 0f;
-                //    }
-                //    if (distanceToPlayer < 17f && __instance.targetPlayer.performingEmote && maxDanceCount.Value > 0)
-                //    {
-                //        maskedGoal = "emoting with nearby player";
-                //        if (GameNetworkManager.Instance.isHostingGame && !enableDance)
-                //        {
-                //            LNetworkVariable<int> obj3 = maxDanceCount; //TODO
-                //            obj3.Value -= 1;
-                //            randomPose = 1;
-                //            enableDance = true;
-                //        }
-                //        stopAndTbagTimer = 0.9f;
-                //        __instance.agent.speed = 0f;
-                //    }
-                //    else if (isDancing.Value && GameNetworkManager.Instance.isHostingGame)
-                //    {
-                //        isDancing.Value = false;
-                //        stopAndTbagTimer = 0.4f;
-                //        randomPose = 1;
-                //        enableDance = false;
-                //    }
-                //    mustChangeFocus = true;
-                //}
+                if (distanceToPlayer >= 17f)
+                {
+                    //find player
+                    PlayerControllerB player = __instance.GetClosestPlayer();
+                    __instance.SetMovingTowardsTargetPlayer(player);
+                }
+                else
+                {
+                    if (enableDance)
+                    {
+                        isDancing.Value = true;
+                        maskedEnemy.stopAndStareTimer = 0.9f;
+                        agent.speed = 0f;
+                    }
+                    if (distanceToPlayer < 17f && __instance.targetPlayer.performingEmote && maxDanceCount.Value > 0)
+                    {
+                        maskedGoal = "emoting with nearby player";
+                        if (GameNetworkManager.Instance.isHostingGame && !enableDance)
+                        {
+                            LethalNetworkVariable<int> obj3 = maxDanceCount;
+                            obj3.Value -= 1;
+                            randomPose = 1;
+                            enableDance = true;
+                        }
+                        stopAndTbagTimer = 0.9f;
+                        __instance.agent.speed = 0f;
+                    }
+                    else if (isDancing.Value && GameNetworkManager.Instance.isHostingGame)
+                    {
+                        isDancing.Value = false;
+                        stopAndTbagTimer = 0.4f;
+                        randomPose = 1;
+                        enableDance = false;
+                    }
+                    mustChangeFocus = true;
+                }
             }
         }
 
@@ -3433,10 +2768,6 @@ namespace LethalIntelligence.Patches
                     maskedGoal = "doing PlayerLikeAction()";
                     PlayerLikeAction();
                 }
-            }
-            else if (maskedFocus == Focus.Player)
-            {
-                focusingOnPlayer();
             }
         }
 
@@ -3467,24 +2798,22 @@ namespace LethalIntelligence.Patches
             }
             else if (maskedFocus == Focus.Player)
             {
-                focusingOnPlayer();
-                ////find the nearest player and kill them as fast as you can i guess? should change focus once player is dead
-                //PlayerControllerB pt = __instance.GetClosestPlayer();
-                //if (pt == null)
-                //{
-                //    mustChangeFocus = true;
-                //    //maskedFocus = Focus.None;
-                //    mustChangeActivity = true;
-                //    return;
-                //}
-                //__instance.SetMovingTowardsTargetPlayer(pt);
-                ////if (Vector3.Distance(__instance.transform.position, pt.transform.position) < 1f || pt.isPlayerDead)
-                //if (Vector3.Distance(agent.transform.position, pt.transform.position) < 1f || pt.isPlayerDead)
-                //{
-                //    mustChangeFocus = true;
-                //    //maskedFocus = Focus.None;
-                //    mustChangeActivity = true;
-                //}
+                //find the nearest player and kill them as fast as you can i guess? should change focus once player is dead
+                PlayerControllerB pt = __instance.GetClosestPlayer();
+                if (pt == null)
+                {
+                    mustChangeFocus = true;
+                    //maskedFocus = Focus.None;
+                    mustChangeActivity = true;
+                    return;
+                }
+                __instance.SetMovingTowardsTargetPlayer(pt);
+                if (Vector3.Distance(__instance.transform.position, pt.transform.position) < 1f || pt.isPlayerDead)
+                {
+                    mustChangeFocus = true;
+                    //maskedFocus = Focus.None;
+                    mustChangeActivity = true;
+                }
             }
         }
 
@@ -3506,7 +2835,7 @@ namespace LethalIntelligence.Patches
             {
                 if (!noMoreApparatus)
                 {
-                    usingApparatus();
+                    SabotageApparatus();
                 }
                 else
                 {
@@ -3526,164 +2855,11 @@ namespace LethalIntelligence.Patches
                     mustChangeFocus = true;
                 }
             }
-            else if (maskedFocus == Focus.Player)
-            {
-                focusingOnPlayer();
-            }
         }
 
         //Focused Activities
 
-        //bool hasSeenTarget = false;
-
-        private void focusingOnPlayer() //function for all masked personalities to keep code together for this focus (like using terminal/etc)
-        {
-            /*PlayerControllerB player = __instance.GetClosestPlayer(true);
-            if (!hasSeenTarget && player != null)
-            {
-                __instance.SetMovingTowardsTargetPlayer(player); //go towards player until you have seen them
-                if (__instance.CheckLineOfSightForPosition(player.transform.position, 60f))
-                {
-                    hasSeenTarget = true;
-                    __instance.targetPlayer = player; //closest player should be the one you can see.
-                }
-            }
-            if (hasSeenTarget && player == null)
-            {
-                __instance.targetPlayer = player;
-                findPlayer();
-            }
-            if (hasSeenTarget && player != null)
-            {
-                //do personality things*/
-                /*if (maskedPersonality == Personality.Deceiving)
-                {
-                    if (distanceToPlayer >= 17f)
-                    {
-                        //find player
-                        PlayerControllerB player = __instance.GetClosestPlayer();
-                        __instance.SetMovingTowardsTargetPlayer(player);
-                    }
-                    else
-                    {
-                        if (enableDance)
-                        {
-                            isDancing.Value = true;
-                            maskedEnemy.stopAndStareTimer = 0.9f;
-                            agent.speed = 0f;
-                        }
-                        if (distanceToPlayer < 17f && __instance.targetPlayer.performingEmote && maxDanceCount.Value > 0)
-                        {
-                            maskedGoal = "emoting with nearby player";
-                            if (GameNetworkManager.Instance.isHostingGame && !enableDance)
-                            {
-                                LNetworkVariable<int> obj3 = maxDanceCount; //TODO
-                                obj3.Value -= 1;
-                                randomPose = 1;
-                                enableDance = true;
-                            }
-                            stopAndTbagTimer = 0.9f;
-                            __instance.agent.speed = 0f;
-                        }
-                        else if (isDancing.Value && GameNetworkManager.Instance.isHostingGame)
-                        {
-                            isDancing.Value = false;
-                            stopAndTbagTimer = 0.4f;
-                            randomPose = 1;
-                            enableDance = false;
-                        }
-                        mustChangeFocus = true;
-                    }
-                }
-                else if (maskedPersonality == Personality.Aggressive)
-                {
-                    //find the nearest player and kill them as fast as you can i guess? should change focus once player is dead
-                    PlayerControllerB pt = __instance.GetClosestPlayer();
-                    if (pt == null)
-                    {
-                        mustChangeFocus = true;
-                        //maskedFocus = Focus.None;
-                        mustChangeActivity = true;
-                        return;
-                    }
-                    __instance.SetMovingTowardsTargetPlayer(pt);
-                    //if (Vector3.Distance(__instance.transform.position, pt.transform.position) < 1f || pt.isPlayerDead)
-                    if (Vector3.Distance(agent.transform.position, pt.transform.position) < 1f || pt.isPlayerDead)
-                    {
-                        mustChangeFocus = true;
-                        //maskedFocus = Focus.None;
-                        mustChangeActivity = true;
-                    }
-                }
-                else //insane, stealthy, cunning
-                {*/
-                    //copying aggressive's for now
-                    //find the nearest player and kill them as fast as you can i guess? should change focus once player is dead
-                    PlayerControllerB pt = __instance.GetClosestPlayer();
-                    if (pt == null)
-                    {
-                        mustChangeFocus = true;
-                        //maskedFocus = Focus.None;
-                        mustChangeActivity = true;
-                        return;
-                    }
-                    __instance.SetMovingTowardsTargetPlayer(pt);
-                    //if (Vector3.Distance(__instance.transform.position, pt.transform.position) < 1f || pt.isPlayerDead)
-                    float tempDist = Vector3.Distance(agent.transform.position, pt.transform.position);
-                    if (tempDist < 1f || pt.isPlayerDead)
-                    {
-                        mustChangeFocus = true;
-                        //maskedFocus = Focus.None;
-                        mustChangeActivity = true;
-                    }
-                //}
-            //}
-        }
-
-        public float followTime = 1000f;
-
-        private void findPlayer()
-        {
-            if (targetedPlayer == null)
-            {
-                mustChangeFocus = true;
-                mustChangeActivity = true;
-                return;
-            }
-            PlayerControllerB randomPlayer = targetedPlayer;
-            maskedGoal = "finding " + randomPlayer.name.ToString();
-            Vector3 pos = randomPlayer.transform.position;
-            //bool canSeePos = __instance.CheckLineOfSightForPosition(pos, 160f, 40, -1, null);
-            bool canSeePos = __instance.CheckLineOfSightForPosition(pos, 80f, 60, -1, null);
-            if (canSeePos)
-            {
-                followTime = 20f;
-            }
-            else
-            {
-                followTime -= updateFrequency;
-                //Plugin.mls.LogError("Losing Player = " + followTime);
-            }
-            if (followTime <= 0f || targetedPlayer.isPlayerDead || (maskedEnemy.isOutside && targetedPlayer.isInsideFactory))
-            {
-                __instance.targetPlayer = null;
-                targetedPlayer = null;
-                mustChangeFocus = true;
-                mustChangeActivity = true;
-                //followTime = 20f;
-                lastMaskedFocus = Focus.Player;
-            }
-            /*if (maskedEnemy.isOutside && targetedPlayer.isInsideFactory) //if player is outside while enemy is inside, and vica versa, then go to the nearest exit asap.
-            {
-                //not working properly so disable for now.
-                maskedGoal = "using nearest entrance teleport to catch up with player";
-                findEntranceTeleports(true, true); //chase player outside/inside
-            }*/
-        }
-
-
         //find and kill players
-        public PlayerControllerB targetedPlayer;
 
         private void TargetAndKillPlayer()
         {
@@ -3692,14 +2868,9 @@ namespace LethalIntelligence.Patches
                 maskedGoal = "not targeting player, holding object";
                 dropTimer = 0f;
             }
-            if (targetedPlayer == null)
+            if (__instance.targetPlayer != null)
             {
-                targetedPlayer = __instance.targetPlayer;
-            }
-            if (targetedPlayer != null)
-            {
-                maskedFocusInt.Value = (int)Focus.Player;
-                maskedActivityInt.Value = (int)Activity.None;
+                maskedFocus = Focus.Player;
 
                 if ((Object)(object)__instance.targetPlayer != (Object)null && isHoldingObject && !(closestGrabbable is Shovel) && !(closestGrabbable is ShotgunItem) && maskedPersonality == Personality.Aggressive)
                 {
@@ -3777,17 +2948,11 @@ namespace LethalIntelligence.Patches
                     maskedGoal = "not dead, holding object, targetting player (is not aggressive OR closest item is not a shovel/shotgun)";
                     if (__instance.isOutside)
                     {
-                        if (IsHost)
-                        {
-                            __instance.SetDestinationToPosition(maskedEnemy.shipHidingSpot, false);
-                        }
+                        __instance.SetDestinationToPosition(maskedEnemy.shipHidingSpot, false);
                     }
                     else
                     {
-                        maskedFocusInt.Value = (int)Focus.None;
-                        maskedActivityInt.Value = (int)Activity.MainEntrance;
-                        //have to disable this as it potentially leads to masked standing at the main entrance unable to go through it
-                        //__instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, false); //i really wish there was less sections of code doing this sort of thing :D
+                        __instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, false); //i really wish there was less sections of code doing this sort of thing :D
                     }
                 }
                 if ((Object)(object)__instance.targetPlayer != (Object)null)
@@ -3797,14 +2962,12 @@ namespace LethalIntelligence.Patches
                     distanceToPlayer = Vector3.Distance(((Component)creatureAnimator).transform.position, ((Component)__instance.targetPlayer).transform.position);
                     maskedEnemy.lookAtPositionTimer = 0f;
                 }
-                findPlayer();
-                /*if (!((EnemyAI)maskedEnemy).isEnemyDead && !isUsingTerminal && !isUsingBreakerBox && (maskedPersonality != Personality.Aggressive || !isHoldingObject || (!(closestGrabbable is Shovel) && !(closestGrabbable is ShotgunItem))))
+                if (!((EnemyAI)maskedEnemy).isEnemyDead && !isUsingTerminal && !isUsingBreakerBox && (maskedPersonality != Personality.Aggressive || !isHoldingObject || (!(closestGrabbable is Shovel) && !(closestGrabbable is ShotgunItem))))
                 {
                     PlayerControllerB[] allPlayerScripts = StartOfRound.Instance.allPlayerScripts;
                     foreach (PlayerControllerB val in allPlayerScripts)
                     {
-                        //float num = Vector3.Distance(((Component)val).transform.position, ((Component)this).transform.position);
-                        float num = Vector3.Distance(((Component)val).transform.position, agent.transform.position);
+                        float num = Vector3.Distance(((Component)val).transform.position, ((Component)this).transform.position);
                         if (num < 1f)
                         {
                             maskedGoal = "attempting to kill a player";
@@ -3820,7 +2983,7 @@ namespace LethalIntelligence.Patches
                             }
                         }
                     }
-                }*/
+                }
             }
             else
             {
@@ -3833,215 +2996,16 @@ namespace LethalIntelligence.Patches
             }
         }
 
-        //private void TargetPlayer()
-        //{
-        //    if (__instance.targetPlayer == null && isHoldingObject)
-        //    {
-        //        maskedGoal = "not targeting player, holding object";
-        //        dropTimer = 0f;
-        //    }
-        //    if (__instance.targetPlayer != null)
-        //    {
-        //        maskedFocusInt.Value = (int)Focus.Player;
-        //        maskedActivityInt.Value = (int)Activity.None;
-
-        //        if (__instance.targetPlayer != null)
-        //        {
-        //            //targetPlayerReachable = __instance.SetDestinationToPosition(__instance.targetPlayer.transform.position, true); //needed when going towards a player
-        //            //checking distance to target player
-        //            distanceToPlayer = Vector3.Distance(((Component)creatureAnimator).transform.position, ((Component)__instance.targetPlayer).transform.position);
-        //            maskedEnemy.lookAtPositionTimer = 0f;
-        //        }
-        //    }
-        //    else
-        //    {
-        //        //do nothing
-        //        if (maskedFocus == Focus.Player || maskedActivity == Activity.RandomPlayer)
-        //        {
-        //            mustChangeFocus = true;
-        //            mustChangeActivity = true;
-        //        }
-        //    }
-        //}
-
-        private void OnCollideWithPlayer()
-        {
-            if (!((EnemyAI)maskedEnemy).isEnemyDead && !isUsingTerminal && !isUsingBreakerBox && (maskedPersonality != Personality.Aggressive || !isHoldingObject || (!(closestGrabbable is Shovel) && !(closestGrabbable is ShotgunItem))))
-            {
-                PlayerControllerB[] allPlayerScripts = StartOfRound.Instance.allPlayerScripts;
-                foreach (PlayerControllerB val in allPlayerScripts)
-                {
-                    //float num = Vector3.Distance(((Component)val).transform.position, ((Component)this).transform.position);
-                    float num = Vector3.Distance(((Component)val).transform.position, agent.transform.position);
-                    if (num < 1f)
-                    {
-                        maskedGoal = "attempting to kill a player";
-                        PlayerControllerB collidePlayer = maskedEnemy.MeetsStandardPlayerCollisionConditions(val.playerCollider, maskedEnemy.inKillAnimation || maskedEnemy.startingKillAnimationLocalClient || !maskedEnemy.enemyEnabled, false);
-                        if (collidePlayer != null)
-                        {
-                            __instance.targetPlayer = val;
-                            LookAtPos(val.transform.position);
-                            maskedEnemy.KillPlayerAnimationServerRpc((int)val.playerClientId);
-                            maskedEnemy.startingKillAnimationLocalClient = true;
-                            if (val.isCrouching)
-                            {
-                                val.Crouch(false);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        //private void TargetAndKillPlayers()
-        //{
-        //    if (maskedEnemy.targetPlayer != null)
-        //    {
-        //        maskedFocusInt.Value = (int)Focus.Player;
-        //        maskedActivityInt.Value = (int)Activity.None;
-
-        //        if (maskedEnemy.targetPlayer != (Object)null)
-        //        {
-        //            //targetPlayerReachable = __instance.SetDestinationToPosition(__instance.targetPlayer.transform.position, true); //needed when going towards a player
-        //            //checking distance to target player
-        //            distanceToPlayer = Vector3.Distance(((Component)creatureAnimator).transform.position, ((Component)__instance.targetPlayer).transform.position);
-        //            maskedEnemy.lookAtPositionTimer = 0f;
-        //        }
-
-        //        if (!maskedEnemy.isEnemyDead && !isUsingTerminal && !isUsingBreakerBox && !isUsingApparatus)
-        //        {
-        //            if (maskedPersonality == Personality.Aggressive && (closestGrabbable is Shovel || closestGrabbable is ShotgunItem || closestGrabbable is StunGrenadeItem || closestGrabbable is KnifeItem))
-        //            {
-        //                return; //aggressive masked carrying weapons shouldent kill by using their hands
-        //            }
-        //            if (isHoldingObject)
-        //            {
-        //                dropItem.Value = true; //drop the item because your about to kill.
-        //            }
-        //            PlayerControllerB[] allPlayerScripts = StartOfRound.Instance.allPlayerScripts;
-        //            //PlayerControllerB playerToKill = null;
-        //            foreach (PlayerControllerB val in allPlayerScripts)
-        //            {
-        //                //float num = Vector3.Distance(((Component)val).transform.position, ((Component)this).transform.position);
-        //                float num = Vector3.Distance(((Component)val).transform.position, agent.transform.position);
-        //                if (num < 1f)
-        //                {
-        //                    maskedGoal = "attempting to kill a player";
-        //                    PlayerControllerB collidePlayer = maskedEnemy.MeetsStandardPlayerCollisionConditions(val.playerCollider, maskedEnemy.inKillAnimation || maskedEnemy.startingKillAnimationLocalClient || !maskedEnemy.enemyEnabled, false);
-        //                    if (collidePlayer != null)
-        //                    {
-        //                        //agent.enabled = false;
-        //                        //playerToKill = collidePlayer;
-        //                        maskedEnemy.KillPlayerAnimationServerRpc((int)val.playerClientId);
-        //                        maskedEnemy.startingKillAnimationLocalClient = true;
-        //                        if (val.isCrouching)
-        //                        {
-        //                            val.Crouch(false);
-        //                        }
-        //                        //agent.enabled = true;
-        //                        break;
-        //                    }
-        //                }
-        //            }
-        //            //if(playerToKill != null)
-        //            //{
-        //            //    new WaitForSeconds(3f);
-        //            //    playerToKill = null;
-        //            //    agent.enabled = true;
-        //            //}
-        //        }
-        //        //foreach (PlayerControllerB val in allPlayerScripts)
-        //        //{
-        //        //    //float num = Vector3.Distance(((Component)val).transform.position, ((Component)this).transform.position);
-        //        //    float num = Vector3.Distance(((Component)val).transform.position, maskedPosition.Value);
-        //        //    if (num < 1f)
-        //        //    {
-        //        //        maskedGoal = "attempting to kill a player";
-        //        //        PlayerControllerB collidePlayer = maskedEnemy.MeetsStandardPlayerCollisionConditions(val.playerCollider, maskedEnemy.inKillAnimation || maskedEnemy.startingKillAnimationLocalClient || !maskedEnemy.enemyEnabled, false);
-        //        //        if (collidePlayer != null)
-        //        //        {
-        //        //            playerToKill = collidePlayer;
-        //        //            agent.speed = 0f;
-        //        //            maskedPosition.Value = collidePlayer.transform.position + collidePlayer.transform.forward;
-        //        //            var oppositeY = collidePlayer.transform.rotation.y + 180f;
-        //        //            maskedRotation.Value = new Quaternion(collidePlayer.transform.rotation.x, collidePlayer.transform.rotation.y + 180f, collidePlayer.transform.rotation.z, collidePlayer.transform.rotation.w);
-        //        //            maskedEnemy.KillPlayerAnimationServerRpc((int)val.playerClientId);
-        //        //            maskedEnemy.startingKillAnimationLocalClient = true;
-        //        //            if (val.isCrouching)
-        //        //            {
-        //        //                val.Crouch(false);
-        //        //            }
-        //        //        }
-        //        //    }
-        //        //}
-        //    }
-        //    else
-        //    {
-        //        //do nothing
-        //        if (maskedFocus == Focus.Player || maskedActivity == Activity.RandomPlayer)
-        //        {
-        //            mustChangeFocus = true;
-        //            mustChangeActivity = true;
-        //        }
-        //    }
-        //}
-
-
-        int seenCheckNum = 200;
-
-        private int objectInLOSCheck(EnemyAI ent, GameObject gameObj, int proxyDist = -1, int moveCheckForwardDistance = 0) //0 = fail, 1 = seen, 2 = succeed
-        {
-            if (ent.CheckLineOfSightForPosition(gameObj.transform.position+(gameObj.transform.forward*moveCheckForwardDistance), 60f, 2,proxyDist))
-            {
-                //Plugin.mls.LogError("LOSCheck-Pass");
-                seenCheckNum = 200;
-                return 2;
-            }
-            int proxyDistModified = -1;
-            if(proxyDist != -1)
-            {
-
-                proxyDistModified = proxyDist * 2;
-            }
-            if (ent.CheckLineOfSightForPosition(gameObj.transform.position + (gameObj.transform.forward*moveCheckForwardDistance), 60f, 4, proxyDistModified))
-            {
-                //Plugin.mls.LogError("LOSCheck-Seen");
-                seenCheckNum--;
-                return 1;
-            }
-            else if(seenCheckNum < 200)
-            {
-                seenCheckNum--;
-            }
-            //Plugin.mls.LogError("LOSCheck-Fail");
-            seenCheckNum = 200;
-            return 0;
-        }
 
         //apparatus
-        private void usingApparatus()
+        private void SabotageApparatus()
         {
-            if(apparatus == null)
-            {
-                Plugin.mls.LogWarning("Apparatus was null so insane cannot sabotage it. (usually due to mansion interior)");
-                mustChangeFocus = true;
-                mustChangeActivity = true;
-                noMoreApparatus = true;
-                return;
-            }
-            if(seenCheckNum <= 0)
-            {
-                Plugin.mls.LogWarning("Apparatus was seen, but could not be reached! Not Critical, but please report this!");
-                mustChangeFocus = true;
-                mustChangeActivity = true;
-                noMoreApparatus = true;
-            }
             if (!apparatus.isLungPowered)
             {
                 if (completedApparatusFocus)
                 {
-                    maskedFocusInt.Value = (int)Focus.None;
-                    maskedActivityInt.Value = (int)Activity.MainEntrance;
+                    maskedFocus = Focus.Escape;
+                    maskedActivity = Activity.None;
                 }
                 else
                 {
@@ -4051,26 +3015,20 @@ namespace LethalIntelligence.Patches
                 noMoreApparatus = true;
                 //mustChangeFocus = true;
             }
-            //apparatusDistance = Vector3.Distance(maskedEnemy.transform.position, apparatusPosition);
-            apparatusDistance = Vector3.Distance(agent.transform.position, apparatusPosition.Value);
-            if (apparatusDistance > 0f)
+            if (apparatusDistance < 40f)
             {
                 dropItem.Value = true;
                 if (!isUsingApparatus && !noMoreApparatus && !__instance.isEnemyDead)
                 {
                     //apparatusReachable = __instance.SetDestinationToPosition(((Component)apparatus).transform.position, true);
-                    if (!apparatusReachable.Value)
+                    if (!apparatusReachable)
                     {
                         return; //cant reach apparatus
                     }
-                    maskedGoal = "walking to apparatus (" + apparatusPosition.Value.ToString() + ")";
-                    if (IsHost)
-                    {
-                        __instance.SetDestinationToPosition(apparatusPosition.Value, false);
-                        //Plugin.mls.LogError("ApparatusDistance = " + apparatusDistance);
-                        //Plugin.mls.LogError("ApparatusPosition = " + apparatusPosition);
-                        __instance.moveTowardsDestination = true;
-                    }
+                    maskedGoal = "walking to apparatus";
+                    __instance.SetDestinationToPosition(apparatus.transform.position, false);
+                    Plugin.mls.LogDebug("ApparatusDistance = " + apparatusDistance);
+                    __instance.moveTowardsDestination = true;
                 }
                 if ((Object)(object)apparatus != (Object)null && !apparatus.isLungDocked)
                 {
@@ -4079,14 +3037,9 @@ namespace LethalIntelligence.Patches
                 }
                 if (apparatusDistance < 10f && isHoldingObject)
                 {
-                    dropItem.Value = true; //drop item before taking the apparatus
-                    //DropItem(); //drop item before taking the apparatus 
+                    DropItem(); //drop item before taking the apparatus
                 }
-                /*if (apparatusDistance < 10f)
-                {
-                    Plugin.mls.LogError("ApparatusDistance = " + apparatusDistance); //for debugging distance issues
-                }*/
-                if (!isUsingApparatus && !noMoreApparatus && apparatusDistance < 0.5f)
+                if (!isUsingApparatus && !noMoreApparatus && apparatusDistance < 3.5f)
                 {
                     //pull apparatus here, maybe insane masked should EAT the apparatus???
                     isUsingApparatus = true;
@@ -4096,69 +3049,54 @@ namespace LethalIntelligence.Patches
                 if (isUsingApparatus)
                 {
                     maskedGoal = "sabotaging apparatus";
-                    if (IsHost && !appTrigger.Value)
+                    __instance.inSpecialAnimation = true;
+                    __instance.movingTowardsTargetPlayer = false;
+                    __instance.targetPlayer = null;
+                    ((Component)maskedEnemy.headTiltTarget).gameObject.SetActive(false);
+                    agent.speed = 0f;
+                    //apparatus.GrabItemFromEnemy(__instance);
+                    //SpawningUtils.SpawnScrapServerRpc("LungApparatus", itemHolder.transform.position, itemHolder.transform);
+                    //SpawningUtils.SpawnInactiveItemServerRpc("LungApparatusTurnedOff", maskedEnemy.transform.position);
+                    completedApparatusFocus = true;
+                    apparatus.EquipItem();
+                    apparatus.isLungPowered = false;
+                    apparatus.lungDeviceLightIntensity = 0f;
+                    apparatus.GetComponent<GrabbableObject>().SetScrapValue(0); //tainted by the masked
+                    NetworkObject netObj = apparatus.GetComponent<NetworkObject>();
+                    if (netObj != null)
                     {
-                        new WaitForSeconds(0.5f);
-                        appTrigger.Value = true;
+                        var scanNode = netObj.GetComponentInChildren<ScanNodeProperties>();
+                        scanNode.headerText = "SabotagedApparatus";
+                        scanNode.scrapValue = 0;
+                        scanNode.subText = $"Value: ${0}";
+                        var lights = netObj.GetComponentsInChildren<Light>().ToList();
+                        lights.Do(l => l.enabled = false);
                     }
+                    apparatus.isLungDocked = false;
+                    apparatus.isLungDockedInElevator = false;
+                    apparatus.isLungPowered = false;
+                    apparatus.GetComponent<AudioSource>().Stop();
+                    apparatus.GetComponent<NetworkObject>().Despawn(false);
+                    /*foreach (GrabbableObject o in GlobalItemList.Instance.allitems)
+                    {
+                        if (o.name == "LungApparatusTurnedOff(Clone)" && Vector3.Distance(maskedEnemy.transform.position,o.transform.position)<5.0f)
+                        {
+                                o.name = "BrokenApparatus";
+                                o.itemProperties.itemSpawnsOnGround = true;
+                                //o.itemProperties.itemSpawnsOnGround = true;
+                                //ManuelGrabItem(o);
+                        }
+                    }*/
+                    //grabbableApparatus.ItemActivate(false);
+                    //grabbableApparatus.GrabItemFromEnemy(__instance);
+                    //GrabDockedApparatus(grabbableApparatus);
+                    //ForceGrabCustomItem(grabbableApparatus);
+                    //pull apparatus here..
+                    isUsingApparatus = false;
+                    __instance.inSpecialAnimation = false;
+                    ((Component)maskedEnemy.headTiltTarget).gameObject.SetActive(true);
                 }
             }
-        }
-
-        private void sabotageApparatus(bool value)
-        {
-            if(!value)
-            {
-                return;
-            }
-            __instance.inSpecialAnimation = true;
-            __instance.movingTowardsTargetPlayer = false;
-            __instance.targetPlayer = null;
-            ((Component)maskedEnemy.headTiltTarget).gameObject.SetActive(false);
-            agent.speed = 0f;
-            //apparatus.GrabItemFromEnemy(__instance);
-            //SpawningUtils.SpawnScrapServerRpc("LungApparatus", itemHolder.transform.position, itemHolder.transform);
-            //SpawningUtils.SpawnInactiveItemServerRpc("LungApparatusTurnedOff", maskedEnemy.transform.position);
-            completedApparatusFocus = true;
-            apparatus.EquipItem();
-            apparatus.isLungPowered = false;
-            apparatus.lungDeviceLightIntensity = 0f;
-            apparatus.GetComponent<GrabbableObject>().SetScrapValue(0); //tainted by the masked
-            NetworkObject netObj = apparatus.GetComponent<NetworkObject>();
-            if (netObj != null)
-            {
-                var scanNode = netObj.GetComponentInChildren<ScanNodeProperties>();
-                scanNode.headerText = "SabotagedApparatus";
-                scanNode.scrapValue = 0;
-                scanNode.subText = $"Value: ${0}";
-                var lights = netObj.GetComponentsInChildren<Light>().ToList();
-                lights.Do(l => l.enabled = false);
-            }
-            apparatus.isLungDocked = false;
-            apparatus.isLungDockedInElevator = false;
-            apparatus.isLungPowered = false;
-            apparatus.GetComponent<AudioSource>().Stop();
-            //apparatus.GetComponent<NetworkObject>().Despawn(false); //allowing players to pick up the sabotaged apparatus
-            /*foreach (GrabbableObject o in GlobalItemList.Instance.allitems)
-            {
-                if (o.name == "LungApparatusTurnedOff(Clone)" && Vector3.Distance(maskedEnemy.transform.position,o.transform.position)<5.0f)
-                {
-                        o.name = "BrokenApparatus";
-                        o.itemProperties.itemSpawnsOnGround = true;
-                        //o.itemProperties.itemSpawnsOnGround = true;
-                        //ManuelGrabItem(o);
-                }
-            }*/
-            //grabbableApparatus.ItemActivate(false);
-            //grabbableApparatus.GrabItemFromEnemy(__instance);
-            //GrabDockedApparatus(grabbableApparatus);
-            //ForceGrabCustomItem(grabbableApparatus);
-            //pull apparatus here..
-            isUsingApparatus = false;
-            __instance.inSpecialAnimation = false;
-            ((Component)maskedEnemy.headTiltTarget).gameObject.SetActive(true);
-            Plugin.mls.LogError("Masked " + maskedId + " is Insane and sabotaged the apparatus");
-            //if (IsHost) { appTrigger.Value = false; }
         }
 
         //escape
@@ -4166,273 +3104,206 @@ namespace LethalIntelligence.Patches
         private void InsaneEscape()
         {
             //set running because wants to leave ASAP
-            if (!isTerminalEscaping && !isLeverEscaping)
+            //head to ship
+            if (!maskedEnemy.isOutside)
             {
-                isTerminalEscaping = true;
-            }
-            if (isTerminalEscaping)
-            {
-                //check if signal translator is enabled once in range
-                //if (Vector3.Distance(maskedEnemy.transform.position, terminalPosition) < 5f)
-                if (Vector3.Distance(agent.transform.position, terminalPosition.Value) < 5f)
+                maskedGoal = "(escape) heading outside";
+                maskedEnemy.SetDestinationToPosition(maskedEnemy.mainEntrancePosition);
+                selectedEntrance = null;
+                selectedEntrance = selectClosestEntrance(maskedEnemy.isOutside, true, true);
+                if (selectedEntrance == null)
                 {
-                    if (!TerminalPatches.Transmitter.IsSignalTranslatorUnlocked())
-                    {
-                        Plugin.mls.LogDebug("Signal Translator is not unlocked so skipping 'escape warnings'");
-                        isTerminalEscaping = false;
-                        isLeverEscaping = true;
-                        return;
-                    }
-                    if (!Plugin.useTerminal)
-                    {
-                        Plugin.mls.LogDebug("Terminal usage is disabled so skipping 'escape warnings'");
-                        isTerminalEscaping = false;
-                        isLeverEscaping = true;
-                        return;
-                    }
-                    if (!isUsingTerminal && Plugin.isTerminalBeingUsed)
-                    {
-                        Plugin.mls.LogDebug("Other entity is using terminal right now so switching focus");
-                        mustChangeFocus = true;
-                        return;
-                    }
-                    //as signal translator is unlocked, we will interact with the terminal
-                    if (enterTermianlSpecialCodeTime == 0 && !isLeverEscaping)
-                    {
-                        transmitMessageTimer.Value = 0f;
-                        enterTermianlSpecialCodeTime = 10;
-                        isTerminalEscaping = true;
-                    }
-                    if (enterTermianlSpecialCodeTime > 0 && !isLeverEscaping)
-                    {
-                        noMoreTerminal = false;
-                        maskedGoal = "(escape) sending warnings about leaving";
-                        if (Plugin.useTerminal && TerminalPatches.Transmitter.IsSignalTranslatorUnlocked())
-                        {
-                            UsingTerminal();
-                        }
-                    }
-                }
-                else
-                {
-                    maskedGoal = "(escape) heading to terminal in player ship";
-                    if (IsHost)
-                    {
-                        maskedEnemy.SetDestinationToPosition(terminalPosition.Value);
-                    }
-                }
-
-            }
-            if (isLeverEscaping)
-            {
-                isTerminalEscaping = false;
-                if (Plugin.maskedShipDeparture)
-                {
-                    //Plugin.mls.LogError("maskedShipDeparture = true");
-                    //pull lever
-                    StartMatchLever startMatchLever = GameNetworkManager.FindObjectOfType<StartMatchLever>();
-                    if (startMatchLever == null)
-                    {
-                        Plugin.mls.LogError("startMatchLever is NULL");
-                        return;
-                    }
-                    /*float startLeverDistance = 1000f;
-                    NavMeshHit hitStartLever;
-                    Vector3 startLeverPosition = new Vector3();
-
-                    if (NavMesh.SamplePosition(startMatchLever.transform.position, out hitStartLever, 3.0f, -1))
-                    {
-                        //startLeverReachable = agent.CalculatePath(hitStartLever.position, nmpStartLever);
-                        startLeverDistance = Vector3.Distance(maskedEnemy.transform.position, hitStartLever.position);
-                        //startLeverClosestPoint = Vector3.Distance(hitApparatus.position, apparatus.transform.position);
-                        startLeverPosition = hitStartLever.position;
-                    }*/
-                    //Plugin.mls.LogError("(escape) walking to ships lever (" + startMatchLever.transform.position.ToString() + ")");
-                    maskedGoal = "(escape) walking to ships lever (" + startMatchLever.transform.position.ToString() + ")";
-                    //if (startLeverDistance > 0.5f)
-                    //{
-                    if (IsHost)
-                    {
-                        maskedEnemy.SetDestinationToPosition(startMatchLever.transform.position, false);
-                        maskedEnemy.moveTowardsDestination = true;
-                    }
-                    //}
-                    if (startMatchLever == null)
-                    {
-                        Plugin.mls.LogError("StartMatchLever cannot be found so cannot be used by InsaneMasked!");
-                        mustChangeFocus = true;
-                        mustChangeActivity = true;
-                        Plugin.maskedShipDeparture = false;
-                        return;
-                    }
-                    //creatureAnimator.SetTrigger("PushLever");
-                    //creatureAnimator.SetTrigger("PressStopButton");
-                    //Plugin.mls.LogError("distance=" + Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position));
-                    /*if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) < 20f)
-                    {
-                        Plugin.mls.LogError("Distance = " + Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position)); //for debugging distance issues
-                    }*/
-                    //if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) < 3f)
-                    if (Vector3.Distance(agent.transform.position, startMatchLever.transform.position) < 3f)
-                    {
-                        startMatchLever.LeverAnimation();
-                        startMatchLever.EndGame();
-                    }
-                    //creatureAnimator.ResetTrigger("StartMatchLever");
-                }
-                else
-                {
-                    Plugin.mls.LogInfo("maskedShipDeparture = " + Plugin.maskedShipDeparture.ToString() + " so the escape finish is impossible!");
+                    maskedGoal = "No Entrance Found, Changing Focus";
+                    Plugin.mls.LogError("selectedEntrance was Null, if all entrances are null, this may lead to masked stopping from moving completely.");
+                    selectedEntrance = null;
                     mustChangeFocus = true;
                     mustChangeActivity = true;
                 }
-            }
-
-            //old
-            /*if(Vector3.Distance(maskedEnemy.transform.position, terminalPosition) > 5f)
-            {
-                maskedGoal = "(escape) heading to player ship";
-                maskedEnemy.SetDestinationToPosition(terminalPosition);
+                useEntranceTeleport(selectedEntrance);
             }
             else
             {
                 if (!isTerminalEscaping && !isLeverEscaping)
                 {
-                    enterTermianlSpecialCodeTime = 10;
                     isTerminalEscaping = true;
                 }
-                if (enterTermianlSpecialCodeTime > 0 && !isLeverEscaping)
+                if (isTerminalEscaping)
                 {
-                    //translator is not unlocked it gets stuck here
-                    bool stu = TerminalPatches.Transmitter.IsSignalTranslatorUnlocked();
-                    Plugin.mls.LogError("stu = " + stu);
-                    Plugin.mls.LogError("terminalDistance = " + terminalDistance);
-                    if (TerminalPatches.Transmitter.IsSignalTranslatorUnlocked()==false && terminalDistance < 8f)
+                    //check if signal translator is enabled once in range
+                    if (Vector3.Distance(maskedEnemy.transform.position, terminalPosition) < 5f)
                     {
-                        Plugin.mls.LogDebug("Signal Translator is not unlocked so skipping 'escape warnings'");
-                        isTerminalEscaping = false;
-                        isLeverEscaping = true;
-                        return;
+                        if (!TerminalPatches.Transmitter.IsSignalTranslatorUnlocked())
+                        {
+                            Plugin.mls.LogDebug("Signal Translator is not unlocked so skipping 'escape warnings'");
+                            isTerminalEscaping = false;
+                            isLeverEscaping = true;
+                            return;
+                        }
+                        if (!Plugin.useTerminal)
+                        {
+                            Plugin.mls.LogDebug("Terminal usage is disabled so skipping 'escape warnings'");
+                            isTerminalEscaping = false;
+                            isLeverEscaping = true;
+                            return;
+                        }
+                        if (!isUsingTerminal && Plugin.isTerminalBeingUsed)
+                        {
+                            Plugin.mls.LogDebug("Other entity is using terminal right now so switching focus");
+                            mustChangeFocus = true;
+                            return;
+                        }
+                        //as signal translator is unlocked, we will interact with the terminal
+                        if (enterTermianlSpecialCodeTime == 0 && !isLeverEscaping)
+                        {
+                            enterTermianlSpecialCodeTime = 10;
+                            isTerminalEscaping = true;
+                        }
+                        if (enterTermianlSpecialCodeTime > 0 && !isLeverEscaping)
+                        {
+                            noMoreTerminal = false;
+                            maskedGoal = "(escape) sending warnings about leaving";
+                            if (Plugin.useTerminal && TerminalPatches.Transmitter.IsSignalTranslatorUnlocked())
+                            {
+                                UsingTerminal();
+                            }
+                        }
                     }
-                    if (Plugin.isTerminalBeingUsed && terminalDistance < 8f)
+                    else
                     {
-                        Plugin.mls.LogDebug("Other entity is using terminal right now so switching focus");
+                        maskedGoal = "(escape) heading to terminal in player ship";
+                        maskedEnemy.SetDestinationToPosition(terminalPosition);
+                    }
+
+                }
+                if (isLeverEscaping)
+                {
+                    isTerminalEscaping = false;
+                    if (Plugin.maskedShipDeparture)
+                    {
+                        maskedGoal = "(escape) walking to ships lever";
+                        //pull lever
+                        StartMatchLever startMatchLever = GameNetworkManager.FindObjectOfType<StartMatchLever>();
+                        if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) > 0.5f)
+                        {
+                            maskedEnemy.SetDestinationToPosition(startMatchLever.transform.position);
+                        }
+                        if (startMatchLever == null)
+                        {
+                            Plugin.mls.LogError("StartMatchLever cannot be found so cannot be used by InsaneMasked!");
+                            mustChangeFocus = true;
+                            mustChangeActivity = true;
+                            Plugin.maskedShipDeparture = false;
+                            return;
+                        }
+                        //creatureAnimator.SetTrigger("PushLever");
+                        //creatureAnimator.SetTrigger("PressStopButton");
+                        //Plugin.mls.LogError("distance=" + Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position));
+                        if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) < 3f)
+                        {
+                            startMatchLever.LeverAnimation();
+                            startMatchLever.EndGame();
+                        }
+                        //creatureAnimator.ResetTrigger("StartMatchLever");
+                    }
+                    else
+                    {
+                        Plugin.mls.LogInfo("maskedShipDeparture = " + Plugin.maskedShipDeparture.ToString() + " so the escape finish is impossible!");
                         mustChangeFocus = true;
-                        return;
+                        mustChangeActivity = true;
                     }
-                    /*if (Plugin.isTerminalBeingUsed || !Plugin.useTerminal || !TerminalPatches.Transmitter.IsSignalTranslatorUnlocked())
+                }
+
+                //old
+                /*if(Vector3.Distance(maskedEnemy.transform.position, terminalPosition) > 5f)
+                {
+                    maskedGoal = "(escape) heading to player ship";
+                    maskedEnemy.SetDestinationToPosition(terminalPosition);
+                }
+                else
+                {
+                    if (!isTerminalEscaping && !isLeverEscaping)
                     {
-                        enterTermianlSpecialCodeTime = 0;
-                        isLeverEscaping = true;
+                        enterTermianlSpecialCodeTime = 10;
+                        isTerminalEscaping = true;
+                    }
+                    if (enterTermianlSpecialCodeTime > 0 && !isLeverEscaping)
+                    {
+                        //translator is not unlocked it gets stuck here
+                        bool stu = TerminalPatches.Transmitter.IsSignalTranslatorUnlocked();
+                        Plugin.mls.LogError("stu = " + stu);
+                        Plugin.mls.LogError("terminalDistance = " + terminalDistance);
+                        if (TerminalPatches.Transmitter.IsSignalTranslatorUnlocked()==false && terminalDistance < 8f)
+                        {
+                            Plugin.mls.LogDebug("Signal Translator is not unlocked so skipping 'escape warnings'");
+                            isTerminalEscaping = false;
+                            isLeverEscaping = true;
+                            return;
+                        }
+                        if (Plugin.isTerminalBeingUsed && terminalDistance < 8f)
+                        {
+                            Plugin.mls.LogDebug("Other entity is using terminal right now so switching focus");
+                            mustChangeFocus = true;
+                            return;
+                        }
+                        /*if (Plugin.isTerminalBeingUsed || !Plugin.useTerminal || !TerminalPatches.Transmitter.IsSignalTranslatorUnlocked())
+                        {
+                            enterTermianlSpecialCodeTime = 0;
+                            isLeverEscaping = true;
 
-                        //maybe pull HORN here instead of just leaving without a warning?? or maybe teleport a player??
-                        return;
-                    }*/
-            /*          noMoreTerminal = false;
-                      maskedGoal = "(escape) sending warnings about leaving";
-                      if (Plugin.useTerminal && TerminalPatches.Transmitter.IsSignalTranslatorUnlocked())
-                      {
-                          UsingTerminal();
-                      }
-
-                  }
-                  else if(isLeverEscaping)
-                  {
-                      isTerminalEscaping = false;
-                      new WaitForSeconds(10f);
-                      if (Plugin.maskedShipDeparture)
-                      {
-                          maskedGoal = "(escape) walking to ships lever";
-                          //pull lever
-                          StartMatchLever startMatchLever = GameNetworkManager.FindObjectOfType<StartMatchLever>();
-                          if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) > 0.5f)
+                            //maybe pull HORN here instead of just leaving without a warning?? or maybe teleport a player??
+                            return;
+                        }*/
+                /*          noMoreTerminal = false;
+                          maskedGoal = "(escape) sending warnings about leaving";
+                          if (Plugin.useTerminal && TerminalPatches.Transmitter.IsSignalTranslatorUnlocked())
                           {
-                              maskedEnemy.SetDestinationToPosition(startMatchLever.transform.position);
+                              UsingTerminal();
                           }
-                          if (startMatchLever == null)
+
+                      }
+                      else if(isLeverEscaping)
+                      {
+                          isTerminalEscaping = false;
+                          new WaitForSeconds(10f);
+                          if (Plugin.maskedShipDeparture)
                           {
-                              Plugin.mls.LogError("StartMatchLever cannot be found so cannot be used by InsaneMasked!");
+                              maskedGoal = "(escape) walking to ships lever";
+                              //pull lever
+                              StartMatchLever startMatchLever = GameNetworkManager.FindObjectOfType<StartMatchLever>();
+                              if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) > 0.5f)
+                              {
+                                  maskedEnemy.SetDestinationToPosition(startMatchLever.transform.position);
+                              }
+                              if (startMatchLever == null)
+                              {
+                                  Plugin.mls.LogError("StartMatchLever cannot be found so cannot be used by InsaneMasked!");
+                                  mustChangeFocus = true;
+                                  mustChangeActivity = true;
+                                  Plugin.maskedShipDeparture = false;
+                                  return;
+                              }
+                              //creatureAnimator.SetTrigger("PushLever");
+                              //creatureAnimator.SetTrigger("PressStopButton");
+                              if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) < 0.5f)
+                                  startMatchLever.LeverAnimation();
+                              startMatchLever.EndGame();
+                              //creatureAnimator.ResetTrigger("StartMatchLever");
+                          }
+                          else
+                          {
+                              Plugin.mls.LogInfo("maskedShipDeparture = " + Plugin.maskedShipDeparture.ToString() + " so the escape finish is impossible!");
                               mustChangeFocus = true;
                               mustChangeActivity = true;
-                              Plugin.maskedShipDeparture = false;
-                              return;
                           }
-                          //creatureAnimator.SetTrigger("PushLever");
-                          //creatureAnimator.SetTrigger("PressStopButton");
-                          if (Vector3.Distance(maskedEnemy.transform.position, startMatchLever.transform.position) < 0.5f)
-                              startMatchLever.LeverAnimation();
-                          startMatchLever.EndGame();
-                          //creatureAnimator.ResetTrigger("StartMatchLever");
                       }
-                      else
-                      {
-                          Plugin.mls.LogInfo("maskedShipDeparture = " + Plugin.maskedShipDeparture.ToString() + " so the escape finish is impossible!");
-                          mustChangeFocus = true;
-                          mustChangeActivity = true;
-                      }
-                  }
-              }*/
+                  }*/
+            }
         }
 
         //terminal
         #region terminal
-
-        private void terminalAccess(bool enabled)
-        {
-            Plugin.mls.LogDebug("Terminal Access Enabled = " + enabled);
-            terminal.terminalTrigger.interactable = enabled;
-        }
-
-        float kad = 1f; //keyboardAudioDelay
-        private void playKeyboardAudio()
-        {//this is currently SPAMMING KEYS.. need to find a way to slow this down lmao.
-            int coc = terminal.keyboardClips.Length;
-            int seed = Random.RandomRangeInt(0, coc);
-            float randomAddTime;
-            if (maskedPersonality == Personality.Deceiving && enterTerminalCodeTimer.Value > terminalTimeFloat.Value && enterTermianlSpecialCodeTime > 0)
-            {
-                randomAddTime = terminalTimeFloat.Value;
-            }
-            else if (maskedPersonality == Personality.Cunning && dropShipTimer > 11.5f)
-            {
-                randomAddTime = 10f; //cunning only types into the terminal for a one off time to fake order items so after that is done.. type no more!
-            }
-            else if (maskedPersonality == Personality.Insane && transmitMessageTimer.Value >= terminalTimeFloat.Value && transmitPauseTimer >= delayMaxTime.Value)
-            {
-                randomAddTime = delayMaxTime.Value;
-            }
-            else
-            {
-                randomAddTime = updateFrequency * Random.RandomRangeInt(1, 7); //0.02 to 0.2 in keys speed
-            }
-            if (kad <= 0 && !terminal.terminalAudio.isPlaying)
-            {
-                int typoSeed = Random.RandomRangeInt(0, 50);
-                if (typoSeed == 0)
-                {
-                    kad = terminal.syncedAudios[1].length + randomAddTime; //2 is the bestiary image loading screen sound
-                    terminal.PlayTerminalAudioServerRpc(1); //play typo error audio
-                }
-                else
-                {
-                    kad = terminal.keyboardClips[seed].length + randomAddTime;
-                    terminal.terminalAudio.PlayOneShot(terminal.keyboardClips[seed]);
-                }
-            }
-            if (!terminal.terminalAudio.isPlaying)
-            {
-                //Plugin.mls.LogError("KAD Time is = " + kad.ToString());
-                kad -= updateFrequency;
-            }
-        }
-
-        bool purchasedStuff = false;
-
-        Vector3 maskedHeightValue = new Vector3(0f, 2.4f, 0f);
         private void UsingTerminal()
         {
-            //terminal.transform.position.x,this.transform.position.y,terminal.transform.position.z
-            Vector3 terminalStandingPosition = new Vector3(terminal.transform.position.x,terminal.transform.position.y - 1.44f,terminal.transform.position.z) - (terminal.transform.right * 0.8f);
             //IL_0007: Unknown result type (might be due to invalid IL or missing references)
             //IL_0017: Unknown result type (might be due to invalid IL or missing references)
             //IL_01ab: Unknown result type (might be due to invalid IL or missing references)
@@ -4444,12 +3315,11 @@ namespace LethalIntelligence.Patches
             //IL_022c: Unknown result type (might be due to invalid IL or missing references)
             //IL_023c: Unknown result type (might be due to invalid IL or missing references)
             //IL_00de: Unknown result type (might be due to invalid IL or missing references)
-            //float num = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position - (terminal.transform.right * 0.8f) + new Vector3(0f, 0.25f, 0f));
-            float num = Vector3.Distance(agent.transform.position, ((Component)terminal).transform.position - (terminal.transform.right * 0.8f) + new Vector3(0f, 0.25f, 0f));
+            float num = Vector3.Distance(((Component)this).transform.position, ((Component)terminal).transform.position);
             if (num < 40f)
             //if (num < 60)
             {
-                //dropItem.Value = true; //done later, so use later.
+                dropItem.Value = true;
                 if (num < 15f && num > 3.5f && Plugin.isTerminalBeingUsed)
                 {
                     Plugin.mls.LogDebug("Terminal is being used by another entity");
@@ -4466,33 +3336,27 @@ namespace LethalIntelligence.Patches
                 }
                 if (num < 5.5f && isHoldingObject)
                 {
-                    dropItem.Value = true; //drop inside the ship if you will use the terminal
-                    //DropItem(); //drop inside the ship if you will use the terminal //shouldent be needed, dropItem.Value = true should be enough.
+                    DropItem(); //drop inside the ship if you will use the terminal
                 }
 
-                if (!terminal.terminalInUse && !noMoreTerminal && num < 1.8f)
+                if (!terminal.terminalInUse && !noMoreTerminal && num < 3.5f)
                 {
+                    Plugin.isTerminalBeingUsed = true;
                     if (!isUsingTerminal)
                     {
                         terminal.terminalAudio.PlayOneShot(terminal.enterTerminalSFX);
-                        Plugin.isTerminalBeingUsed = true;
-                        terminalAccess(false);
-                        isUsingTerminal = true;
-                    }                    
+                    }
+                    isUsingTerminal = true;
                 }
                 if (!terminal.terminalInUse && !noMoreTerminal && !__instance.isEnemyDead)
                 {
-                    if (IsHost)
-                    {
-                        //terminalReachable.Value = __instance.SetDestinationToPosition(((Component)terminal).transform.position - (terminal.transform.right * 0.8f + new Vector3(0f, 0.25f, 0f)), true);
-                        terminalReachable.Value = __instance.SetDestinationToPosition(terminalStandingPosition, true);
-                    }
-                    if (!terminalReachable.Value)
+                    terminalReachable = __instance.SetDestinationToPosition(((Component)terminal).transform.position, true);
+                    if (!terminalReachable)
                     {
                         return; //cant reach terminal
                     }
-                    maskedGoal = "walking to terminal (" + terminalStandingPosition.ToString() + ")";
-                    //__instance.SetDestinationToPosition(((Component)terminal).transform.position + terminal.transform.forward, false);
+                    maskedGoal = "walking to terminal";
+                    __instance.SetDestinationToPosition(((Component)terminal).transform.position, false);
                     __instance.moveTowardsDestination = true;
                     //noMoreItems = true;
                     this.ignoringPersonality = true;
@@ -4503,18 +3367,6 @@ namespace LethalIntelligence.Patches
             if (isUsingTerminal)
             {
                 maskedGoal = "using terminal";
-                //Plugin.mls.LogError(terminal.transform.position.ToString()); //debugging only
-                if (IsHost)
-                {
-                    this.transform.position = terminalStandingPosition;
-                    this.transform.LookAt(new Vector3(terminal.transform.position.x,this.transform.position.y,terminal.transform.position.z));
-                }
-                if (agent.transform.position != terminalStandingPosition)
-                {
-                    return;
-                }
-                this.transform.position = agent.transform.position;
-                this.transform.rotation = agent.transform.rotation;
                 creatureAnimator.SetTrigger("Terminal");
                 __instance.inSpecialAnimation = true;
                 this.ignoringPersonality = false;
@@ -4525,40 +3377,29 @@ namespace LethalIntelligence.Patches
                 ((Component)maskedEnemy.headTiltTarget).gameObject.SetActive(false);
                 agent.speed = 0f;
                 creatureAnimator.ResetTrigger("IsMoving");
-                playKeyboardAudio();
-                //this.transform.localPosition = terminal.transform.localPosition + new Vector3(7f, 0.25f, -14.8f);
-                //((Component)this).transform.LookAt(new Vector3(((Component)terminal).transform.position.x, ((Component)this).transform.position.y, ((Component)terminal).transform.position.z));
-                //((Component)this).transform.localPosition = new Vector3(((Component)terminal).transform.localPosition.x + 7f, ((Component)terminal).transform.localPosition.y + 0.25f, ((Component)terminal).transform.localPosition.z + -14.8f);
+                ((Component)this).transform.LookAt(new Vector3(((Component)terminal).transform.position.x, ((Component)this).transform.position.y, ((Component)terminal).transform.position.z));
+                ((Component)this).transform.localPosition = new Vector3(((Component)terminal).transform.localPosition.x + 7f, ((Component)terminal).transform.localPosition.y + 0.25f, ((Component)terminal).transform.localPosition.z + -14.8f);
                 if (maskedPersonality == Personality.Cunning)
                 {
                     if (terminal.numberOfItemsInDropship <= 0 && !dropship.shipLanded && dropship.shipTimer <= 0f && !isDeliverEmptyDropship && !noMoreTerminal)
                     {
-                        if (dropShipTimer > 6f && purchasedStuff == false)
-                        {
-                            if (IsHost)
-                            {
-                                terminal.PlayTerminalAudioServerRpc(0);
-                            };
-                            purchasedStuff = true;
-                        }
                         //dropShipTimer += Time.deltaTime;
                         dropShipTimer += updateFrequency; //fixing timing
-                        if (dropShipTimer > 10f && purchasedStuff)
+                        if (dropShipTimer > 10f)
                         {
                             /*if (dropship.IsSpawned == false)
                             {
                                 dropship.ShipLeave();
                             }*/
-                            if (IsHost)
-                            {
-                                landDropshipTrigger.Value = true;
-                            }
+                            dropship.LandShipOnServer();
+                            isDeliverEmptyDropship = true;
                         }
                     }
                     else if (isDeliverEmptyDropship && dropShipTimer <= 12f && !noMoreTerminal)
                     {
                         //dropShipTimer += Time.deltaTime;
                         dropShipTimer += updateFrequency; //fixing timing
+
                     }
                     if (dropShipTimer > 12f)
                     {
@@ -4576,10 +3417,7 @@ namespace LethalIntelligence.Patches
                         //__instance.SetDestinationToPosition(GameObject.Find("ItemShip").transform.position, false); //doesnt actually route to the item ship, just uses it as a hook to get off i guess.
                         isUsingTerminal = false;
                         noMoreTerminal = true;
-                        Plugin.isTerminalBeingUsed = false;
-                        terminalAccess(true);
                         dropShipTimer = 0;
-                        purchasedStuff = false;
                     }
                 }
                 else if (maskedPersonality == Personality.Insane)
@@ -4600,32 +3438,34 @@ namespace LethalIntelligence.Patches
                         isUsingTerminal = false;
                         noMoreTerminal = true;
                         Plugin.isTerminalBeingUsed = false;
-                        terminalAccess(true);
                         isTerminalEscaping = false;
                         //isLeverEscaping = true; // why is this commented out???
                         return;
                     }
                     //transmitMessageTimer += Time.deltaTime;
+                    transmitMessageTimer += updateFrequency; //fixing timing
 
                     if (GameNetworkManager.Instance.isHostingGame)
                     {
-                        transmitMessageTimer.Value += updateFrequency; //fixing timing
-                        if (signalTranslatorMessage.Value == null || signalTranslatorTrigger.Value)
-                        {
-                            signalTranslatorTrigger.Value = false;
-                            terminalTimeFloat.Value = Random.Range(5.2f, 8.5f);
-                            if (enterTermianlSpecialCodeTime != 0)
-                            {
-                                signalTranslatorMessage.Value = InsaneTransmitMessageSelection();
-                            }
-                        }
-                        if (transmitMessageTimer.Value > terminalTimeFloat.Value)
-                        {
-                            transmitMessageTimer.Value = 0f;
-                            signalTranslatorTrigger.Value = true;
-                        }
+                        terminalTimeFloat.Value = Random.Range(5.2f, 12.5f);
+                        delayMaxTime.Value = Random.Range(15f, 45f);
                     }
-                    if (enterTermianlSpecialCodeTime == 0 || StartOfRound.Instance.shipIsLeaving)
+                    if (transmitMessageTimer > terminalTimeFloat.Value && transmitPauseTimer > delayMaxTime.Value)
+                    {
+                        Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + "' and sending a message using the signal translator");
+                        string sentMessage = InsaneTransmitMessageSelection();
+                        TerminalPatches.Transmitter.SendMessage(sentMessage);
+                        Plugin.mls.LogDebug("Message sent is: " + sentMessage + " (" + enterTermianlSpecialCodeTime + " message sends remaining)");
+                        enterTermianlSpecialCodeTime--;
+                        transmitMessageTimer = 0f;
+                        transmitPauseTimer = 0f;
+                    }
+                    if (transmitMessageTimer <= delayMaxTime.Value)
+                    {
+                        //transmitPauseTimer += Time.deltaTime;
+                        transmitPauseTimer += updateFrequency; //fixing timing
+                    }
+                    if (enterTermianlSpecialCodeTime == 0)
                     {
                         terminal.terminalAudio.PlayOneShot(terminal.leaveTerminalSFX);
                         __instance.inSpecialAnimation = false;
@@ -4638,7 +3478,6 @@ namespace LethalIntelligence.Patches
                         //__instance.SetDestinationToPosition(GameObject.Find("ItemShip").transform.position, false); //doesnt actually route to the item ship, just uses it as a hook to get off i guess.
                         isUsingTerminal = false;
                         noMoreTerminal = true;
-                        signalTranslatorMessage.Value = null;
                         //isTerminalEscaping = false;
                         if (maskedFocus == Focus.Escape)
                         {
@@ -4646,15 +3485,10 @@ namespace LethalIntelligence.Patches
                             isLeverEscaping = true;
                             noMoreTerminal = true;
                         }
-                        else
-                        {
-                            mustChangeFocus = true;
-                            mustChangeActivity = true;
-                        }
                         //isLeverEscaping = true;
                         Plugin.isTerminalBeingUsed = false;
-                        terminalAccess(true);
                     }
+
                 }
                 else
                 {
@@ -4673,44 +3507,30 @@ namespace LethalIntelligence.Patches
                         isUsingTerminal = false;
                         noMoreTerminal = true;
                         Plugin.isTerminalBeingUsed = false;
-                        terminalAccess(true);
                         return;
                     }
+                    float num2 = Random.Range(0.2f, 1.5f);
                     //enterTermianlCodeTimer += Time.deltaTime;
-                    enterTerminalCodeTimer.Value += updateFrequency; //fixing timing
-                    if (enterTerminalCodeTimer.Value > terminalTimeFloat.Value && enterTermianlSpecialCodeTime > 0)
+                    enterTermianlCodeTimer += updateFrequency; //fixing timing
+                    if (enterTermianlCodeTimer > terminalTimeFloat.Value && enterTermianlSpecialCodeTime > 0)
                     {
                         if (GameNetworkManager.Instance.isHostingGame)
                         {
-                            if (objectCodeTrigger.Value == true)
-                            {
-                                objectCodeTrigger.Value = false;
-                                terminalTimeFloat.Value = Random.Range(2.2f, 8.5f);
-                                if (terminalAccessibleObject.Length != 0) //masked should sit on the terminal and do nothing when no codes exist
-                                {
-                                    TerminalAccessibleObject obj = terminalAccessibleObject[Random.Range(0, terminalAccessibleObject.Length)];
-                                    string code = obj.objectCode;
-                                    if (obj != null)
-                                    {
-                                        terminalCode.Value = code;
-                                        terminal.terminalAudio.PlayOneShot(terminal.codeBroadcastSFX);
-                                    }
-                                }
-                                else
-                                {
-                                    //there is no code to use.. so just broadcast the sound.
-                                    terminalCode.Value = null;
-                                    terminal.terminalAudio.PlayOneShot(terminal.codeBroadcastSFX);
-                                }
-                            }
-                            else
-                            {
-                                objectCodeTrigger.Value = true;
-                                enterTerminalCodeTimer.Value = 0f;
-                            }
+                            terminalTimeFloat.Value = Random.Range(2.2f, 8.5f);
                         }
+                        TerminalAccessibleObject obj = terminalAccessibleObject[Random.Range(0, terminalAccessibleObject.Length)];
+                        string code = obj.objectCode;
+                        if (obj != null)
+                        {
+                            Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + "' and broadcasting a terminal code");
+                            terminal.CallFunctionInAccessibleTerminalObject(code);
+                            Plugin.mls.LogDebug("Code broadcasted is " + code + " (" + enterTermianlSpecialCodeTime + " code entries remaining)");
+                            terminal.terminalAudio.PlayOneShot(terminal.codeBroadcastSFX);
+                        }
+                        enterTermianlSpecialCodeTime--;
+                        enterTermianlCodeTimer = 0f;
                     }
-                    if (enterTermianlSpecialCodeTime == 0 || StartOfRound.Instance.shipIsLeaving)
+                    if (enterTermianlSpecialCodeTime == 0)
                     {
                         terminal.terminalAudio.PlayOneShot(terminal.leaveTerminalSFX);
                         __instance.inSpecialAnimation = false;
@@ -4724,7 +3544,6 @@ namespace LethalIntelligence.Patches
                         isUsingTerminal = false;
                         noMoreTerminal = true;
                         Plugin.isTerminalBeingUsed = false;
-                        terminalAccess(true);
                     }
                 }
             }
@@ -4738,88 +3557,7 @@ namespace LethalIntelligence.Patches
             }
         }
 
-
-        private void updatePosition(Vector3 oldVal, Vector3 newVal)
-        {
-            this.transform.position = newVal;
-        }
-
-        private void updateTargetPlayer(ulong oldVal, ulong newVal)
-        {
-            if (!IsHost)
-            {
-                if (newVal == ulong.MaxValue)
-                {
-                    maskedEnemy.targetPlayer = null;
-                }
-                else
-                {
-                    maskedEnemy.targetPlayer = newVal.GetPlayerController();
-                }
-            }
-        }
-
-        private void landDropship(bool value)
-        {
-            if (value)
-            {
-                purchasedStuff = false;
-                dropship.LandShipOnServer();
-                isDeliverEmptyDropship = true;
-                landDropshipTrigger.Value = false;
-            }
-        }
-
-        private void useObjectCode(string code)
-        {
-            if (code != null)
-            {
-                if (IsHost)
-                {
-                    terminal.CallFunctionInAccessibleTerminalObject(code);
-                }
-            }
-            enterTermianlSpecialCodeTime--;
-            Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + "' and broadcasting code " + code + " (" + enterTermianlSpecialCodeTime + " code entries remaining)");
-        }
-
-        private void sendSignalTranslatorMessage(string message)
-        {
-            if (message == null || message == "")
-            {
-                return; //do nothing because message is empty.
-            }
-            Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + "' and sending a message using the signal translator");
-            TerminalPatches.Transmitter.SendMessage(message);
-            enterTermianlSpecialCodeTime--;
-            Plugin.mls.LogDebug("Message sent is: " + message + " (" + enterTermianlSpecialCodeTime + " message sends remaining)");
-        }
-
-        /*private void sendSignalTranslatorMessage(bool send, string message)
-        {
-            if (send == false)
-            {
-                return;
-            }
-            while (message == null || message == "")
-            {
-                //do nothing
-                Plugin.mls.LogDebug("message is empty");
-            }
-            TerminalPatches.Transmitter.SendMessage(message);
-            Plugin.mls.LogDebug("Masked '" + maskedId + "' is '" + maskedPersonality.ToString() + "' and sending a message using the signal translator");
-            Plugin.mls.LogDebug("Message sent is: " + message + " (" + enterTermianlSpecialCodeTime + " message sends remaining)");
-            enterTermianlSpecialCodeTime--;
-            if (IsHost)
-            {
-                new WaitForSeconds(2f);
-                Plugin.mls.LogDebug("SignalTranslator Message should be sent so now clearing Message value and setting the trigger to false");
-                signalTranslatorTrigger.Value = false;
-                signalTranslatorMessage.Value = null;
-            }
-        }*/
-
-        public string InsaneTransmitMessageSelection() //TODO - the messaged neeed syncing host to client imho.
+        public string InsaneTransmitMessageSelection()
         {
             string msg = null;
             if (isTerminalEscaping)
@@ -5169,10 +3907,10 @@ namespace LethalIntelligence.Patches
                     }
                 }
             }
-            /*if (dropItem.Value)
+            if (dropItem.Value)
             {
                 DropItem();
-            }*/
+            }
         }
 
         private async void NotGrabItemsTime()
@@ -5180,7 +3918,6 @@ namespace LethalIntelligence.Patches
             notGrabItems = true;
             await Task.Delay(9000);
             notGrabItems = false;
-            dropItem.Value = false;
         }
 
         private void OldDropItem()
@@ -5217,38 +3954,6 @@ namespace LethalIntelligence.Patches
                 __instance.movingTowardsTargetPlayer = true;
                 __instance.targetPlayer = targetPlayer;
                 __instance.SwitchToBehaviourState(2);
-            }
-        }
-
-        private void DropItemsNew(bool oldVal, bool newVal)
-        {
-            if (oldVal == newVal) return; //do nothing as no value change
-            if (newVal == false) return; //do nothing because false means do nothing
-            if ((Object)(object)heldGrabbable != (Object)null && isHoldingObject)
-            {
-                heldGrabbable.parentObject = null;
-                ((Component)heldGrabbable).transform.SetParent(StartOfRound.Instance.propsContainer, true);
-                heldGrabbable.EnablePhysics(true);
-                heldGrabbable.fallTime = 0f;
-                heldGrabbable.startFallingPosition = ((Component)heldGrabbable).transform.parent.InverseTransformPoint(((Component)heldGrabbable).transform.position);
-                heldGrabbable.targetFloorPosition = ((Component)heldGrabbable).transform.parent.InverseTransformPoint(heldGrabbable.GetItemFloorPosition(default(Vector3)));
-                heldGrabbable.floorYRot = -1;
-                heldGrabbable.isHeld = false;
-                heldGrabbable.isHeldByEnemy = false;
-                isHoldingObject = false;
-                heldGrabbable.DiscardItemFromEnemy();
-                heldGrabbable.hasHitGround = true;
-                NotGrabItemsTime();
-                heldGrabbable.grabbable = true;
-                isHoldingObject = false;
-                itemDroped = true;
-                //PlayerControllerB targetPlayer = __instance.CheckLineOfSightForClosestPlayer(70f, 50, 1, 3f);
-                PlayerControllerB targetPlayer = __instance.CheckLineOfSightForClosestPlayer(80f, 60, 1, 3f);
-                __instance.movingTowardsTargetPlayer = true;
-                __instance.targetPlayer = targetPlayer;
-                __instance.SwitchToBehaviourState(2);
-                heldGrabbable = null;
-                dropItem.Value = false;
             }
         }
 
@@ -5291,65 +3996,6 @@ namespace LethalIntelligence.Patches
 
 
         //this picks up multiple items if they are stacked on each other, maybe re-work to be like hoarder bug works..
-
-        public void PickupItem()
-        {
-            if (isHoldingObject || noMoreItems || notGrabItems || closestGrabbable == null)
-            {
-                return;
-            }
-            if (((NetworkBehaviour)this).IsHost)
-            {
-                if (closestGrabbableDistance.Value < 1.5f && !isHoldingObject)
-                {
-                    isCrouched.Value = true;
-                }
-                else
-                {
-                    isCrouched.Value = false;
-                }
-                if (closestGrabbableDistance.Value > 0.5f)
-                {
-                    __instance.SetDestinationToPosition(((Component)closestGrabbable).transform.position, true);
-                    __instance.moveTowardsDestination = true;
-                    __instance.movingTowardsTargetPlayer = false;
-                }
-                /*else
-                {
-                    __instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
-                    __instance.moveTowardsDestination = false;
-                }*/
-            }
-            if (closestGrabbableDistance.Value > 0.5f && closestGrabbableDistance.Value < 3f)
-            {
-                maskedEnemy.focusOnPosition = ((Component)closestGrabbable).transform.position;
-                maskedEnemy.lookAtPositionTimer = 1.5f;
-            }
-            if (closestGrabbableDistance.Value < 0.9f)
-            {
-                if (isHoldingObject)
-                {
-                    return;
-                }
-                //NotGrabItemsTime(); //may not be a fix
-                float num3 = Vector3.Angle(((Component)__instance).transform.forward, ((Component)closestGrabbable).transform.position - ((Component)__instance).transform.position);
-                if (((Component)closestGrabbable).transform.position.y - maskedEnemy.headTiltTarget.position.y < 0f)
-                {
-                    num3 *= -1f;
-                }
-                maskedEnemy.verticalLookAngle = num3;
-                heldGrabbable = closestGrabbable;
-                closestGrabbable.parentObject = itemHolder.transform;
-                closestGrabbable.hasHitGround = false;
-                closestGrabbable.isHeld = true;
-                closestGrabbable.isHeldByEnemy = true;
-                closestGrabbable.grabbable = false;
-                isHoldingObject = true;
-                itemDroped = false;
-                closestGrabbable.GrabItemFromEnemy(__instance);
-            }
-        }
-
         public void GrabItem()
         {
             //IL_0045: Unknown result type (might be due to invalid IL or missing references)
@@ -5479,8 +4125,8 @@ namespace LethalIntelligence.Patches
                 {
                     continue;
                 }
-                closestGrabbableReachable.Value = agent.CalculatePath(allitem.transform.position, nmpGrabbable);
-                if (!closestGrabbableReachable.Value)
+                closestGrabbableReachable = agent.CalculatePath(allitem.transform.position, nmpGrabbable);
+                if (!closestGrabbableReachable)
                 {
                     continue;
                 }
@@ -5547,7 +4193,7 @@ namespace LethalIntelligence.Patches
                     isCrouched.Value = true;
                 }*/
             }
-        } 
+        }
 
         public void GrabItemNewOne()
         {
@@ -5568,10 +4214,10 @@ namespace LethalIntelligence.Patches
                 return;
             }
             //setClosestGrabbable();
-            if (!closestGrabbableReachable.Value || closestGrabbable == null)
+            if (!nearestGrabbableReachable || nearestGrabbable == null)
             {
                 //setNearestGrabbable();
-                if (closestGrabbable == null)
+                if (nearestGrabbable == null)
                 {
                     noMoreItems = true;
                     return;
@@ -5584,7 +4230,7 @@ namespace LethalIntelligence.Patches
             }*/
             if (((NetworkBehaviour)this).IsHost)
             {
-                if (closestGrabbableDistance.Value < 1.5f && !isHoldingObject)
+                if (closestGrabbableDistance < 1.5f && !isHoldingObject)
                 {
                     isCrouched.Value = true;
                 }
@@ -5592,7 +4238,7 @@ namespace LethalIntelligence.Patches
                 {
                     isCrouched.Value = false;
                 }
-                if (closestGrabbableDistance.Value > 0.5f)
+                if (closestGrabbableDistance > 0.5f)
                 {
                     __instance.SetDestinationToPosition(closestGrabbable.transform.position, false);
                     __instance.moveTowardsDestination = true;
@@ -5611,12 +4257,12 @@ namespace LethalIntelligence.Patches
                     __instance.moveTowardsDestination = false;
                 }*/
             }
-            if (closestGrabbableDistance.Value > 0.5f && closestGrabbableDistance.Value < 3f)
+            if (closestGrabbableDistance > 0.5f && closestGrabbableDistance < 3f)
             {
                 maskedEnemy.focusOnPosition = ((Component)closestGrabbable).transform.position;
                 maskedEnemy.lookAtPositionTimer = 1.5f;
             }
-            if (closestGrabbableDistance.Value < 0.9f)
+            if (closestGrabbableDistance < 0.9f)
             {
                 float num3 = Vector3.Angle(((Component)__instance).transform.forward, ((Component)closestGrabbable).transform.position - ((Component)__instance).transform.position);
                 if (((Component)closestGrabbable).transform.position.y - maskedEnemy.headTiltTarget.position.y < 0f)
@@ -5634,7 +4280,7 @@ namespace LethalIntelligence.Patches
                 itemDroped = false;
                 heldGrabbable.GrabItemFromEnemy(__instance);
             }
-            if (closestGrabbableDistance.Value < 1f && !isHoldingObject && ((NetworkBehaviour)this).IsHost)
+            if (closestGrabbableDistance < 1f && !isHoldingObject && ((NetworkBehaviour)this).IsHost)
             {
                 isCrouched.Value = true;
             }
@@ -5691,10 +4337,7 @@ namespace LethalIntelligence.Patches
                     }
                     else
                     {
-                        maskedFocusInt.Value = (int)Focus.None;
-                        maskedActivityInt.Value = (int)Activity.MainEntrance;
-                        //have to disable this as it potentially leads to masked standing at the main entrance unable to go through it
-                        //__instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
+                        __instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
                         __instance.moveTowardsDestination = false;
                     }
                 }
@@ -5844,10 +4487,7 @@ namespace LethalIntelligence.Patches
                     }
                     else
                     {
-                        maskedFocusInt.Value = (int)Focus.None;
-                        maskedActivityInt.Value = (int)Activity.MainEntrance;
-                        //have to disable this as it potentially leads to masked standing at the main entrance unable to go through it
-                        //__instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
+                        __instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
                         __instance.moveTowardsDestination = false;
                     }
                 }
@@ -5925,10 +4565,7 @@ namespace LethalIntelligence.Patches
                     }
                     else
                     {
-                        maskedFocusInt.Value = (int)Focus.None;
-                        maskedActivityInt.Value = (int)Activity.MainEntrance;
-                        //have to disable this as it potentially leads to masked standing at the main entrance unable to go through it
-                        //__instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
+                        __instance.SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
                         __instance.moveTowardsDestination = false;
                     }
                 }
@@ -5975,22 +4612,17 @@ namespace LethalIntelligence.Patches
             //now only if outside, not in player ship, and not dead)
             //if (__instance.isOutside && !__instance.isInsidePlayerShip && !__instance.isEnemyDead)
             //{
-            maskedGoal = "walking to ships locker (" + lockerPosition.Value.ToString() + ")";
+            maskedGoal = "walking to ships locker";
             maskedEnemy.lostLOSTimer = 0f;
             maskedEnemy.stopAndStareTimer = 0f;
-            if (IsHost)
-            {
-                maskedEnemy.SetDestinationToPosition(lockerPosition.Value, true);
-                maskedEnemy.moveTowardsDestination = true;
-            }
-            if (!lockerReachable)
+            bool reachable = ((EnemyAI)maskedEnemy).SetDestinationToPosition(lockerPosition, true);
+            if (!reachable)
             {
                 mustChangeActivity = true;
             }
             //__instance.moveTowardsDestination = true;
             //}
-            //float distanceToLockerAudio = Vector3.Distance(maskedEnemy.transform.position, lockerPosition);
-            float distanceToLockerAudio = Vector3.Distance(agent.transform.position, lockerPosition.Value);
+            float distanceToLockerAudio = Vector3.Distance(maskedEnemy.transform.position, lockerPosition);
             if (distanceToLockerAudio <= 2f)
             {
                 mustChangeFocus = true;
@@ -6000,63 +4632,19 @@ namespace LethalIntelligence.Patches
 
         private void findBreakerBox()
         {
-            maskedGoal = "walking to breaker box (" + breakerPosition.Value.ToString() + ")";
+            //if (!__instance.isOutside && !__instance.isEnemyDead)
+            //{
+            maskedGoal = "walking to breaker box";
             maskedEnemy.lostLOSTimer = 0f;
             maskedEnemy.stopAndStareTimer = 0f;
-            if (IsHost)
-            {
-                maskedEnemy.SetDestinationToPosition(breakerPosition.Value);
-                maskedEnemy.moveTowardsDestination = true;
-            }
-            if (!breakerBoxReachable.Value)
+            bool reachable = ((EnemyAI)maskedEnemy).SetDestinationToPosition(breakerPosition, true);
+            //__instance.moveTowardsDestination = true;
+            if (!reachable)
             {
                 mustChangeActivity = true;
             }
-            if (breakerBoxDistance <= 10f)
-            {
-                mustChangeFocus = true;
-                mustChangeActivity = true;
-            }
-        }
-
-        private void findRandomItem()
-        {
-            //find where an item is, but dont pick it up. fixed this now, adding this comment so i can commit this as a seperate item (see 2 commits ago for what was changed)
-            GrabbableObject selectedItem = null;
-            //List<GrabbableObject> items = GlobalItemList.Instance.allitems.Where(x => Vector3.Distance(maskedEnemy.transform.position, x.transform.position) < 50f).ToList();
-            List<GrabbableObject> items = GlobalItemList.Instance.allitems.Where(x => Vector3.Distance(agent.transform.position, x.transform.position) < 50f).ToList();
-            if (items.Count == 0)
-            {
-                mustChangeFocus = true;
-                mustChangeActivity = true;
-                return;
-            }
-            if (selectedItem == null)
-            {
-                foreach (GrabbableObject item in items)
-                {
-
-                    if (item.isHeld || item.isHeldByEnemy)
-                    {
-                        continue; //item is not on the ground
-                    }
-                    selectedItem = item;
-                    break;
-                }
-            }
-            if (selectedItem == null)
-            {
-                mustChangeFocus = true;
-                mustChangeActivity = true;
-                return;
-            }
-            maskedGoal = "wallking to " +  selectedItem.name + "(" + maskedEnemy.isOutside + "/" + selectedItem.isInFactory + "/" + selectedItem.transform.position + ")";
-            if (IsHost)
-            {
-                maskedEnemy.SetDestinationToPosition(selectedItem.transform.position, true);
-            }
-            //if (Vector3.Distance(maskedEnemy.transform.position, selectedItem.transform.position) < 1.5f)
-            if (Vector3.Distance(agent.transform.position, selectedItem.transform.position) < 1.5f)
+            //}
+            if (breakerBoxDistance <= 5f)
             {
                 mustChangeFocus = true;
                 mustChangeActivity = true;
@@ -6065,19 +4653,15 @@ namespace LethalIntelligence.Patches
 
         private void findApparatus()
         {
-            maskedGoal = "walking to apparatus (" + apparatusPosition.Value.ToString() + ")";
+            maskedGoal = "walking to apparatus";
             maskedEnemy.lostLOSTimer = 0f;
             maskedEnemy.stopAndStareTimer = 0f;
-            if (IsHost)
-            {
-                maskedEnemy.SetDestinationToPosition(apparatusPosition.Value, true);
-                maskedEnemy.moveTowardsDestination = true;
-            }
-            if (!apparatusReachable.Value)
+            bool reachable = ((EnemyAI)maskedEnemy).SetDestinationToPosition(apparatusPosition, true);
+            if (!reachable)
             {
                 mustChangeActivity = true;
             }
-            if (apparatusDistance <= 10f)
+            if (apparatusDistance <= 5f)
             {
                 mustChangeFocus = true;
                 mustChangeActivity = true;
@@ -6085,7 +4669,7 @@ namespace LethalIntelligence.Patches
         }
 
         private float TimeSinceTeleporting { get; set; }
-        private float MaxTimeBeforeTeleporting = 1f;
+        private float MaxTimeBeforeTeleporting = 5;
         private EntranceTeleport[] entrancesTeleportArray = null!;
         EntranceTeleport? selectedEntrance = null;
 
@@ -6094,11 +4678,6 @@ namespace LethalIntelligence.Patches
 
         private EntranceTeleport? selectClosestEntrance(bool isOutside, bool MainEntranceAllowed = true, bool FireExitsAllowed = true)
         {
-            //only for checking things are synced
-            /*foreach (int e in RoundManagerPatch.networkedInvalidEntrances.Value)
-            {
-                Plugin.mls.LogError(e.ToString());
-            }*/
             EntranceTeleport et = null;
             if (!MainEntranceAllowed && !FireExitsAllowed)
             {
@@ -6107,80 +4686,24 @@ namespace LethalIntelligence.Patches
             float dist = 1000;
             for (int i = 0; i < entrancesTeleportArray.Length; i++)
             {
-                //this is VERY spammy.. dont uncomment (even for testing) unless you prevent it from sending multiple times
-                /*Plugin.mls.LogError("EntranceDetails(Masked) for #" + i);
-                Plugin.mls.LogWarning("Prefab           =" + entrancesTeleportArray[i]);
-                Plugin.mls.LogWarning("ID               =" + entrancesTeleportArray[i].entranceId);
-                Plugin.mls.LogWarning("Outside?         =" + entrancesTeleportArray[i].isEntranceToBuilding);
-                Plugin.mls.LogWarning("EntrancePointPos =" + entrancesTeleportArray[i].entrancePoint.position);
-                if (entrancesTeleportArray[i].FindExitPoint())
-                {
-                    Plugin.mls.LogWarning("ExitPointPos     =" + entrancesTeleportArray[i].exitPoint.position);
-                }
-                else
-                {
-                    Plugin.mls.LogWarning("ExitPointPos     =" + "null");
-                }
-                Plugin.mls.LogWarning("TransformPos     =" + entrancesTeleportArray[i].transform.position);*/
-
-                if (RoundManagerPatch.networkedInvalidEntrances.Value == null)
-                {
-                    Plugin.mls.LogWarning("networkedInvalidEntrances list is null (please report this..)");
-                    continue;
-                }
-                if (entrancesTeleportArray[i].entranceId == null)
-                {
-                    Plugin.mls.LogWarning("Entrance Teleport Array @ " + i + " is null (please report this..)");
-                    continue;
-                }
-                if (RoundManagerPatch.networkedInvalidEntrances.Value.Contains(entrancesTeleportArray[i].entranceId))
-                {
-                    //on the invalid list for the current moon/interior (dynamically checked) --- so ignore this entrance!
-                    //Plugin.mls.LogError("Avoiding EntranceTeleport #" + entrancesTeleportArray[i].entranceId + " as it is on the naughty list this round");
-                    continue;
-                }
-                /*if(currentInterior == "Level3Flow" && entrancesTeleportArray[i].entranceId == 0)
-                {
-                    //elevator on mineshaft is breaking masked, temporary ignoring of the main entrance on mineshaft until i get them using the elevator instead of walking into walls
-                    continue;
-                }*/
-                /*if (currentMoon == "OffenseLevel" && entrancesTeleportArray[i].entranceId == 1)
-                {
-                    //you cant use the fire exit on offense because of the cliff not having any navmesh/links up/down
-                    continue;
-                }
-                if (currentInterior == "LiminalPoolRoomsFlow" && entrancesTeleportArray[i].entranceId != 0)
-                {
-                    //you cant use fire exits with liminal pools as one has no navmesh due to design (offnavmeshlinks are missing).
-                    continue;
-                }*/
                 if ((entrancesTeleportArray[i].entranceId == 0 && MainEntranceAllowed) || (entrancesTeleportArray[i].entranceId > 0 && FireExitsAllowed))
                 {
-                    //Plugin.mls.LogError(String.Format("{0}/{1}/{2}/{3}", entrancesTeleportArray[i].entranceId, entrancesTeleportArray[i].transform.position, entrancesTeleportArray[i].entrancePoint.position, entrancesTeleportArray[i].isEntranceToBuilding));
                     //if (!loggedID)
                     //{
                     //    Plugin.mls.LogError("TP#" + entrancesTeleportArray[i].entranceId + " -> " + entrancesTeleportArray[i].transform.position + "|" + Vector3.Distance(maskedEnemy.transform.position, entrancesTeleportArray[i].transform.position));
                     //}
-                    //float tempDist = Vector3.Distance(maskedEnemy.transform.position, entrancesTeleportArray[i].entrancePoint.position);
-                    float tempDist = Vector3.Distance(agent.transform.position, entrancesTeleportArray[i].entrancePoint.position);
+                    float tempDist = Vector3.Distance(maskedEnemy.transform.position, entrancesTeleportArray[i].entrancePoint.position);
                     if (tempDist < dist && isOutside == entrancesTeleportArray[i].isEntranceToBuilding)
                     {
                         dist = tempDist;
                         et = entrancesTeleportArray[i];
                     }
-                    /*else if(tempDist < dist && isOutside != entrancesTeleportArray[i].isEntranceToBuilding)
-                    {
-                        dist = tempDist;
-                        et = entrancesTeleportArray[i];
-                    }*/
                 }
             }
             //loggedID = true;
             return et; //may be null;
 
         }
-
-        //bool isBeingIdle = false;
 
         private void useEntranceTeleport(EntranceTeleport entrance)
         {
@@ -6190,61 +4713,47 @@ namespace LethalIntelligence.Patches
                 //mustChangeActivity = true;
                 return; //no entrance selected
             }
-            /*if(TimeSinceTeleporting <= MaxTimeBeforeTeleporting)
-            //if (TimeSinceTeleporting > (MaxTimeBeforeTeleporting * 0.75) && TimeSinceTeleporting <= MaxTimeBeforeTeleporting)
+            Vector3 tPos = entrance.transform.position;
+            float distanceToEntrance = Vector3.Distance(maskedEnemy.transform.position, tPos);
+            if (distanceToEntrance > 2f)
             {
-                maskedGoal = "being idle waiting to use entrance (" + entrance.entranceId + ")";
-                if (!isBeingIdle)
-                {
-                    isBeingIdle = true;
-                    maskedEnemy.LookAndRunRandomly();
-                }
-                return;
-            }*/
-            /*else if(TimeSinceTeleporting <= (MaxTimeBeforeTeleporting * 0.75)) //this isnt working atm so just dont do this now.
-            {
-                maskedGoal = "entrance used recently, doing something else instead. (" + entrance.entranceId + ")";
-                mustChangeFocus = true;
-                mustChangeActivity = true;
-                return;
-            }*/
-            //maskedGoal = "looking and running randomly near entranceTeleport (" + entrance.entranceId + ")";
-            Vector3 tPos = entrance.entrancePoint.position;
-            //float distanceToEntrance = Vector3.Distance(maskedEnemy.transform.position, tPos);
-            float distanceToEntrance = Vector3.Distance(agent.transform.position, tPos);
-            if (IsHost)
-            {
-                maskedEnemy.SetDestinationToPosition(tPos, false);
-            }
-            if (distanceToEntrance > 4f)
-            {
-                maskedGoal = "going to entrance (" + entrance.entranceId + "/" + tPos.ToString() + ")";
-            }
-            if (distanceToEntrance < 4f)
-            {
-                maskedGoal = "nearing entrance (" + entrance.entranceId + "/" + tPos.ToString() + ")";
-                maskedEnemy.running = false; 
+                maskedGoal = "Walking to entrance (" + entrance.entranceId + "/" + tPos.ToString() + ")";
+                maskedEnemy.SetDestinationToPosition(tPos, true);
             }
             if (distanceToEntrance < 2f)
             {
                 maskedGoal = "reached entrance (" + entrance.entranceId + "/" + tPos.ToString() + ")";
+                maskedEnemy.running = false;
                 //do teleport, then set destination AWAY from the teleport, maybe look and run randomly?
                 //System.Diagnostics.Debugger.Break();
                 //Vector3? entryPoint = entrance.entrancePoint.position;
-                /*               Vector3? opposingTeleportPosition = getTeleportDestination(entrance);
-               //                if (TimeSinceTeleporting > MaxTimeBeforeTeleporting)
-                               {
-                                   maskedGoal = "using entrance (" + entrance.entranceId + "/" + entrance.entrancePoint.position.ToString() + ")";
-                                   TimeSinceTeleporting = 0;
-                                   //isBeingIdle = false;
-                                   //maskedEnemy.TeleportMaskedEnemyAndSync((Vector3)opposingTeleportPosition, !maskedEnemy.isOutside);
-                                   TeleportMaskedEnemyAndSync((Vector3)opposingTeleportPosition, !maskedEnemy.isOutside);
-                                   //if (maskedFocus != Focus.Apparatus && maskedFocus != Focus.Escape)
-                                   //{
-                                       mustChangeFocus = true;
-                                       mustChangeActivity = true;
-                                   //}
-                               }*/
+                Vector3? opposingTeleportPosition = getTeleportDestination(entrance);
+                if (TimeSinceTeleporting > MaxTimeBeforeTeleporting)
+                {
+                    maskedGoal = "using entrance (" + entrance.entranceId + "/" + entrance.entrancePoint.position.ToString() + ")";
+                    TimeSinceTeleporting = 0;
+                    //maskedEnemy.TeleportMaskedEnemyAndSync((Vector3)opposingTeleportPosition, !maskedEnemy.isOutside);
+                    TeleportMaskedEnemyAndSync((Vector3)opposingTeleportPosition, !maskedEnemy.isOutside);
+                    if (maskedFocus != Focus.Escape)
+                    {
+                        mustChangeFocus = true;
+                        mustChangeActivity = true;
+                    }
+                }
+                else if (TimeSinceTeleporting > (MaxTimeBeforeTeleporting * 0.75) && TimeSinceTeleporting <= MaxTimeBeforeTeleporting)
+                {
+                    maskedGoal = "being idle waiting to use entrance (" + entrance.entranceId + ")";
+                    maskedEnemy.LookAndRunRandomly();
+                }
+                else
+                {
+                    maskedGoal = "entrance used recently, doing something else instead. (" + entrance.entranceId + ")";
+                    mustChangeFocus = true;
+                    mustChangeActivity = true;
+                }
+                //maskedGoal = "looking and running randomly near entranceTeleport (" + entrance.entranceId + ")";
+
+
             }
         }
 
@@ -6252,6 +4761,7 @@ namespace LethalIntelligence.Patches
         //none of the code in this region should be run UNLESS Plugin.mirageIntegrated = true!
         int mirageAudioClipsPlayedInARow;
         int randomMirageAllowedAudioClipsInARow;
+        DateTime endMirageClipTime;
         bool mirageClipAllowed;
 
         // Subscribe to the event.
@@ -6259,12 +4769,6 @@ namespace LethalIntelligence.Patches
         {
             // Firstly, each EnemyAI will have an AudioStream component attached to it. This is used for handling networked audio.
             // In order to know when a new audio clip is created and streamed over, we will be subscribing to "AudioStreamEvent"s.
-            if(maskedEnemy.GetComponent<AudioStream>() == null)
-            {
-                Plugin.mls.LogWarning("Mirage AudioStream is NULL - Disabling Mirage Compatibility");
-                Plugin.mirageIntegrated = false;
-                return;
-            }
             maskedEnemy.GetComponent<AudioStream>().OnAudioStream += OnAudioStreamHandler;
         }
 
@@ -6287,8 +4791,8 @@ namespace LethalIntelligence.Patches
                 totalOtherWalkieTalkies++; //add up how many walkies exist.. that are not held by the current masked
 
                 //if walkie talkie is off.. CONTINUE because they dont matter.. UNLESS they are seen in person.
-                //if(((Renderer)((GrabbableObject)walkie).mainObjectRenderer).sharedMaterial == walkie.offMaterial)
-                if (!walkie.isBeingUsed)
+                if(((Renderer)((GrabbableObject)walkie).mainObjectRenderer).sharedMaterial == walkie.offMaterial)
+                //if (!walkie.isBeingUsed)
                 {
                     walkieNotBeingUsed++;
                     continue;
@@ -6303,8 +4807,7 @@ namespace LethalIntelligence.Patches
                 }
 
                 //check distance
-                //walkieDistance = Vector3.Distance(__instance.transform.position, walkie.transform.position);
-                walkieDistance = Vector3.Distance(agent.transform.position, walkie.transform.position);
+                walkieDistance = Vector3.Distance(__instance.transform.position, walkie.transform.position);
                 if (walkieDistance <= 15f)
                 {
                     walkieNearby++;
@@ -6339,17 +4842,20 @@ namespace LethalIntelligence.Patches
             }
         }
 
-        public void OnAudioStreamHandler(object _, AudioStreamEvent audioEvent)
+        public void OnAudioStreamHandler(object _, AudioStreamEventArgs eventArgs)
         {
-            //Console.WriteLine("StartingAudioStreamHandler!");
             if (Plugin.mirageIntegrated && heldGrabbable is WalkieTalkie)
             {
-                //Console.WriteLine("mirage integrated and holding a walkie!");
                 List<WalkieTalkie> allWalkieTalkies = GlobalItemList.Instance.allWalkieTalkies;
+                var audioEvent = eventArgs.EventData;
+                double audioLength = -1;
                 
+                if(endMirageClipTime==null)
+                {
+                    endMirageClipTime = DateTime.Now.AddYears(1);
+                }
                 if (audioEvent.IsAudioStartEvent)
                 {
-                    //Console.WriteLine("this is a start audio event!");
                     if (mirageShouldUseWalkies()) //50%+ activation rate
                     //if(true) //bypassing the walkie check for testing
                     {
@@ -6360,7 +4866,7 @@ namespace LethalIntelligence.Patches
                         mirageClipAllowed = false;
                         return;
                     }
-                    var sEvent = audioEvent.audioStartEvent;
+                    var sEvent = (audioEvent as AudioStreamEvent.AudioStartEvent).Item;
                     /*double sof = (double)sEvent.lengthSamples / (double)sEvent.frequency;
                     double sofoc = (double)sof / (double)sEvent.channels;
                     audioLength = (double)sofoc * 1000; //milliseconds
@@ -6371,7 +4877,7 @@ namespace LethalIntelligence.Patches
                     Plugin.mls.LogWarning(String.Format("Channels = {0}", sEvent.channels.ToString()));
 
                     Plugin.mls.LogWarning(String.Format("{0}, {1}", sof.ToString(), sofoc.ToString()));*/
-                    int audioLength = (int) (((double)sEvent.lengthSamples / (double)sEvent.frequency) / (double)sEvent.channels * 1000); //milliseconds
+                    audioLength = ((double)sEvent.lengthSamples / (double)sEvent.frequency) / (double)sEvent.channels * 1000; //milliseconds
                     //Plugin.mls.LogError(audioLength + " = (" + (double)sEvent.lengthSamples + " / " + (double)sEvent.frequency + ") / " + (double)sEvent.channels + " * 1000");
                     if (audioLength == 0)
                     {
@@ -6385,14 +4891,15 @@ namespace LethalIntelligence.Patches
                         //miragePressWalkieButton
                         mirageActivateWalkieSpeaking();
 
+                        endMirageClipTime = DateTime.Now.AddMilliseconds(audioLength); //remove 0.5% of the audio length to ensure the clip plays and the masked end the transmission
                         /*Plugin.mls.LogError("audioLength = " + audioLength.ToString());
                         Plugin.mls.LogError("startTime = " + DateTime.Now.ToString("dd/MM/yyyy hh:mm:ss.fff"));
                         Plugin.mls.LogError("endTime = " + endMirageClipTime.ToString("dd/MM/yyyy hh:mm:ss.fff"));*/
-                        mirageDeactivateWalkieSpeaking(audioLength);
+                        mirageDeactivateWalkieSpeaking(endMirageClipTime);
 
                         //mirageTurnOffWalkie
                         //new WaitForSeconds(2.5f);
-                        mirageTurnOffWalkie(audioLength);
+                        mirageTurnOffWalkie(endMirageClipTime);
                     }
                 }
                 //Plugin.mls.LogError("mirageClipAllowed = " + mirageClipAllowed);
@@ -6406,34 +4913,22 @@ namespace LethalIntelligence.Patches
                     {
                         continue; //masked is holding this walkie
                     }
-                    if(!walkieTalkie.isBeingUsed)
-                    //if (((Renderer)((GrabbableObject)walkieTalkie).mainObjectRenderer).sharedMaterial == walkieTalkie.offMaterial)
+                    if (((Renderer)((GrabbableObject)walkieTalkie).mainObjectRenderer).sharedMaterial == walkieTalkie.offMaterial)
                     {
                         continue; //walkie is turned off
                     }
                     walkieTalkie.target.volume = 100f; //dont change this as it affects EVERYTHING (masked voices + the playing of the soundeffects when the masked try to speak)
-                    if (walkieTalkie.playerHeldBy != GameNetworkManager.Instance.localPlayerController)
+                    switch (audioEvent)
                     {
-                        //Plugin.mls.LogError(walkieTalkie.NetworkObjectId + "|current player is not holding this walkie");
-                        if (!Plugin.alwaysHearActiveWalkiesIntegrated)
-                        {
-                            //Plugin.mls.LogError(walkieTalkie.NetworkObjectId + "|cant hear all walkies.. and this player is not holding this walkie");
-                            continue;
-                        }
-                    }
-                    //Plugin.mls.LogError(walkieTalkie.NetworkObjectId + "|player can hear this walkie");
-
-                    switch (audioEvent.Tag)
-                    {
-                        case Tags.AudioStartEvent:
-                            var startEvent = audioEvent.audioStartEvent;
+                        case AudioStreamEvent.AudioStartEvent:
+                            var startEvent = (audioEvent as AudioStreamEvent.AudioStartEvent).Item;
                             walkieTalkie.target.clip = AudioClip.Create("maskedClip", startEvent.lengthSamples, startEvent.channels, startEvent.frequency, false);
                             //Plugin.mls.LogInfo("StartEvent.LengthSamples = " + startEvent.lengthSamples);
                             break;
-                        case Tags.AudioReceivedEvent:
-                            var receivedEvent = audioEvent.audioReceivedEvent;
-                            walkieTalkie.target.clip.SetData(receivedEvent.samples.data, receivedEvent.sampleIndex);
-                            //Plugin.mls.LogInfo("ReceivedEvent.Samples.Length = " + receivedEvent.samples.length);
+                        case AudioStreamEvent.AudioReceivedEvent:
+                            var receivedEvent = (audioEvent as AudioStreamEvent.AudioReceivedEvent).Item;
+                            walkieTalkie.target.clip.SetData(receivedEvent.samples, receivedEvent.sampleIndex);
+                            //Plugin.mls.LogInfo("ReceivedEvent.Samples.Count = " + receivedEvent.samples.Count());
                             if (!walkieTalkie.target.isPlaying)
                             {
                                 walkieTalkie.target.Play();
@@ -6501,33 +4996,45 @@ namespace LethalIntelligence.Patches
             creatureAnimator.SetTrigger("UseWalkie");
         }
 
-        private async void mirageDeactivateWalkieSpeaking(int delay)
+        private async void mirageDeactivateWalkieSpeaking(DateTime endTime)
         {
-            await Task.Delay(delay + 1500);
-            Plugin.mls.LogDebug("Masked Stopped Pressing Speaking Button!");
-            creatureAnimator.ResetTrigger("UseWalkie");
-            foreach (WalkieTalkie allWalkieTalky2 in GlobalItemList.Instance.allWalkieTalkies)
+            await Task.Run(() =>
             {
-                if (((GrabbableObject)allWalkieTalky2).isBeingUsed)
+                do
                 {
-                    allWalkieTalky2.thisAudio.PlayOneShot(allWalkieTalky2.stopTransmissionSFX[Random.Range(0, allWalkieTalky2.stopTransmissionSFX.Length)]);
+
+                } while (endTime.AddSeconds(1.5f) > DateTime.Now);
+                Plugin.mls.LogDebug("Masked Stopped Pressing Speaking Button!");
+                creatureAnimator.ResetTrigger("UseWalkie");
+                foreach (WalkieTalkie allWalkieTalky2 in GlobalItemList.Instance.allWalkieTalkies)
+                {
+                    if (((GrabbableObject)allWalkieTalky2).isBeingUsed)
+                    {
+                        allWalkieTalky2.thisAudio.PlayOneShot(allWalkieTalky2.stopTransmissionSFX[Random.Range(0, allWalkieTalky2.stopTransmissionSFX.Length)]);
+                    }
                 }
-            }
+            });
         }
 
-        private async void mirageTurnOffWalkie(int delay)
+        private async void mirageTurnOffWalkie(DateTime endTime)
         {
-            await Task.Delay(delay + 2000);
-            WalkieTalkie component = ((Component)heldGrabbable).GetComponent<WalkieTalkie>();
-            if (((GrabbableObject)component).isBeingUsed)
+            await Task.Run(() =>
             {
-                ((GrabbableObject)component).isBeingUsed = false;
-                component.EnableWalkieTalkieListening(false);
-                ((Renderer)((GrabbableObject)component).mainObjectRenderer).sharedMaterial = component.offMaterial;
-                ((Behaviour)component.walkieTalkieLight).enabled = false;
-                component.thisAudio.PlayOneShot(component.switchWalkieTalkiePowerOff);
-                Plugin.mls.LogDebug("Masked Turned Walkie Off!");
-            }
+                do
+                {
+
+                } while (endTime.AddSeconds(2f) > DateTime.Now);
+                WalkieTalkie component = ((Component)heldGrabbable).GetComponent<WalkieTalkie>();
+                if (((GrabbableObject)component).isBeingUsed)
+                {
+                    ((GrabbableObject)component).isBeingUsed = false;
+                    component.EnableWalkieTalkieListening(false);
+                    ((Renderer)((GrabbableObject)component).mainObjectRenderer).sharedMaterial = component.offMaterial;
+                    ((Behaviour)component.walkieTalkieLight).enabled = false;
+                    component.thisAudio.PlayOneShot(component.switchWalkieTalkiePowerOff);
+                    Plugin.mls.LogDebug("Masked Turned Walkie Off!");
+                }
+            });
         }
         #endregion mirageRequired
 
@@ -6556,85 +5063,135 @@ namespace LethalIntelligence.Patches
                 if (otherEntrance.entranceId == entrance.entranceId
                     && otherEntrance.isEntranceToBuilding != entrance.isEntranceToBuilding)
                 {
-                    Plugin.mls.LogDebug("SettingEntranceExitPointFor#=" + i + " | EID=" + entrance.entranceId + " | OID=" + otherEntrance.entranceId + " | IETB?=" + entrance.isEntranceToBuilding);
                     return otherEntrance.entrancePoint.position;
                 }
             }
             return null;
         }
 
-        private void findEntranceTeleports(bool useMainEntrance, bool useFireExits)
+        private void findMainEntrance()
         {
             selectedEntrance = null;
-            selectedEntrance = selectClosestEntrance(maskedEnemy.isOutside, useMainEntrance, useFireExits);
+            selectedEntrance = selectClosestEntrance(maskedEnemy.isOutside, true, false);
+            if(selectedEntrance == null)
+            {
+                maskedGoal = "No Entrance Found, Changing Focus";
+                Plugin.mls.LogError("selectedEntrance was Null, if all entrances are null, this may lead to masked stopping from moving completely.");
+                selectedEntrance = null;
+                mustChangeFocus = true;
+                mustChangeActivity = true;
+            }
+            useEntranceTeleport(selectedEntrance);
+            /*
+            maskedGoal = "going to main entrance";
+            //maskedEnemy.LookAndRunRandomly(true, true);
+            ((EnemyAI)maskedEnemy).SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true);
+            //__instance.moveTowardsDestination = true;
+            if (Vector3.Distance(maskedEnemy.transform.position, maskedEnemy.mainEntrancePosition) < 1f)
+            {
+                //maskedEnemy.running = false; //to stop them running. //not needed once isRunning.Value is added?
+                isRunning.Value = false;
+                mustChangeFocus = true;
+                mustChangeActivity = true;
+            }*/
+        }
+
+        private void findFireExit()
+        {
+            selectedEntrance = null;
+            selectedEntrance = selectClosestEntrance(maskedEnemy.isOutside,false,true);
             if (selectedEntrance == null)
             {
                 maskedGoal = "No Entrance Found, Changing Focus";
-                Plugin.mls.LogWarning("selectedEntrance was Null, if all entrances are null, this may lead to masked stopping from moving completely.");
+                Plugin.mls.LogError("selectedEntrance was Null, if all entrances are null, this may lead to masked stopping from moving completely.");
                 selectedEntrance = null;
-                maskedFocusInt.Value = (int)Focus.None;
-                maskedActivityInt.Value = (int)Activity.Idle;
-                return;
-                //mustChangeFocus = true;
-                //mustChangeActivity = true;
+                mustChangeFocus = true;
+                mustChangeActivity = true;
             }
             useEntranceTeleport(selectedEntrance);
+            /*maskedGoal = "going to a random fire exit";
+            //maskedEnemy.LookAndRunRandomly(true, true);
+            ((EnemyAI)maskedEnemy).SetDestinationToPosition(maskedEnemy.mainEntrancePosition, true); // for now this still heads to the main entrance, need to set variable to find fire exits!
+            //__instance.moveTowardsDestination = true;
+            if (Vector3.Distance(maskedEnemy.transform.position, maskedEnemy.mainEntrancePosition) < 1f)
+            {
+                //maskedEnemy.running = false; //to stop them running. //not needed once isRunning.Value is added?
+                isRunning.Value = false;
+                mustChangeFocus = true;
+                mustChangeActivity = true;
+            }*/
         }
 
-        AISearchRoutine idleSearch = null;
-        Transform idleFarthestNode;
-        bool idleFarthestNodeSet;
-        private void idleMode()
+        float followTime = 0f;
+
+        private void findRandomPlayer()
         {
-            if (IsHost)
+            if (__instance.targetPlayer == null)
             {
-                if (!idleFarthestNodeSet)
-                {
-                    idleFarthestNode = __instance.ChooseFarthestNodeFromPosition(mainEntrancePosition.Value, false, 0, false, 50, false);
-                    idleFarthestNodeSet = true;
-                }
-                if (idleModeVersion.Value == 0)
-                {
-                    if (Vector3.Distance(mainEntrancePosition.Value, agent.transform.position) <= 5f) //must keep the masked away from the main entrance as they get stuck there.
-                    {
-                        if (IsHost)
-                        {
-                            __instance.SetDestinationToPosition(idleFarthestNode.position);
-                        }
-                        __instance.StopSearch(idleSearch);
-                        idleModeVersion.Value = 1;
-                    }
-                    else
-                    {
-                        __instance.StartSearch(agent.nextPosition, idleSearch);
-                    }
-                }
-                else if(idleModeVersion.Value == 1)
-                {
-                    if (idleFarthestNodeSet)
-                    {
-                        if (IsHost)
-                        {
-                            __instance.SetDestinationToPosition(idleFarthestNode.position);
-                        }
-                        if (Vector3.Distance(mainEntrancePosition.Value, agent.transform.position) >= 80f || Vector3.Distance(idleFarthestNode.position, agent.transform.position) <= 5f)
-                        {
-                            idleModeVersion.Value = 0;
-                        }
-                    }
-                }
-                maskedGoal = "being idle(mode=" + idleModeVersion.Value + ")";
-                //Plugin.mls.LogError(__instance.currentSearch.inProgress.ToString());
-                if (__instance.targetPlayer != null)
-                {
-                    __instance.StopSearch(idleSearch);
-                    idleFarthestNodeSet = false;
-                    mustChangeFocus = true;
-                    mustChangeActivity = true;
-                }
+                mustChangeFocus = true;
+                mustChangeActivity = true;
+                return;
+            }
+            PlayerControllerB randomPlayer = __instance.targetPlayer;
+            maskedGoal = "finding " + randomPlayer.name.ToString();
+            Vector3 pos = randomPlayer.transform.position;
+            //bool canSeePos = __instance.CheckLineOfSightForPosition(pos, 160f, 40, -1, null);
+            bool canSeePos = __instance.CheckLineOfSightForPosition(pos, 80f, 60, -1, null);
+            if (canSeePos)
+            {
+                followTime = 20f;
+            }
+            else
+            {
+                followTime -= 0.1f;
+            }
+            if (followTime == 0f)
+            {
+                mustChangeFocus = true;
+                mustChangeActivity = true;
             }
         }
         #endregion generic activites
+
+        private void checkForPathBlocked()
+        {
+            var doorways = Object.FindObjectsOfType<Doorway>();
+            /*var doors = Object.FindObjectsOfType<GameObject>().Where(x => x.name == "Doors");
+            var bigDoors = Object.FindObjectsOfType<GameObject>().Where(x => x.name == "SecurityDoors");*/
+            foreach (var door in doorways)
+            {
+                if (door.IsLocked)
+                {
+                    //check me!
+                    var currPos = this.transform.position;
+                    var nextPos = agent.nextPosition;
+                    var doorPos = door.transform.position;
+                    if (Vector3.Distance(nextPos, doorPos) <= 5f)
+                    {
+                        Plugin.mls.LogError("doorAngle = " + Vector3.Angle(currPos, doorPos).ToString());
+                        Plugin.mls.LogError("nextPosAngle = " + Vector3.Angle(nextPos, doorPos).ToString());
+                    }
+                }
+            }
+                    //var aheadPos = 
+
+                    /*((Component)this).transform.LookAt(new Vector3(((Component)terminal).transform.position.x, ((Component)this).transform.position.y, ((Component)terminal).transform.position.z));
+                    ((Component)this).transform.localPosition = new Vector3(((Component)terminal).transform.localPosition.x + 7f, ((Component)terminal).transform.localPosition.y + 0.25f, ((Component)terminal).transform.localPosition.z + -14.8f);
+
+                    
+                    var distance1 = Vector3.Distance(currPos, doorPos);
+                    var distance2 = Vector3.Distance(nextPos, doorPos);
+                    Plugin.mls.LogError("dis1=" + distance1.ToString() + "||dis2=" + distance2.ToString());
+                    //if previous node and next node are two closest to the door, work out if the door is between those nodes.. if it is.. change focus because this path is impossible
+                }
+            }
+            /*var originalMask = agent.areaMask;
+            Plugin.mls.LogError("AgentOriginalMask = " + originalMask);
+            agent.areaMask = 1;
+            Plugin.mls.LogError(agent.pathStatus.ToString());
+            return agent.CalculatePath(destination, path);
+            agent.areaMask = originalMask;*/
+        }
     }
     [HarmonyPatch(typeof(ShotgunItem))]
     internal class ShotgunItemPatch
