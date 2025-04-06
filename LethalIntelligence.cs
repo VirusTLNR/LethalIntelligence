@@ -43,7 +43,7 @@ namespace LethalIntelligence
         //variables for mod
         //====================
         public static string logPluginName = "Lethal Intelligence";
-        public static AssetBundle Bundle;
+        public static AssetBundle Bundle, Bundle2;
 
         //config settings
             //gen
@@ -56,7 +56,7 @@ namespace LethalIntelligence
         public static bool useTerminal, useTerminalCredit, maskedShipDeparture;
 
         public static GameObject MapDotPrefab;
-        public static RuntimeAnimatorController MaskedAnimController;
+        public static RuntimeAnimatorController MaskedAnimController, PlayerAnimController;
         public static RuntimeAnimatorController MapDotRework;
         public static string PluginDirectory;
         public static bool skinWalkersIntegrated;
@@ -175,6 +175,7 @@ namespace LethalIntelligence
             harmony.PatchAll(typeof(GrabbableObjectPatch));
             harmony.PatchAll(typeof(StartOfRoundPatch));
             harmony.PatchAll(typeof(RoundManagerPatch));
+            harmony.PatchAll(typeof(PlayerPatch));
 
             mls.LogDebug("Finished patching!");
         }
@@ -219,6 +220,7 @@ namespace LethalIntelligence
             try
             {
                 Bundle = AssetBundle.LoadFromFile(Path.Combine(Path.GetDirectoryName(PluginDirectory), "mapdotanimpack"));
+                Bundle2 = AssetBundle.LoadFromFile(Path.Combine(Path.GetDirectoryName(PluginDirectory), "livingmimic"));
             }
             catch (Exception ex)
             {
@@ -230,6 +232,7 @@ namespace LethalIntelligence
                 MapDotRework = Bundle.LoadAsset<RuntimeAnimatorController>("MapDotRework.controller");
                 MapDotPrefab = Bundle.LoadAsset<GameObject>("MaskedMapDot.prefab");
                 MaskedAnimController = Bundle.LoadAsset<RuntimeAnimatorController>("MaskedMetarig.controller");
+                PlayerAnimController = Bundle2.LoadAsset<RuntimeAnimatorController>("metarig_0.controller");
                 this.Logger.LogInfo((object)"Successfully loaded assets!");
             }
             catch (Exception ex2)

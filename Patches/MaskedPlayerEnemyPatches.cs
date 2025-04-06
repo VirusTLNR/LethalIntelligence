@@ -1,4 +1,6 @@
-﻿using HarmonyLib;
+﻿using GameNetcodeStuff;
+using HarmonyLib;
+using Unity.Netcode;
 using UnityEngine;
 
 namespace LethalIntelligence.Patches
@@ -220,5 +222,40 @@ namespace LethalIntelligence.Patches
         {
             return false;
         }*/
+    }
+
+    [HarmonyPatch(typeof(PlayerControllerB))]
+    internal class PlayerPatch
+    {
+        public static MaskedPlayerPrank mpp;
+
+        [HarmonyPatch("Update")]
+        [HarmonyPostfix]
+        private static void Awake_Postfix(PlayerControllerB __instance)
+        {
+            mpp = ((Component)__instance).gameObject.AddComponent<MaskedPlayerPrank>();
+        }
+
+    }
+
+    public class MaskedPlayerPrank : NetworkBehaviour
+    {
+
+        PlayerControllerB prankingPlayer;
+
+        public void Awake()
+        {
+            prankingPlayer = this.GetComponent<PlayerControllerB>();
+        }
+
+        public void Update()
+        {
+            //Plugin.mls.LogError("Setting player arms out!!");
+            if (prankingPlayer.playerBodyAnimator.runtimeAnimatorController != (Object)(object)Plugin.MaskedAnimController)
+            {
+                prankingPlayer.playerBodyAnimator.runtimeAnimatorController = Plugin.MaskedAnimController;
+            }
+            prankingPlayer.playerBodyAnimator.SetBool("HandsOut", true);
+        }
     }
 }
