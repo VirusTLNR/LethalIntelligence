@@ -29,7 +29,6 @@ namespace LethalIntelligence
 {
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
     [BepInDependency("BMX.LobbyCompatibility", BepInDependency.DependencyFlags.SoftDependency)]
-    [BepInDependency("LethalNetworkAPI", BepInDependency.DependencyFlags.HardDependency)]
     public class Plugin : BaseUnityPlugin
     {
         public static Plugin Instance { get; private set; } = null!;
@@ -49,7 +48,7 @@ namespace LethalIntelligence
             //gen
         public static bool enableMaskedFeatures, enableSkinWalkers, enableWendigos, enableMirage;
 
-        //masked personalities
+            //masked personalities
         public static bool enableMaskedAggressive, enableMaskedStealthy, enableMaskedCunning, enableMaskedDeceiving, enableMaskedInsane;
 
             //masked config
@@ -62,7 +61,6 @@ namespace LethalIntelligence
         public static bool skinWalkersIntegrated;
         public static bool wendigosIntegrated;
         public static bool mirageIntegrated;
-        public static bool alwaysHearActiveWalkiesIntegrated;
         //public static bool moreEmotesIntegrated; //not currently implemented?
 
         public static bool debugModeSetting;
@@ -92,7 +90,7 @@ namespace LethalIntelligence
 
             PluginDirectory = ((BaseUnityPlugin)this).Info.Location;
             LoadAssets();
-            mls.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} v{PluginInfo.PLUGIN_VERSION} has loaded!");
+            mls.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} v{MyPluginInfo.PLUGIN_VERSION} has loaded!");
 
             //loading config
             //general settings
@@ -138,8 +136,9 @@ namespace LethalIntelligence
             Patch();
             /*Logger = base.Logger;
             Instance = this;
+
             Patch();*/
-            Start(); //because it seemingly doesnt want to run.
+            Start();
         }
 
         internal void RemoveOrphanedConfigs()
@@ -170,11 +169,10 @@ namespace LethalIntelligence
 
             //all masked patches
             harmony.PatchAll(typeof(MaskedPlayerEnemyPatch));
-            //harmony.PatchAll(typeof(MaskedAIRevamp));
+            harmony.PatchAll(typeof(MaskedAIRevamp));
             harmony.PatchAll(typeof(ShotgunItemPatch));
             harmony.PatchAll(typeof(GrabbableObjectPatch));
             harmony.PatchAll(typeof(StartOfRoundPatch));
-            harmony.PatchAll(typeof(RoundManagerPatch));
 
             mls.LogDebug("Finished patching!");
         }
@@ -182,7 +180,6 @@ namespace LethalIntelligence
 
         private void Start()
         {
-            //calling this yet again in awake.. because sometimes it doesnt run
             if (enableMaskedFeatures)
             {
                 mls.LogInfo((object)"MaskedPersonalities feature has been enabled! Masked AI's behavior is now modified.");
@@ -201,17 +198,11 @@ namespace LethalIntelligence
                 mls.LogInfo((object)logPluginName + " <-> Wendigos_Voice_Cloning Integrated!");
                 wendigosIntegrated = true;
             }
-            if (Chainloader.PluginInfos.Keys.Any((string m) => m == "qwbarch.Mirage") && enableMirage && enableMaskedFeatures)
+            if (Chainloader.PluginInfos.Keys.Any((string w) => w == "qwbarch.Mirage") && enableMirage && enableMaskedFeatures)
             {
                 mls.LogInfo((object)logPluginName + " <-> Mirage Integrated!");
                 mirageIntegrated = true;
             }
-            if (Chainloader.PluginInfos.Keys.Any((string s) => s == "suskitech.LCAlwaysHearActiveWalkie") && enableMaskedFeatures)
-            {
-                mls.LogInfo((object)logPluginName + " <-> AlwaysHearActiveWalkies Support Enabled!");
-                alwaysHearActiveWalkiesIntegrated = true;
-            }
-            mls.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} v{PluginInfo.PLUGIN_VERSION} finished checking for available dependencies!");
         }
 
         private void LoadAssets()
