@@ -877,16 +877,19 @@ namespace LethalIntelligence.Patches
             maskedEnemy = ((Component)this).GetComponent<MaskedPlayerEnemy>();
             creatureAnimator = ((Component)((Component)this).transform.GetChild(0).GetChild(3)).GetComponent<Animator>();
             itemHolder = new GameObject("ItemHolder");
-            itemHolder.transform.parent = ((Component)__instance).transform.GetChild(0).GetChild(3).GetChild(0)
-                .GetChild(0)
-                .GetChild(0)
-                .GetChild(0)
-                .GetChild(1)
-                .GetChild(0)
-                .GetChild(0)
-                .GetChild(0);
-            itemHolder.transform.localPosition = new Vector3(-0.002f, 0.036f, -0.042f);
-            itemHolder.transform.localRotation = Quaternion.Euler(-3.616f, -2.302f, 0.145f);
+            itemHolder.transform.parent = ((Component)__instance).transform
+                .GetChild(0) // ScavengerModel
+                .GetChild(3) // metarig
+                .GetChild(0) // spine
+                .GetChild(0) // spine.001
+                .GetChild(0) // spine.002
+                .GetChild(0) // spine.003
+                .GetChild(1) // shoulder.R
+                .GetChild(0) // arm.R_upper
+                .GetChild(0) // arm.R_lower
+                .GetChild(0); // hand.R ... thanks to qwbarch for finding this out.
+            itemHolder.transform.localPosition = new Vector3(-0.002f, 0.036f, -0.042f); //ill consider this as setting defaults but this needs to be modified later.
+            itemHolder.transform.localRotation = Quaternion.Euler(-3.616f, -2.302f, 0.145f); //ill consider this as setting defaults but this needs to be modified later.
             if (GameNetworkManager.Instance.isHostingGame)
             {
                 maxDanceCount.Value = Random.Range(2, 4);
