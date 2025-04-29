@@ -43,7 +43,7 @@ namespace LethalIntelligence
         //variables for mod
         //====================
         public static string logPluginName = "Lethal Intelligence";
-        public static AssetBundle Bundle;
+        public static AssetBundle MapDotBundle, MaskedAnimationsBundle;
 
         //config settings
             //gen
@@ -218,18 +218,19 @@ namespace LethalIntelligence
         {
             try
             {
-                Bundle = AssetBundle.LoadFromFile(Path.Combine(Path.GetDirectoryName(PluginDirectory), "mapdotanimpack"));
+                MapDotBundle = AssetBundle.LoadFromFile(Path.Combine(Path.GetDirectoryName(PluginDirectory), "mapdot.bundle"));
+                MaskedAnimationsBundle = AssetBundle.LoadFromFile(Path.Combine(Path.GetDirectoryName(PluginDirectory), "maskedanimations.bundle"));
             }
             catch (Exception ex)
             {
-                mls.LogError((object)("Couldn't load asset bundle: " + ex.Message));
+                mls.LogError((object)("Couldn't load asset bundles: " + ex.Message));
                 return;
             }
             try
             {
-                MapDotRework = Bundle.LoadAsset<RuntimeAnimatorController>("MapDotRework.controller");
-                MapDotPrefab = Bundle.LoadAsset<GameObject>("MaskedMapDot.prefab");
-                MaskedAnimController = Bundle.LoadAsset<RuntimeAnimatorController>("MaskedMetarig.controller");
+                MapDotRework = MapDotBundle.LoadAsset<RuntimeAnimatorController>("MapDotRework.controller");
+                MapDotPrefab = MapDotBundle.LoadAsset<GameObject>("MaskedMapDot.prefab");
+                MaskedAnimController = MaskedAnimationsBundle.LoadAsset<RuntimeAnimatorController>("MaskedMetarig.controller");
                 this.Logger.LogInfo((object)"Successfully loaded assets!");
             }
             catch (Exception ex2)
