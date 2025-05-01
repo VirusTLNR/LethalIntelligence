@@ -483,7 +483,7 @@ namespace LethalIntelligence.Patches
                     {
                         Plugin.mls.LogError("Invalid Entrance ID -> " + iet.ToString());
                     }*/
-                    if(RoundManagerPatch.invalidEntrances.Contains(et.entranceId))
+                    if (RoundManagerPatch.invalidEntrances.Contains(et.entranceId))
                     {
                         continue; //shouldent use entrance when its invalid.
                     }
@@ -636,7 +636,7 @@ namespace LethalIntelligence.Patches
                     string HoC = (IsHost) ? "Host" : "Client";
 
                     string debugMsg = "DebugMode..." + //because the first line is empty
-                    "\n===== MaskedStatusReport("+HoC+") Start =====" +
+                    "\n===== MaskedStatusReport(" + HoC + ") Start =====" +
                     "\nMaskedID = " + maskedId +
                     "\nHostTimeStamp = " + hostTimeStampPlaceholder +
                     "\nMaskedPersonality = " + maskedPersonality.ToString() +
@@ -725,11 +725,11 @@ namespace LethalIntelligence.Patches
             //maskedPosition = LNetworkVariable<Vector3>.Connect("maskedPosition" + id, Vector3.negativeInfinity, LNetworkVariableWritePerms.Everyone); //probably should be server only.
             //maskedPosition.OnValueChanged += (oldVal, newVal) => { updatePosition(oldVal, newVal); };
             //maskedRotation = LNetworkVariable<Quaternion>.Connect("maskedRotation" + id, new Quaternion(), LNetworkVariableWritePerms.Everyone); //probably should be server only.
-            currentDestinationDistance = LNetworkVariable<float>.Connect("currentDestinationDistance" + id, -1,LNetworkVariableWritePerms.Everyone); //probably should be server only.
-            maskedTargetId = LNetworkVariable<ulong>.Connect("maskedTarget" + id, ulong.MaxValue , LNetworkVariableWritePerms.Everyone); //probably should be server only.
+            currentDestinationDistance = LNetworkVariable<float>.Connect("currentDestinationDistance" + id, -1, LNetworkVariableWritePerms.Everyone); //probably should be server only.
+            maskedTargetId = LNetworkVariable<ulong>.Connect("maskedTarget" + id, ulong.MaxValue, LNetworkVariableWritePerms.Everyone); //probably should be server only.
             maskedTargetId.OnValueChanged += (oldVal, newVal) => { updateTargetPlayer(oldVal, newVal); };
             maskedInSpecialAnimation = LNetworkVariable<bool>.Connect("maskedInSpecialAnimation" + id, false, LNetworkVariableWritePerms.Everyone); //probably should be server only.
-            maskedPersonalityInt = LNetworkVariable<int>.Connect("maskedPersonalityInt" + id, -1 , LNetworkVariableWritePerms.Everyone);
+            maskedPersonalityInt = LNetworkVariable<int>.Connect("maskedPersonalityInt" + id, -1, LNetworkVariableWritePerms.Everyone);
             maskedFocusInt = LNetworkVariable<int>.Connect("maskedFocusInt" + id, -1, LNetworkVariableWritePerms.Everyone);
             maskedActivityInt = LNetworkVariable<int>.Connect("maskedActivityInt" + id, -1, LNetworkVariableWritePerms.Everyone);
 
@@ -760,7 +760,7 @@ namespace LethalIntelligence.Patches
 
             //other
             dropItem = LNetworkVariable<bool>.Connect("dropItem" + id, false, LNetworkVariableWritePerms.Everyone);
-            dropItem.OnValueChanged += (oldVal, newVal) => { DropItemsNew(oldVal,newVal); };
+            dropItem.OnValueChanged += (oldVal, newVal) => { DropItemsNew(oldVal, newVal); };
 
             //bools for checking if something is reachable
             terminalReachable = LNetworkVariable<bool>.Connect("terminalReachable" + id, false, LNetworkVariableWritePerms.Everyone);
@@ -843,7 +843,7 @@ namespace LethalIntelligence.Patches
                 Plugin.mls.LogDebug("MoonWasNotFound:- " + RoundManager.Instance.currentLevel.ToString());
                 return;
             }
-            else if(RoundManager.Instance.dungeonGenerator == null)
+            else if (RoundManager.Instance.dungeonGenerator == null)
             {//company moon (no interior)
                 currentMoon = RoundManager.Instance.currentLevel.name;
                 currentInterior = "null";
@@ -1102,7 +1102,7 @@ namespace LethalIntelligence.Patches
                         {
                             if (NavMesh.SamplePosition(apparatus.transform.position + -apparatus.transform.forward, out hitApparatus, 10f, -1))
                             {
-                                if(IsHost) apparatusReachable.Value = agent.CalculatePath(hitApparatus.position, nmpApparatus);
+                                if (IsHost) apparatusReachable.Value = agent.CalculatePath(hitApparatus.position, nmpApparatus);
                                 //Plugin.mls.LogError("Reachable=" + apparatusReachable);
                                 //breakerBoxDistance = Vector3.Distance(((Component)this).transform.position, hitBreaker.position);
                                 //apparatusDistance = Vector3.Distance(maskedEnemy.transform.position, hitApparatus.position);
@@ -1312,7 +1312,7 @@ namespace LethalIntelligence.Patches
                     //this was a cunning only line
                     //else if (closestGrabbableDistance < breakerBoxDistance && closestGrabbableDistance < terminalDistance && lastMaskedFocus != Focus.Items && closestGrabbableReachable && !noMoreItems)
                     {
-                        if(maskedPersonality == Personality.Aggressive)
+                        if (maskedPersonality == Personality.Aggressive)
                         {
                             noMoreItems = true;
                             mustChangeFocus = true;
@@ -1566,7 +1566,7 @@ namespace LethalIntelligence.Patches
             {
                 foreach (GrabbableObject go in GlobalItemList.Instance.allitems)
                 {
-                    if(go.NetworkObjectId == closestGrabbableId.Value)
+                    if (go.NetworkObjectId == closestGrabbableId.Value)
                     {
                         closestGrabbable = go;
                         //Plugin.mls.LogError("FOUND ITEM!:- " + go.name);
@@ -1579,7 +1579,7 @@ namespace LethalIntelligence.Patches
 
         private void LateUpdate()
         {
-            if(agent == null)
+            if (agent == null)
             {
                 return;
             }
@@ -1630,7 +1630,7 @@ namespace LethalIntelligence.Patches
                 {
                     ((Behaviour)agent).enabled = false;
                 }
-                if(isHoldingObject)
+                if (isHoldingObject)
                 {
                     dropItem.Value = true;
                 }
@@ -1845,7 +1845,7 @@ namespace LethalIntelligence.Patches
                     maskedGoal = "finding RandomItem";
                     findRandomItem();
                 }
-                else if(maskedActivity == Activity.Idle)
+                else if (maskedActivity == Activity.Idle)
                 {
                     maskedGoal = "being idle, wandering until a player is targeted";
                     idleMode();
@@ -1965,20 +1965,20 @@ namespace LethalIntelligence.Patches
             if (canSeePos || !needsToSeePosition)
             {
                 //maskedGoal = $"Look at position {pos} called! lookatpositiontimer setting to {lookAtTime}"; //this is laggy sadly..
-                maskedEnemy.focusOnPosition = new Vector3(pos.x,pos.y-1f,pos.z);
+                maskedEnemy.focusOnPosition = new Vector3(pos.x, pos.y - 1f, pos.z);
                 maskedEnemy.lookAtPositionTimer = lookAtTime;
                 //float num = Vector3.Angle(((Component)this).transform.forward, pos - ((Component)this).transform.position);
                 //float num = Vector3.Angle(((Component)this).transform.forward, pos - maskedEnemy.eye.transform.position); //not networked.
                 Vector3 eyeXZ = new Vector3(maskedEnemy.eye.transform.position.x, 0, maskedEnemy.eye.transform.position.z);
                 Vector3 posXZ = new Vector3(pos.x, 0, pos.z);
                 float dist = Vector3.Distance(eyeXZ, posXZ);
-                if(dist < 1f)
+                if (dist < 1f)
                 {
                     dist = 1f;
                 }
                 float num = Vector3.Angle(maskedEnemy.eye.transform.forward, pos - maskedEnemy.eye.transform.position); //not networked.
                 //float num = Vector3.Angle(((Component)this).transform.forward, pos - maskedPosition.Value);
-                float numMultiplier = 2f*dist;
+                float numMultiplier = 2f * dist;
                 if (pos.y - maskedEnemy.headTiltTarget.position.y < 0f)
                 {
                     num /= -numMultiplier;
@@ -1987,7 +1987,7 @@ namespace LethalIntelligence.Patches
                         num = -60f;
                     }*/
                 }
-                else if( pos.y - maskedEnemy.headTiltTarget.position.y > 0f)
+                else if (pos.y - maskedEnemy.headTiltTarget.position.y > 0f)
                 {
                     num /= numMultiplier;
                     /*if (num > 60f)
@@ -1995,7 +1995,7 @@ namespace LethalIntelligence.Patches
                         num = 60f;
                     }*/
                 }
-                maskedEnemy.verticalLookAngle = -(num-2f);
+                maskedEnemy.verticalLookAngle = -(num - 2f);
                 //Plugin.mls.LogError("CurrPos=" + maskedEnemy.eye.transform.position + " | LookingAt=" + pos + " | tiltAngle=" + num);
             }
             else
@@ -2165,7 +2165,7 @@ namespace LethalIntelligence.Patches
 
         private void DetectAndSelectRandomPlayer()
         {
-            if(targetedPlayer != null)
+            if (targetedPlayer != null)
             {
                 return; //you already have a target so stop looking for a new one.
             }
@@ -2442,7 +2442,7 @@ namespace LethalIntelligence.Patches
                 {
                     isStaminaDowned = false;
                 }
-                if(maskedEnemy.staminaTimer > 1f)
+                if (maskedEnemy.staminaTimer > 1f)
                 {
                     isTired.Value = false;
                 }
@@ -2748,7 +2748,7 @@ namespace LethalIntelligence.Patches
                 }
             }
             //walkieToGrab = maskedWalkie.Value;
-            if(agent == null)
+            if (agent == null)
             {
                 return; //agent was null, this shouldent happen
             }
@@ -3143,7 +3143,7 @@ namespace LethalIntelligence.Patches
             }
             else if (maskedFocus == Focus.BreakerBox)
             {
-                if(seenCheckNum <= 0)
+                if (seenCheckNum <= 0)
                 {
                     Plugin.mls.LogWarning("BreakerBox was seen, but could not be reached! Not Critical, but please report this!");
                     mustChangeFocus = true;
@@ -3300,7 +3300,7 @@ namespace LethalIntelligence.Patches
                     mustChangeFocus = true;
                 }
             }
-            else if(maskedFocus == Focus.Player)
+            else if (maskedFocus == Focus.Player)
             {
                 focusingOnPlayer();
             }
@@ -3345,7 +3345,7 @@ namespace LethalIntelligence.Patches
                     else
                     {
                         isCrouched.Value = false; //stop crouching after picking up an item
-                        if(!maskedEnemy.isOutside)
+                        if (!maskedEnemy.isOutside)
                         {
                             findEntranceTeleports(true, true);
                         }
@@ -3994,25 +3994,25 @@ namespace LethalIntelligence.Patches
 
         private int objectInLOSCheck(EnemyAI ent, GameObject gameObj, int proxyDist = -1, int moveCheckForwardDistance = 0) //0 = fail, 1 = seen, 2 = succeed
         {
-            if (ent.CheckLineOfSightForPosition(gameObj.transform.position+(gameObj.transform.forward*moveCheckForwardDistance), 60f, 2,proxyDist))
+            if (ent.CheckLineOfSightForPosition(gameObj.transform.position + (gameObj.transform.forward * moveCheckForwardDistance), 60f, 2, proxyDist))
             {
                 //Plugin.mls.LogError("LOSCheck-Pass");
                 seenCheckNum = 200;
                 return 2;
             }
             int proxyDistModified = -1;
-            if(proxyDist != -1)
+            if (proxyDist != -1)
             {
 
                 proxyDistModified = proxyDist * 2;
             }
-            if (ent.CheckLineOfSightForPosition(gameObj.transform.position + (gameObj.transform.forward*moveCheckForwardDistance), 60f, 4, proxyDistModified))
+            if (ent.CheckLineOfSightForPosition(gameObj.transform.position + (gameObj.transform.forward * moveCheckForwardDistance), 60f, 4, proxyDistModified))
             {
                 //Plugin.mls.LogError("LOSCheck-Seen");
                 seenCheckNum--;
                 return 1;
             }
-            else if(seenCheckNum < 200)
+            else if (seenCheckNum < 200)
             {
                 seenCheckNum--;
             }
@@ -4024,7 +4024,7 @@ namespace LethalIntelligence.Patches
         //apparatus
         private void usingApparatus()
         {
-            if(apparatus == null)
+            if (apparatus == null)
             {
                 Plugin.mls.LogWarning("Apparatus was null so insane cannot sabotage it. (usually due to mansion interior)");
                 mustChangeFocus = true;
@@ -4032,7 +4032,7 @@ namespace LethalIntelligence.Patches
                 noMoreApparatus = true;
                 return;
             }
-            if(seenCheckNum <= 0)
+            if (seenCheckNum <= 0)
             {
                 Plugin.mls.LogWarning("Apparatus was seen, but could not be reached! Not Critical, but please report this!");
                 mustChangeFocus = true;
@@ -4110,7 +4110,7 @@ namespace LethalIntelligence.Patches
 
         private void sabotageApparatus(bool value)
         {
-            if(!value)
+            if (!value)
             {
                 return;
             }
@@ -4435,7 +4435,7 @@ namespace LethalIntelligence.Patches
         private void UsingTerminal()
         {
             //terminal.transform.position.x,this.transform.position.y,terminal.transform.position.z
-            Vector3 terminalStandingPosition = new Vector3(terminal.transform.position.x,terminal.transform.position.y - 1.44f,terminal.transform.position.z) - (terminal.transform.right * 0.8f);
+            Vector3 terminalStandingPosition = new Vector3(terminal.transform.position.x, terminal.transform.position.y - 1.44f, terminal.transform.position.z) - (terminal.transform.right * 0.8f);
             //IL_0007: Unknown result type (might be due to invalid IL or missing references)
             //IL_0017: Unknown result type (might be due to invalid IL or missing references)
             //IL_01ab: Unknown result type (might be due to invalid IL or missing references)
@@ -4510,7 +4510,7 @@ namespace LethalIntelligence.Patches
                 if (IsHost)
                 {
                     this.transform.position = terminalStandingPosition;
-                    this.transform.LookAt(new Vector3(terminal.transform.position.x,this.transform.position.y,terminal.transform.position.z));
+                    this.transform.LookAt(new Vector3(terminal.transform.position.x, this.transform.position.y, terminal.transform.position.z));
                 }
                 if (agent.transform.position != terminalStandingPosition)
                 {
@@ -6053,7 +6053,7 @@ namespace LethalIntelligence.Patches
                 mustChangeActivity = true;
                 return;
             }
-            maskedGoal = "wallking to " +  selectedItem.name + "(" + maskedEnemy.isOutside + "/" + selectedItem.isInFactory + "/" + selectedItem.transform.position + ")";
+            maskedGoal = "walking to " + selectedItem.name + "(" + maskedEnemy.isOutside + "/" + selectedItem.isInFactory + "/" + selectedItem.transform.position + ")";
             if (IsHost)
             {
                 maskedEnemy.SetDestinationToPosition(selectedItem.transform.position, true);
@@ -6262,7 +6262,7 @@ namespace LethalIntelligence.Patches
         {
             // Firstly, each EnemyAI will have an AudioStream component attached to it. This is used for handling networked audio.
             // In order to know when a new audio clip is created and streamed over, we will be subscribing to "AudioStreamEvent"s.
-            if(maskedEnemy.GetComponent<AudioStream>() == null)
+            if (maskedEnemy.GetComponent<AudioStream>() == null)
             {
                 Plugin.mls.LogWarning("Mirage AudioStream is NULL - Disabling Mirage Compatibility");
                 Plugin.mirageIntegrated = false;
@@ -6280,7 +6280,7 @@ namespace LethalIntelligence.Patches
             int walkieNearby = 0;
             float walkieDistance;
 
-            foreach(WalkieTalkie walkie in GlobalItemList.Instance.allWalkieTalkies)
+            foreach (WalkieTalkie walkie in GlobalItemList.Instance.allWalkieTalkies)
             {
                 if (walkie == heldGrabbable)
                 {
@@ -6374,7 +6374,7 @@ namespace LethalIntelligence.Patches
                     Plugin.mls.LogWarning(String.Format("Channels = {0}", sEvent.channels.ToString()));
 
                     Plugin.mls.LogWarning(String.Format("{0}, {1}", sof.ToString(), sofoc.ToString()));*/
-                    int audioLength = (int) (((double)sEvent.lengthSamples / (double)sEvent.frequency) / (double)sEvent.channels * 1000); //milliseconds
+                    int audioLength = (int)(((double)sEvent.lengthSamples / (double)sEvent.frequency) / (double)sEvent.channels * 1000); //milliseconds
                     //Plugin.mls.LogError(audioLength + " = (" + (double)sEvent.lengthSamples + " / " + (double)sEvent.frequency + ") / " + (double)sEvent.channels + " * 1000");
                     if (audioLength == 0)
                     {
@@ -6399,17 +6399,17 @@ namespace LethalIntelligence.Patches
                     }
                 }
                 //Plugin.mls.LogError("mirageClipAllowed = " + mirageClipAllowed);
-                if(!mirageClipAllowed)
+                if (!mirageClipAllowed)
                 {
                     return;
                 }
                 foreach (WalkieTalkie walkieTalkie in allWalkieTalkies)
                 {
-                    if(walkieTalkie == heldGrabbable)
+                    if (walkieTalkie == heldGrabbable)
                     {
                         continue; //masked is holding this walkie
                     }
-                    if(!walkieTalkie.isBeingUsed)
+                    if (!walkieTalkie.isBeingUsed)
                     //if (((Renderer)((GrabbableObject)walkieTalkie).mainObjectRenderer).sharedMaterial == walkieTalkie.offMaterial)
                     {
                         continue; //walkie is turned off
@@ -6612,7 +6612,7 @@ namespace LethalIntelligence.Patches
                         __instance.StartSearch(agent.nextPosition, idleSearch);
                     }
                 }
-                else if(idleModeVersion.Value == 1)
+                else if (idleModeVersion.Value == 1)
                 {
                     if (idleFarthestNodeSet)
                     {
