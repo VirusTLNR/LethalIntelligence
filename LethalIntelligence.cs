@@ -216,10 +216,10 @@ namespace LethalIntelligence
 
         private void LoadAssets()
         {
+            //load mapdot
             try
             {
                 MapDotBundle = AssetBundle.LoadFromFile(Path.Combine(Path.GetDirectoryName(PluginDirectory), "mapdot.bundle"));
-                MaskedAnimationsBundle = AssetBundle.LoadFromFile(Path.Combine(Path.GetDirectoryName(PluginDirectory), "maskedanimations.bundle"));
             }
             catch (Exception ex)
             {
@@ -230,13 +230,38 @@ namespace LethalIntelligence
             {
                 MapDotRework = MapDotBundle.LoadAsset<RuntimeAnimatorController>("MapDotRework.controller");
                 MapDotPrefab = MapDotBundle.LoadAsset<GameObject>("MaskedMapDot.prefab");
-                MaskedAnimController = MaskedAnimationsBundle.LoadAsset<RuntimeAnimatorController>("MaskedMetarig.controller");
-                this.Logger.LogInfo((object)"Successfully loaded assets!");
+                this.Logger.LogInfo((object)"Successfully loaded MapDot assets!");
             }
             catch (Exception ex2)
             {
                 this.Logger.LogError((object)("Couldn't load assets: " + ex2.Message));
             }
+            MapDotBundle.Unload(false);
+
+            //load masked animations
+            try
+            {
+                MaskedAnimationsBundle = AssetBundle.LoadFromFile(Path.Combine(Path.GetDirectoryName(PluginDirectory), "maskedanimations.bundle"));
+                foreach (var animation in MaskedAnimationsBundle.GetAllAssetNames())
+                {
+                    Plugin.mls.LogError(animation.ToString());
+                }
+            }
+            catch (Exception ex)
+            {
+                mls.LogError((object)("Couldn't load asset bundles: " + ex.Message));
+                return;
+            }
+            try
+            {
+                MaskedAnimController = MaskedAnimationsBundle.LoadAsset<RuntimeAnimatorController>("MaskedMetarig.controller");
+                this.Logger.LogInfo((object)"Successfully loaded MaskedAnimations assets!");
+            }
+            catch (Exception ex2)
+            {
+                this.Logger.LogError((object)("Couldn't load assets: " + ex2.Message));
+            }
+            MaskedAnimationsBundle.Unload(false);
         }
     }
 }

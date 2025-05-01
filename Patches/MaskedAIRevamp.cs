@@ -1055,7 +1055,7 @@ namespace LethalIntelligence.Patches
             NavMeshPath nmpBreaker = new NavMeshPath(), nmpTerminal = new NavMeshPath(), nmpLocker = new NavMeshPath(), nmpApparatus = new NavMeshPath();
             NavMeshHit hitBreaker, hitTerminal, hitLocker, hitApparatus;
 
-//TimeSinceTeleporting += updateFrequency;
+            //TimeSinceTeleporting += updateFrequency;
             //Plugin.mls.LogError("tst = " + TimeSinceTeleporting);
 
             if (calculationDelay > 0)
@@ -1241,7 +1241,7 @@ namespace LethalIntelligence.Patches
                         try
                         {
                             lockerPosition.Value = GameObject.Find("LockerAudio").transform.position; // so use this for now
-                                                                                                //this isnt working right now.. it routes the masked on to above the ship..
+                                                                                                      //this isnt working right now.. it routes the masked on to above the ship..
                             /*if (NavMesh.SamplePosition(GameObject.Find("LockerAudio").transform.position,out hitLocker,10,-1))
                             {
                                 lockerReachable = agent.CalculatePath(hitTerminal.position, nmpLocker);
@@ -1353,7 +1353,7 @@ namespace LethalIntelligence.Patches
                     else if (maskedPersonality == Personality.Insane && lastMaskedFocus != Focus.Escape && lateGameChoices && completedApparatusFocus && maskedEnemy.isOutside)
                     {
                         maskedFocusInt.Value = (int)Focus.Escape; //syncing variables
-                                                                     //maskedFocus = Focus.Apparatus;
+                                                                  //maskedFocus = Focus.Apparatus;
                         maskedActivityInt.Value = (int)Activity.None; //syncing variables
                                                                       //maskedActivity = Activity.None;
                         mustChangeActivity = true;
@@ -1713,6 +1713,7 @@ namespace LethalIntelligence.Patches
                 Plugin.mls.LogInfo("Masked '" + maskedId + "' personality changed to '" + maskedPersonality.ToString() + "' (Moon:" + currentMoon + " & Interior:" + currentInterior + ")");
                 mustChangeFocus = true;
                 mustChangeActivity = true;
+                giftFakeItems(); //for testing only
             }
             if (!((Component)this).TryGetComponent<NavMeshAgent>(out agent))
             {
@@ -2407,7 +2408,7 @@ namespace LethalIntelligence.Patches
                 maskedEnemy.creatureAnimator.SetTrigger("Tired");
             }
             else
-            { 
+            {
                 maskedEnemy.creatureAnimator.ResetTrigger("Tired");
             }
             //Plugin.mls.LogError("running? = " + isRunning.Value + " | jumping? = " + isJumped.Value + "| StamDowned = " + isStaminaDowned + " | stamina = " + maskedEnemy.staminaTimer);
@@ -2513,7 +2514,7 @@ namespace LethalIntelligence.Patches
                 creatureAnimator.SetLayerWeight(creatureAnimator.GetLayerIndex("Item"), upperBodyAnimationsWeight);
                 //creatureAnimator.SetLayerWeight(creatureAnimator.GetLayerIndex("Item"), upperBodyAnimationsWeight); //this line isnt needed surely?
             }
-            if (isHoldingObject && heldGrabbable.itemProperties.twoHandedAnimation && !(heldGrabbable is ShotgunItem))
+            /*if (isHoldingObject && heldGrabbable.itemProperties.twoHandedAnimation && !(heldGrabbable is ShotgunItem))
             {
                 creatureAnimator.SetTrigger("HoldLung");
                 creatureAnimator.ResetTrigger("HoldFlash");
@@ -2554,6 +2555,98 @@ namespace LethalIntelligence.Patches
                 creatureAnimator.ResetTrigger("HoldLung");
                 creatureAnimator.ResetTrigger("HoldShotgun");
                 creatureAnimator.ResetTrigger("HoldOneItem");
+            }*/
+            //new way of setting item position, rotation and animation based off modifications qwbarch did in Mirage
+
+            string grabAnim = "";
+
+            if(heldGrabbable == null)
+            {
+                Plugin.mls.LogError("NotHoldingAnItem");
+                return; //not holding an item
+            }
+            else if(heldGrabbable.itemProperties == null)
+            {
+                Plugin.mls.LogError("ItemPropertiesAreNull");
+                return;
+            }
+            else if(heldGrabbable.itemProperties.grabAnim == null)
+            {
+                Plugin.mls.LogError("GrabAnim is null.. set as 'Grab'");
+                grabAnim = "";
+            }
+            else
+            {
+                grabAnim = heldGrabbable.itemProperties.grabAnim;
+            }
+
+            if (isHoldingObject)
+            {
+                Plugin.mls.LogError("GrabAnimation to select!...=" + grabAnim);
+                switch (grabAnim)
+                {
+                    //1 handed items
+                    case "Grab":
+                    case "HoldKnife":
+                    case "HoldPatcherTool":
+                        itemHolder.transform.localPosition = new Vector3(0.002f, 0.056f, -0.046f); //setting position
+                        itemHolder.transform.localRotation = Quaternion.Euler(352.996f, 0f, 356.89f); //setting rotation
+                        creatureAnimator.SetTrigger("HoldOneItem");
+                        break;
+
+                    //2 handed items
+                    case "HoldLung":
+                        itemHolder.transform.localPosition = new Vector3(-0.1799f, -0.1014f, -0.5119f); //setting position
+                        itemHolder.transform.localRotation = Quaternion.Euler(314.149f, 13.06f, 305.192f); //setting rotation
+                        creatureAnimator.SetTrigger("HoldLung");
+                        break;
+
+                    //items like shotguns
+                    case "HoldShotgun":
+                        itemHolder.transform.localPosition = new Vector3(0.0402f, -0.048f, 0.0104f); //setting position
+                        itemHolder.transform.localRotation = Quaternion.Euler(340.836f, 22.626f, 2.104f); //setting rotation
+                        creatureAnimator.SetTrigger("HoldShotgun");
+                        break;
+                    //items like jetpacks
+                    case "HoldJetpack":
+                        itemHolder.transform.localPosition = new Vector3(-0.107f, -0.078f, -0.232f); //setting position
+                        itemHolder.transform.localRotation = Quaternion.Euler(305.184f, 210.613f, 84.047f); //setting rotation
+                        creatureAnimator.SetTrigger("HoldJetpack");
+                        break;
+
+                    //items like beltbags
+                    case "HoldForward":
+                        itemHolder.transform.localPosition = new Vector3(-0.1453f, -0.0898f, -0.4686f); //setting position
+                        itemHolder.transform.localRotation = Quaternion.Euler(314.149f, 13.06f, 305.192f); //setting rotation
+                        creatureAnimator.SetTrigger("HoldBeltbag");
+                        break;
+
+                    //items like Clipboard
+                    case "GrabClipboard":
+                        itemHolder.transform.localPosition = new Vector3(0.007f, 0.138f, -0.066f); //setting position
+                        itemHolder.transform.localRotation = Quaternion.Euler(15.577f, 358.759f, 356.795f); //setting rotation
+                        creatureAnimator.SetTrigger("HoldClipboard");
+                        break;
+
+                    //no case matched, which means we do not account for this animation yet and so it will need adding to the bundle as well as a case being added above.
+                    default:
+                        Plugin.mls.LogError("GrabAnimation not found for item: " + heldGrabbable.name.ToString() + "(Animation: " + heldGrabbable.itemProperties.grabAnim.ToString() + ")");
+                        break;
+
+                }
+            }
+            else
+            {
+                //reset all triggers related to holding items.
+                creatureAnimator.ResetTrigger("HoldOneItem");
+                creatureAnimator.ResetTrigger("HoldLung");
+                creatureAnimator.ResetTrigger("HoldShotgun");
+                creatureAnimator.ResetTrigger("HoldJetpack");
+                creatureAnimator.ResetTrigger("HoldBeltbag");
+                creatureAnimator.ResetTrigger("HoldClipboard");
+                itemHolder.transform.localPosition = new Vector3(0.002f, 0.0563f, -0.0456f); //ill consider this as setting defaults but this needs to be modified later.
+                itemHolder.transform.localRotation = Quaternion.Euler(359.9778f, -0.0006f, 359.9901f); //ill consider this as setting defaults but this needs to be modified later.
+
             }
         }
 
@@ -3559,87 +3652,87 @@ namespace LethalIntelligence.Patches
             if (hasSeenTarget && player != null)
             {
                 //do personality things*/
-                /*if (maskedPersonality == Personality.Deceiving)
+            /*if (maskedPersonality == Personality.Deceiving)
+            {
+                if (distanceToPlayer >= 17f)
                 {
-                    if (distanceToPlayer >= 17f)
+                    //find player
+                    PlayerControllerB player = __instance.GetClosestPlayer();
+                    __instance.SetMovingTowardsTargetPlayer(player);
+                }
+                else
+                {
+                    if (enableDance)
                     {
-                        //find player
-                        PlayerControllerB player = __instance.GetClosestPlayer();
-                        __instance.SetMovingTowardsTargetPlayer(player);
+                        isDancing.Value = true;
+                        maskedEnemy.stopAndStareTimer = 0.9f;
+                        agent.speed = 0f;
                     }
-                    else
+                    if (distanceToPlayer < 17f && __instance.targetPlayer.performingEmote && maxDanceCount.Value > 0)
                     {
-                        if (enableDance)
+                        maskedGoal = "emoting with nearby player";
+                        if (GameNetworkManager.Instance.isHostingGame && !enableDance)
                         {
-                            isDancing.Value = true;
-                            maskedEnemy.stopAndStareTimer = 0.9f;
-                            agent.speed = 0f;
-                        }
-                        if (distanceToPlayer < 17f && __instance.targetPlayer.performingEmote && maxDanceCount.Value > 0)
-                        {
-                            maskedGoal = "emoting with nearby player";
-                            if (GameNetworkManager.Instance.isHostingGame && !enableDance)
-                            {
-                                LNetworkVariable<int> obj3 = maxDanceCount; //TODO
-                                obj3.Value -= 1;
-                                randomPose = 1;
-                                enableDance = true;
-                            }
-                            stopAndTbagTimer = 0.9f;
-                            __instance.agent.speed = 0f;
-                        }
-                        else if (isDancing.Value && GameNetworkManager.Instance.isHostingGame)
-                        {
-                            isDancing.Value = false;
-                            stopAndTbagTimer = 0.4f;
+                            LNetworkVariable<int> obj3 = maxDanceCount; //TODO
+                            obj3.Value -= 1;
                             randomPose = 1;
-                            enableDance = false;
+                            enableDance = true;
                         }
-                        mustChangeFocus = true;
+                        stopAndTbagTimer = 0.9f;
+                        __instance.agent.speed = 0f;
                     }
+                    else if (isDancing.Value && GameNetworkManager.Instance.isHostingGame)
+                    {
+                        isDancing.Value = false;
+                        stopAndTbagTimer = 0.4f;
+                        randomPose = 1;
+                        enableDance = false;
+                    }
+                    mustChangeFocus = true;
                 }
-                else if (maskedPersonality == Personality.Aggressive)
+            }
+            else if (maskedPersonality == Personality.Aggressive)
+            {
+                //find the nearest player and kill them as fast as you can i guess? should change focus once player is dead
+                PlayerControllerB pt = __instance.GetClosestPlayer();
+                if (pt == null)
                 {
-                    //find the nearest player and kill them as fast as you can i guess? should change focus once player is dead
-                    PlayerControllerB pt = __instance.GetClosestPlayer();
-                    if (pt == null)
-                    {
-                        mustChangeFocus = true;
-                        //maskedFocus = Focus.None;
-                        mustChangeActivity = true;
-                        return;
-                    }
-                    __instance.SetMovingTowardsTargetPlayer(pt);
-                    //if (Vector3.Distance(__instance.transform.position, pt.transform.position) < 1f || pt.isPlayerDead)
-                    if (Vector3.Distance(agent.transform.position, pt.transform.position) < 1f || pt.isPlayerDead)
-                    {
-                        mustChangeFocus = true;
-                        //maskedFocus = Focus.None;
-                        mustChangeActivity = true;
-                    }
+                    mustChangeFocus = true;
+                    //maskedFocus = Focus.None;
+                    mustChangeActivity = true;
+                    return;
                 }
-                else //insane, stealthy, cunning
-                {*/
-                    //copying aggressive's for now
-                    //find the nearest player and kill them as fast as you can i guess? should change focus once player is dead
-                    PlayerControllerB pt = __instance.GetClosestPlayer();
-                    if (pt == null)
-                    {
-                        mustChangeFocus = true;
-                        //maskedFocus = Focus.None;
-                        mustChangeActivity = true;
-                        return;
-                    }
-                    __instance.SetMovingTowardsTargetPlayer(pt);
-                    //if (Vector3.Distance(__instance.transform.position, pt.transform.position) < 1f || pt.isPlayerDead)
-                    float tempDist = Vector3.Distance(agent.transform.position, pt.transform.position);
-                    if (tempDist < 1f || pt.isPlayerDead)
-                    {
-                        mustChangeFocus = true;
-                        //maskedFocus = Focus.None;
-                        mustChangeActivity = true;
-                    }
-                //}
+                __instance.SetMovingTowardsTargetPlayer(pt);
+                //if (Vector3.Distance(__instance.transform.position, pt.transform.position) < 1f || pt.isPlayerDead)
+                if (Vector3.Distance(agent.transform.position, pt.transform.position) < 1f || pt.isPlayerDead)
+                {
+                    mustChangeFocus = true;
+                    //maskedFocus = Focus.None;
+                    mustChangeActivity = true;
+                }
+            }
+            else //insane, stealthy, cunning
+            {*/
+            //copying aggressive's for now
+            //find the nearest player and kill them as fast as you can i guess? should change focus once player is dead
+            PlayerControllerB pt = __instance.GetClosestPlayer();
+            if (pt == null)
+            {
+                mustChangeFocus = true;
+                //maskedFocus = Focus.None;
+                mustChangeActivity = true;
+                return;
+            }
+            __instance.SetMovingTowardsTargetPlayer(pt);
+            //if (Vector3.Distance(__instance.transform.position, pt.transform.position) < 1f || pt.isPlayerDead)
+            float tempDist = Vector3.Distance(agent.transform.position, pt.transform.position);
+            if (tempDist < 1f || pt.isPlayerDead)
+            {
+                mustChangeFocus = true;
+                //maskedFocus = Focus.None;
+                mustChangeActivity = true;
+            }
+            //}
             //}
         }
 
@@ -4481,7 +4574,7 @@ namespace LethalIntelligence.Patches
                         Plugin.isTerminalBeingUsed = true;
                         terminalAccess(false);
                         isUsingTerminal = true;
-                    }                    
+                    }
                 }
                 if (!terminal.terminalInUse && !noMoreTerminal && !__instance.isEnemyDead)
                 {
@@ -5550,7 +5643,7 @@ namespace LethalIntelligence.Patches
                     isCrouched.Value = true;
                 }*/
             }
-        } 
+        }
 
         public void GrabItemNewOne()
         {
@@ -6226,7 +6319,7 @@ namespace LethalIntelligence.Patches
             if (distanceToEntrance < 4f)
             {
                 maskedGoal = "nearing entrance (" + entrance.entranceId + "/" + tPos.ToString() + ")";
-                maskedEnemy.running = false; 
+                maskedEnemy.running = false;
             }
             if (distanceToEntrance < 2f)
             {
@@ -6349,7 +6442,7 @@ namespace LethalIntelligence.Patches
             {
                 //Console.WriteLine("mirage integrated and holding a walkie!");
                 List<WalkieTalkie> allWalkieTalkies = GlobalItemList.Instance.allWalkieTalkies;
-                
+
                 if (audioEvent.IsAudioStartEvent)
                 {
                     //Console.WriteLine("this is a start audio event!");
@@ -6638,7 +6731,343 @@ namespace LethalIntelligence.Patches
             }
         }
         #endregion generic activites
+
+        #region spawnFakeItems
+        //not currently for use in LIVE.. just use for testing item animations!
+
+        List<GameObject> fakeItems;
+
+        private void giftFakeItems()
+        {
+            if (fakeItems != null)
+            {
+                return; //because this has already been done.
+            }
+            fakeItems = new List<GameObject>();
+            Transform holderParent = itemHolder.transform;
+
+
+            //fakeItems[0] = //random item i guess... pick from the items available in the level.. EXCEPT the apparatus or beehives.
+            List<GrabbableObject> allItemsList = GlobalItemList.Instance.allitems;
+            /*foreach(var item in allItemsList)
+            {
+                Plugin.mls.LogWarning(item.name);
+            }*/
+            GameObject fakeItem0 = null;
+            do
+            {
+                //GrabbableObject tempItem = allItemsList.Last(x=> x.name == "HandBell(Clone)" || x.name == "LungApparatus(Clone)" || x.name == "Cog(Clone)" || x.name == "TeaKettle(Clone");
+                GrabbableObject tempItem = allItemsList[Random.Range(0, allItemsList.Count - 1)];
+                List<string> itemsToNotUse = new List<string>() { "ClipboardManual", "StickyNoteItem", "RedLocustHive(Clone)", "LungApparatus(Clone)", "FancyGlass(Clone)", "LaserPointer(Clone)" };
+                //fancyglass in the mansion interior or on titan, dont know where it come from so disabled it.
+                //disabling laser pointer because of an issue with the light bulb.
+                if (true)
+                //if (!itemsToNotUse.Contains(tempItem.name))
+                {
+                    Plugin.mls.LogError("fakeItem.name = " + tempItem.name);
+                    Plugin.mls.LogError("fakeItem.2handed? = " + tempItem.itemProperties.twoHanded);
+                    Plugin.mls.LogError("fakeItem.2handedanimation? = " + tempItem.itemProperties.twoHandedAnimation);
+                    Plugin.mls.LogError("fakeItem.spawnprefab = " + tempItem.itemProperties.spawnPrefab);
+                    Plugin.mls.LogError("fakeItem.grabanimation = " + tempItem.itemProperties.grabAnim);
+                    Plugin.mls.LogError("fakeItem.useanimation = " + tempItem.itemProperties.useAnim);
+                    fakeItem0 = GameObject.Instantiate(tempItem.itemProperties.spawnPrefab, holderParent);
+                }
+            } while (fakeItem0 == null);
+            fakeItems.Add(fakeItem0);
+
+
+            //fakeItems[2] = //equipment
+            /*GameObject fakeItem2 = null;
+            switch ((int)maskedPersonality)
+            {
+                case (int)Personality.Aggressive:
+                    Shovel shovel = new Shovel();
+                    fakeItem2 = GameObject.Instantiate(shovel.gameObject, holderParent);
+                    break;
+                case (int)Personality.Deceiving:
+                case (int)Personality.Cunning:
+                case (int)Personality.Stealthy:
+                    //fakeItem2 = //i dont know yet...?
+                    break;
+                case (int)Personality.Insane:
+                    //fakeItems[1] == //diy flashbang?
+                 //   DIYFlashBang diyFlashbang = new DIYFlashbang();
+                 //   GameObject fakeItem1 = GameObject.Instantiate(shovel.gameObject, holderParent);
+                 //   fakeItems.Add(fakeItem1);
+                    break;
+                default:
+                    Plugin.mls.LogError("(giftFakeItems)Masked has no personality!");
+                    break;
+            }
+            fakeItems.Add(fakeItem2);*/
+            giftSelfFakeItem();
+            //spawnFakeItems();
+        }
+
+        GameObject fakeObject; //currentlyVisibleFakeObject
+        public GrabbableObject fakeItem;
+
+        private void spawnFakeItems() //not required?? or should this be "choose shown fake item"???
+        {
+            GrabbableObject heldItem = heldGrabbable;
+            PlayerControllerB[] allPlayerScripts = StartOfRound.Instance.allPlayerScripts;
+            bool maskedWatchedByPlayer = false;
+            foreach (PlayerControllerB playerScript in allPlayerScripts)
+            {
+                if (playerScript.HasLineOfSightToPosition(maskedEnemy.transform.position))
+                {
+                    maskedWatchedByPlayer = true;
+                    break;
+                }
+            }
+            if (maskedWatchedByPlayer)
+            {
+                //return; //no switching while being watched//
+            }
+            int fakeItemType = 0; //-1 = nothing, 1 =  random item, 2 = personality specific tool
+            if (heldItem != null || maskedFocus == Focus.Items || maskedActivity == Activity.RandomItem)
+            {
+                if (maskedFocus == Focus.Items && maskedPersonality == Personality.Aggressive)
+                {
+                    fakeItemType = -1; //fake shovel for aggressive
+                }
+                else
+                {
+                    fakeItemType = -1; //nothing.
+                }
+            }
+            else
+            {
+                fakeItemType = 0;
+                //fakeItemType = Random.Range(-1, 1); 
+            }
+            //hide last item as different item will be shown.
+            //is this needed?
+
+            //select which item to hold (if any)
+            /*foreach (var item in fakeItems)
+            {
+                if (item != null)
+                {
+                    Plugin.mls.LogError(item.name);
+                }
+                else
+                {
+                    Plugin.mls.LogError("item.name is null");
+                }
+            }*/
+            if (fakeItemType == -1)
+            {
+                //do nothing, there is no item
+                return;
+            }
+            else
+            {
+                fakeObject = fakeItems[fakeItemType];
+                Plugin.mls.LogError("using FakeItem - " + fakeObject.name);
+                //fakeObject.transform.localEulerAngles = fakeItems[fakeItemType].;
+                //fakeObject.transform.localPosition = fakeItems[fakeItemType].holsteredPositionOffset;
+                fakeObject.transform.localScale = fakeItems[fakeItemType].transform.localScale;
+                fakeObject.layer = 6;
+
+                foreach (var renderer in fakeObject.GetComponentsInChildren<MeshRenderer>())
+                {
+                    if (!renderer.name.Contains("ScanNode") && !renderer.gameObject.CompareTag("DoNotSet") && !renderer.gameObject.CompareTag("InteractTrigger"))
+                        renderer.gameObject.layer = 6;
+                }
+
+                if (heldItem is FlashlightItem)
+                {
+                    foreach (var light in fakeObject.GetComponentsInChildren<Light>())
+                        light.enabled = false;
+                }
+                else
+                {
+                    foreach (var light in fakeObject.GetComponentsInChildren<Light>())
+                        light.enabled = true;
+                }
+
+                GrabbableObject grabbableObjectData = fakeObject.GetComponentInChildren<GrabbableObject>();
+
+                if (grabbableObjectData != null)
+                {
+                    //Plugin.mls.LogError("grabbableObjectData is NOT null");
+                    grabbableObjectData.playerHeldBy = null;
+                    var flashlightItem = grabbableObjectData as FlashlightItem;
+                    if (flashlightItem != null)
+                    {
+                        flashlightItem.flashlightBulb.enabled = true;
+                        flashlightItem.flashlightBulbGlow.enabled = true;
+                        flashlightItem.flashlightMesh.sharedMaterials[1] = flashlightItem.bulbLight;
+                    }
+                    grabbableObjectData.EnableItemMeshes(enabled);
+                    grabbableObjectData.EnablePhysics(false);
+                    grabbableObjectData.name = grabbableObjectData.name.Replace("(Clone)", "(LI-MaskedFake)");
+                    heldGrabbable = grabbableObjectData;
+                    closestGrabbable = grabbableObjectData;
+                    grabbableObjectData.parentObject = itemHolder.transform;
+                    grabbableObjectData.hasHitGround = false;
+                    grabbableObjectData.isHeld = true;
+                    grabbableObjectData.isHeldByEnemy = true;
+                    grabbableObjectData.grabbable = false;
+                    //heldItemHasTwoHandedAnimation = grabbableObjectData.itemProperties.twoHandedAnimation;
+                    //List<GrabbableObject> allItemsList = GlobalItemList.Instance.allitems;
+                    //grabbableObjectData.itemProperties.twoHandedAnimation = allItemsList.First(x => String.Format("{0}(Clone)",x.name) == fakeObject.name).itemProperties.twoHandedAnimation;
+
+                    isHoldingObject = true;
+                    itemDroped = false;
+                    fakeItem = grabbableObjectData;
+                    //grabbableObjectData.GrabItemFromEnemy(__instance);
+                }
+                GameObject.DestroyImmediate(fakeObject.GetComponentInChildren<NetworkObject>());
+                /*foreach (var collider in fakeObject.GetComponentsInChildren<Collider>())
+                    GameObject.DestroyImmediate(collider);
+                foreach (var monoBehaviour in fakeObject.GetComponentsInChildren<MonoBehaviour>())
+                    GameObject.DestroyImmediate(monoBehaviour);*/
+            }
+        }
+
+        private void pocketItem(GrabbableObject item)
+        {
+            if (item.isPocketed)
+            {
+                return;
+            }
+            isHoldingObject = false;
+            item.isPocketed = true;
+            //item.parentObject = null;
+            item.EnableItemMeshes(false);
+            item.gameObject.GetComponent<AudioSource>().PlayOneShot(item.itemProperties.pocketSFX, 1f);
+            heldGrabbable = null;
+        }
+
+        private void unpocketItem(GrabbableObject item)
+        {
+            if (!item.isPocketed)
+            {
+                return;
+            }
+            heldGrabbable = item;
+            item.EnableItemMeshes(true);
+            //item.parentObject = itemHolder.transform;
+            item.isPocketed = false;
+            isHoldingObject = true;
+        }
+
+        //public static bool heldItemHasTwoHandedAnimation;
+
+        /*[HarmonyPatch(typeof(PlayerAnimationEvents))]
+        [HarmonyPrefix]
+        [HarmonyPatch("UnlockArmsFromCamera")]
+        public static bool UnlockArmsFromCamera_Prefix()
+        {
+            Plugin.mls.LogWarning("Unlocking Arms From Camera SKIPPED");
+            return false;
+            /*if (!heldItemHasTwoHandedAnimation)
+            {
+                Plugin.mls.LogWarning("Unlocking Arms From Camera SKIPPED");
+                return false; //preventing a null reference exception
+            }
+            else
+            {
+                Plugin.mls.LogWarning("Unlocking Arms From Camera PROCESSED");
+                return true;
+            }*/
+        //}
+
+        //from imperium
+        private void giftSelfFakeItem()
+        {
+            var itemObj = Instantiate(
+                fakeItems[0],
+                itemHolder.transform.position,
+                Quaternion.identity,
+                itemHolder.transform
+            );
+
+            var grabbableItem = itemObj.GetComponent<GrabbableObject>();
+
+            var value = 0; //tainted by the masked, it is worthless.
+
+            //if (spawningItem)
+            //{
+            //    if (value == -1) value = ImpUtils.RandomItemValue(spawningItem);
+            //    grabbableItem.transform.rotation = Quaternion.Euler(spawningItem.restingRotation);
+            //}
+
+            grabbableItem.SetScrapValue(value);
+
+            // Execute start immediately to initialize random generator for animated objects
+            grabbableItem.Start();
+
+            var netObject = itemObj.gameObject.GetComponentInChildren<NetworkObject>();
+            netObject.Spawn(destroyWithScene: true);
+            //CurrentLevelObjects[netObject.NetworkObjectId] = itemObj; //this shouldent be needed
+
+            // If player has free slot, place it in hand, otherwise leave it on the ground and play sound
+            var spawnedInInventory = false;
+            //if (request.SpawnInInventory)
+            //{
+            //var invokingPlayer = Imperium.StartOfRound.allPlayerScripts[clientId];
+            //var firstItemSlot = Reflection.Invoke<PlayerControllerB, int>(invokingPlayer, "FirstEmptyItemSlot");
+            //if (firstItemSlot != -1 && grabbableItem.grabbable)
+            if (grabbableItem.grabbable)
+            {
+                grabbableItem.InteractItem();
+                //PlayerManager.GrabObject(grabbableItem, invokingPlayer);
+                //NetworkObjectReference networkObject = grabbableItem.NetworkObject;
+
+                //player.carryWeight += Mathf.Clamp(grabbableItem.itemProperties.weight - 1f, 0f, 10f);
+                //Reflection.Invoke(player, "GrabObjectServerRpc", networkObject);
+
+                grabbableItem.parentObject = itemHolder.transform;
+                grabbableItem.GrabItemOnClient();
+                //spawnedInInventory = true;
+            }
+            fakeItem = grabbableItem;
+            isHoldingObject = true;
+            heldGrabbable = fakeItem;
+            //}
+
+            /*if (!spawnedInInventory)
+            {
+                var itemTransform = grabbableItem.transform;
+                itemTransform.position = request.SpawnPosition + Vector3.up;
+                grabbableItem.startFallingPosition = itemTransform.position;
+                if (grabbableItem.transform.parent)
+                {
+                    grabbableItem.startFallingPosition = grabbableItem.transform.parent.InverseTransformPoint(
+                        grabbableItem.startFallingPosition
+                    );
+                }
+
+                grabbableItem.FallToGround();
+
+                if (grabbableItem.itemProperties.dropSFX)
+                {
+                    Imperium.Player.itemAudio.PlayOneShot(grabbableItem.itemProperties.dropSFX);
+                }
+            }*/
+            //}
+
+            //var mountString = request.Amount == 1 ? "A" : $"{request.Amount.ToString()}x";
+            //var verbString = request.Amount == 1 ? "has" : "have";
+
+            //if (request.SendNotification)
+            //{
+            //  Imperium.Networking.SendLog(new NetworkNotification
+            //{
+            //  Message = $"{mountString} {request.Name} {verbString} been spawned!",
+            //Type = NotificationType.Spawning
+            //});
+            //}
+
+            //objectsChangedEvent.DispatchToClients();
+        }
     }
+
+    #endregion spawnFakeItems
+
     [HarmonyPatch(typeof(ShotgunItem))]
     internal class ShotgunItemPatch
     {
