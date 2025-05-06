@@ -1,5 +1,8 @@
 ## Changelog
 
+### 0.4.8
+- fixed item animations and held positions to use original player animations (instead of the old MaskedAIRevamp ones), positions and rotations, all items should now be supported in regards to masked holding them properly when they pick them up. Let me know if any item a masked holds seemed weird, and i will look into if it looks weird!
+
 ### 0.4.7
 - fixed some more "CalculatePolygonPath" can only be called on an active agent that has been placed on a NavMesh" errors
 - fixed a potentially vanilla bug (origin is unknown) which causes fire exit 1 (outside) to lead to fire exit 2/3 (inside), which then means when you leave via the same fire exit, you are not in the right location. (this bug is nothing to do with LI, i just needed to fix it myself as masked use fire exits, it will fix it for masked and players). Other fixes using vanilla methods will not interfere with this fix.
