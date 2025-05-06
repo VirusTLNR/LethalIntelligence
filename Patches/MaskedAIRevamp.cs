@@ -876,7 +876,9 @@ namespace LethalIntelligence.Patches
             __instance = (EnemyAI)(object)((Component)this).GetComponent<MaskedPlayerEnemy>();
             maskedEnemy = ((Component)this).GetComponent<MaskedPlayerEnemy>();
             creatureAnimator = ((Component)((Component)this).transform.GetChild(0).GetChild(3)).GetComponent<Animator>();
-            itemHolder = new GameObject("ItemHolder");
+
+            //default item holder
+            itemHolder = new GameObject("LocalItemHolder");
             itemHolder.transform.parent = ((Component)__instance).transform
                 .GetChild(0) // ScavengerModel
                 .GetChild(3) // metarig
