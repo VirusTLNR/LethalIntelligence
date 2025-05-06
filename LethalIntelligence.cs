@@ -223,7 +223,7 @@ namespace LethalIntelligence
             }
             catch (Exception ex)
             {
-                mls.LogError((object)("Couldn't load asset bundles: " + ex.Message));
+                mls.LogError((object)("Couldn't load Mapdot.bundle: " + ex.Message));
                 return;
             }
             try
@@ -249,7 +249,7 @@ namespace LethalIntelligence
             }
             catch (Exception ex)
             {
-                mls.LogError((object)("Couldn't load asset bundles: " + ex.Message));
+                mls.LogError((object)("Couldn't load MaskedAnimations.bundle: " + ex.Message));
                 return;
             }
             try
