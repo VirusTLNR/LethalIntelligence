@@ -2579,29 +2579,27 @@ namespace LethalIntelligence.Patches
 
             string grabAnim = "";
 
-            if(heldGrabbable == null)
+            if (isHoldingObject)
             {
-                Plugin.mls.LogError("NotHoldingAnItem");
+                if (heldGrabbable == null)
+                {
+                    //Plugin.mls.LogError("NotHoldingAnItem");
                 return; //not holding an item
             }
-            else if(heldGrabbable.itemProperties == null)
+                else if (heldGrabbable.itemProperties == null)
             {
                 Plugin.mls.LogError("ItemPropertiesAreNull");
                 return;
             }
-            else if(heldGrabbable.itemProperties.grabAnim == null)
+                else if (heldGrabbable.itemProperties.grabAnim == null)
             {
-                Plugin.mls.LogError("GrabAnim is null.. set as 'Grab'");
+                    //Plugin.mls.LogError("GrabAnim is null.. set as 'Grab'");
                 grabAnim = "";
             }
             else
             {
                 grabAnim = heldGrabbable.itemProperties.grabAnim;
             }
-
-            if (isHoldingObject)
-            {
-                Plugin.mls.LogError("GrabAnimation to select!...=" + grabAnim);
                 switch (grabAnim)
                 {
                     //1 handed items
@@ -6775,6 +6773,8 @@ namespace LethalIntelligence.Patches
             GameObject fakeItem0 = null;
             do
             {
+                //GrabbableObject tempItem = allItemsList.Last(x => x.name.StartsWith("BeltBag"));
+                //GrabbableObject tempItem = allItemsList.Last(x => x.name == "HandBell(Clone)" || x.name == "LungApparatus(Clone)" || x.name == "Cog(Clone)" || x.name == "TeaKettle(Clone)" || x.name == "ShotgunItem(Clone)" || x.name == "Shovel(Clone)");
                 //GrabbableObject tempItem = allItemsList.Last(x=> x.name == "HandBell(Clone)" || x.name == "LungApparatus(Clone)" || x.name == "Cog(Clone)" || x.name == "TeaKettle(Clone");
                 GrabbableObject tempItem = allItemsList[Random.Range(0, allItemsList.Count - 1)];
                 List<string> itemsToNotUse = new List<string>() { "ClipboardManual", "StickyNoteItem", "RedLocustHive(Clone)", "LungApparatus(Clone)", "FancyGlass(Clone)", "LaserPointer(Clone)" };
