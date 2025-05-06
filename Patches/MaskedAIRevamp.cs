@@ -1732,7 +1732,7 @@ namespace LethalIntelligence.Patches
                 Plugin.mls.LogInfo("Masked '" + maskedId + "' personality changed to '" + maskedPersonality.ToString() + "' (Moon:" + currentMoon + " & Interior:" + currentInterior + ")");
                 mustChangeFocus = true;
                 mustChangeActivity = true;
-                giftFakeItems(); //for testing only
+                //giftFakeItems(); //for testing only
             }
             if (!((Component)this).TryGetComponent<NavMeshAgent>(out agent))
             {
