@@ -330,7 +330,7 @@ namespace LethalIntelligence.Patches
 
         public bool isDeliverEmptyDropship;
 
-        public GameObject itemHolder;
+        public GameObject itemHolder, LowerTorsoCostumeContainer, beltBagHolder; //Components added for holding items like players do
 
         public float upperBodyAnimationsWeight;
 
@@ -892,6 +892,23 @@ namespace LethalIntelligence.Patches
                 .GetChild(0); // hand.R ... thanks to qwbarch for finding this out.
             itemHolder.transform.localPosition = new Vector3(-0.002f, 0.036f, -0.042f); //ill consider this as setting defaults but this needs to be modified later.
             itemHolder.transform.localRotation = Quaternion.Euler(-3.616f, -2.302f, 0.145f); //ill consider this as setting defaults but this needs to be modified later.
+            
+            //parent of "BeltBagPos" on players
+            LowerTorsoCostumeContainer = new GameObject("LowerTorsoCostumeContainer");
+            LowerTorsoCostumeContainer.transform.parent = __instance.transform.GetChild(0).GetChild(3).GetChild(0);
+            LowerTorsoCostumeContainer.transform.localPosition = Vector3.zero;
+            LowerTorsoCostumeContainer.transform.localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
+            
+            //belt bag pocketed hold position (aka BeltBagPos on players)
+            beltBagHolder = new GameObject("lowerTorsoCostumeContainerBeltBagOffset");
+            beltBagHolder.transform.parent = ((Component)__instance).transform
+                .GetChild(0) // ScavengerModel
+                .GetChild(3) // metarig
+                .GetChild(0) // spine
+                .GetChild(3); // LowerTorsoCostumeContainer
+            beltBagHolder.transform.localPosition = new Vector3(0.396f, 0.279f, 0.131f);
+            beltBagHolder.transform.localRotation = Quaternion.Euler(10.54f, 260.037f, 47.48f);
+
             if (GameNetworkManager.Instance.isHostingGame)
             {
                 maxDanceCount.Value = Random.Range(2, 4);
