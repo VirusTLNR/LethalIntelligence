@@ -242,10 +242,10 @@ namespace LethalIntelligence
             try
             {
                 MaskedAnimationsBundle = AssetBundle.LoadFromFile(Path.Combine(Path.GetDirectoryName(PluginDirectory), "maskedanimations.bundle"));
-                foreach (var animation in MaskedAnimationsBundle.GetAllAssetNames())
+                /*foreach (var animation in MaskedAnimationsBundle.GetAllAssetNames())
                 {
                     Plugin.mls.LogError(animation.ToString());
-                }
+                }*/
             }
             catch (Exception ex)
             {
