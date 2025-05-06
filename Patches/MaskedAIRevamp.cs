@@ -2588,7 +2588,7 @@ namespace LethalIntelligence.Patches
                 }
                 else if (heldGrabbable.itemProperties == null)
                 {
-                    Plugin.mls.LogError("ItemPropertiesAreNull");
+                    Plugin.mls.LogError("ItemAnimationSelector: " + heldGrabbable.name + "'s ItemProperties are Null");
                     return;
                 }
                 else if (heldGrabbable.itemProperties.grabAnim == null)
