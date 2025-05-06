@@ -234,7 +234,7 @@ namespace LethalIntelligence
             }
             catch (Exception ex2)
             {
-                this.Logger.LogError((object)("Couldn't load assets: " + ex2.Message));
+                this.Logger.LogError((object)("Couldn't load MapDot assets: " + ex2.Message));
             }
             MapDotBundle.Unload(false);
 
@@ -259,7 +259,7 @@ namespace LethalIntelligence
             }
             catch (Exception ex2)
             {
-                this.Logger.LogError((object)("Couldn't load assets: " + ex2.Message));
+                this.Logger.LogError((object)("Couldn't load MaskedAnimations assets: " + ex2.Message));
             }
             MaskedAnimationsBundle.Unload(false);
         }
