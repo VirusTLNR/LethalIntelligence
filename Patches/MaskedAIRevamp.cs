@@ -2584,22 +2584,22 @@ namespace LethalIntelligence.Patches
                 if (heldGrabbable == null)
                 {
                     //Plugin.mls.LogError("NotHoldingAnItem");
-                return; //not holding an item
-            }
+                    return; //not holding an item
+                }
                 else if (heldGrabbable.itemProperties == null)
-            {
-                Plugin.mls.LogError("ItemPropertiesAreNull");
-                return;
-            }
+                {
+                    Plugin.mls.LogError("ItemPropertiesAreNull");
+                    return;
+                }
                 else if (heldGrabbable.itemProperties.grabAnim == null)
-            {
+                {
                     //Plugin.mls.LogError("GrabAnim is null.. set as 'Grab'");
-                grabAnim = "";
-            }
-            else
-            {
-                grabAnim = heldGrabbable.itemProperties.grabAnim;
-            }
+                    grabAnim = "";
+                }
+                else
+                {
+                    grabAnim = heldGrabbable.itemProperties.grabAnim;
+                }
                 switch (grabAnim)
                 {
                     //1 handed items
@@ -2636,6 +2636,7 @@ namespace LethalIntelligence.Patches
                         itemHolder.transform.localPosition = new Vector3(-0.1453f, -0.0898f, -0.4686f); //setting position
                         itemHolder.transform.localRotation = Quaternion.Euler(314.149f, 13.06f, 305.192f); //setting rotation
                         creatureAnimator.SetTrigger("HoldBeltbag");
+                        doSpecialPocketingTasks(heldGrabbable);
                         break;
 
                     //items like Clipboard
@@ -6971,6 +6972,33 @@ namespace LethalIntelligence.Patches
             //item.parentObject = itemHolder.transform;
             item.isPocketed = false;
             isHoldingObject = true;
+        }
+
+        //must be done ONCE.. repeated will lead to spamming in the logs
+        private void doSpecialPocketingTasks(GrabbableObject item)
+        {
+            bool isPocketed = item.isPocketed;
+            //bool isPocketed = true;
+            //fix items that dont get fully pocketed
+            if (item is BeltBagItem)
+            {
+                item.EnableItemMeshes(true); //belt bag is always visible!
+                Animator bba = item.transform.GetChild(1).GetComponent<Animator>();
+                bba.SetBool("Buckled", isPocketed);
+                creatureAnimator.SetBool("HoldBeltbag", !isPocketed); //re-doing animation stuff, bleh.
+            }
+
+            //change itemholder name to fit the correct holder that is being used for the item
+            if (!isPocketed)
+            {
+                //itemHolder.name = "LocalItemHolder";
+                item.parentObject = itemHolder.transform;
+            }
+            else if (item is BeltBagItem)
+            {
+                //itemHolder.name = "lowerTorsoCostumeContainerBeltBagOffset"; //item holder name for the belt bag around the waist //not working
+                item.parentObject = beltBagHolder.transform;
+            }
         }
 
         //public static bool heldItemHasTwoHandedAnimation;
