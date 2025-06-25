@@ -12,7 +12,7 @@ namespace LethalIntelligence.Patches
         [HarmonyPatch("Awake")]
         private static void Awake_Prefix(EnemyAI __instance)
         {
-            if (Plugin.enableMaskedFeatures)
+            if (Plugin.enableMaskedFeatures && !badMaskedPlayerEnemy(__instance))
             {
                 vd = ((Component)__instance).gameObject.AddComponent<MaskedAIRevamp>();
                 if (Plugin.imperiumFound)
@@ -24,6 +24,28 @@ namespace LethalIntelligence.Patches
             {
                 ((Component)((Component)__instance).transform.GetChild(3).GetChild(0)).GetComponent<Animator>().runtimeAnimatorController = Plugin.MapDotRework;
             }
+        }
+
+        public static bool badMaskedPlayerEnemy(EnemyAI __instance) //for auto disabling the MaskedAIRevamp component if certain circumstances are detected.
+        {
+            bool isBadMPE = false;
+            switch(__instance.name)
+            {
+                case "MaskedPlayerEnemy":
+                case "MaskedPlayerEnemy(Clone)":
+                    isBadMPE =  false;
+                    break;
+                case "GhostPlayer": //Ooblterra's Ghost Player are often not on the navmesh.
+                case "GhostPlayer(Clone)":
+                    Plugin.mls.LogError("Ooblterra's GhostPlayer found, disabling MaskedAIRevamp component on " + __instance.name + "(" + __instance.GetInstanceID() + ")" + ". If you have issues with " + __instance.name + " (not acting as they were intended.) then report this error, otherwise ignore this error.");
+                    isBadMPE = true;
+                    break;
+                default:
+                    Plugin.mls.LogError("Unknown Potentially Unusable MaskedPlayerEnemy found with name: " + __instance.name + ". If you have issues with masked, report this error, otherwise ignore this error.");
+                    isBadMPE = false;
+                    break;
+            }
+            return isBadMPE;
         }
 
         [HarmonyPatch("OnCollideWithPlayer")]
