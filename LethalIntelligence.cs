@@ -54,6 +54,7 @@ namespace LethalIntelligence
 
             //masked config
         public static bool useTerminal, useTerminalCredit, maskedShipDeparture;
+        public static float maskedItemSpawnChance, maskedWeaponSpawnChance;
 
         public static GameObject MapDotPrefab;
         public static RuntimeAnimatorController MaskedAnimController;
@@ -118,6 +119,8 @@ namespace LethalIntelligence
             useTerminal = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedAI", "Masked terminal access", true, "Allows Masked to use the terminal.").Value;
             useTerminalCredit = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedAI", "Masked uses credits", false, "(Not working rn) Allows Masked to use the terminal to spend credits.").Value;
             maskedShipDeparture = ((BaseUnityPlugin)this).Config.Bind<bool>("MaskedAI", "Masked pulls the brake lever", true, "Allows Masked to pull the brake lever.").Value;
+            maskedItemSpawnChance = ((BaseUnityPlugin)this).Config.Bind<float>("MaskedAI", "Random Item Spawn Chance", 1.0f, "Chance for Non-'Aggressive' Masked to spawn with a random item. (0.0 = never, 1.0 = always)").Value;
+            maskedWeaponSpawnChance = ((BaseUnityPlugin)this).Config.Bind<float>("MaskedAI", "Aggressive Weapon Spawn Chance", 1.0f, "Chance for 'Aggressive' Masked to spawn with a random weapon. (0.0 = never, 1.0 = always)").Value;
 
             //debug settings
             debugModeSetting = ((BaseUnityPlugin)this).Config.Bind<bool>("DebugMode", "Debug Mode", true, "Enables more spammy logs for debugging, will be enabled automatically if imperium is installed. (all other DebugMode settings are ignored if Debug Mode is disabled)").Value;
