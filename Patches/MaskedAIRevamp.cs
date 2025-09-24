@@ -708,6 +708,9 @@ namespace LethalIntelligence.Patches
         public static LNetworkVariable<bool> appTrigger, signalTranslatorTrigger, landDropshipTrigger, objectCodeTrigger;
         public static LNetworkVariable<string> signalTranslatorMessage, objectCode;
 
+        //LI Fake Item switching
+        public LNetworkVariable<int> currentlyUsedFakeItem;
+
         private void setupLNAPIvariables(string id)
         {
             //host time
@@ -785,8 +788,10 @@ namespace LethalIntelligence.Patches
             terminalCode = LNetworkVariable<string>.Connect("terminalCode" + id, null, LNetworkVariableWritePerms.Server);
             terminalCode.OnValueChanged += (oldVal, newVal) => { useObjectCode(newVal); };
 
+            //LI fake item selection syncing
+            currentlyUsedFakeItem = LNetworkVariable<int>.Connect("currentlyUsedFakeItem" + id, -1, LNetworkVariableWritePerms.Server);
+            currentlyUsedFakeItem.OnValueChanged += (oldVal, newVal) => { selectFakeItem(oldVal,newVal); };
         }
-
 
         string currentMoon = null;
         string currentInterior = null;
@@ -1732,6 +1737,7 @@ namespace LethalIntelligence.Patches
                 Plugin.mls.LogInfo("Masked '" + maskedId + "' personality changed to '" + maskedPersonality.ToString() + "' (Moon:" + currentMoon + " & Interior:" + currentInterior + ")");
                 mustChangeFocus = true;
                 mustChangeActivity = true;
+                setItemsToSpawnWith(3); //new item spawning
                 //giftFakeItems(); //for testing only
             }
             if (!((Component)this).TryGetComponent<NavMeshAgent>(out agent))
@@ -6754,6 +6760,165 @@ namespace LethalIntelligence.Patches
         //not currently for use in LIVE.. just use for testing item animations!
 
         List<GameObject> fakeItems;
+        float itemSwitchtimer = 0f;
+
+        private void fakeItemRotationTrigger()
+        {
+            if (IsHost)
+            {
+                if (fakeItems == null || fakeItems.Count == 0)
+                {
+                    return; //no items to switch between
+                }
+                if (itemSwitchtimer <= 0f)
+                {
+                    currentlyUsedFakeItem.Value = Random.Range(0, fakeItems.Count); //select random fake item when masked is not being watched and timer is 0. (once every 10 seconds)
+                    itemSwitchtimer = Random.Range(10f, 15f);
+                }
+                else
+                {
+                    itemSwitchtimer -= updateFrequency;
+                }
+            }
+        }
+
+        private void selectFakeItem(int oldNum, int newNum)
+        {
+            if(fakeItems == null) //no fake items
+            {
+                return;
+            }
+            if(!heldGrabbable.name.Contains("LIFake-"))
+            {
+                return; //item held is not a fake item
+            }
+            if (oldNum != -1) //no fake item in hand
+            {
+                pocketItem(fakeItems[oldNum].GetComponent<GrabbableObject>());
+            }
+            if(newNum != -1) //new item is not empty hands
+            {
+                unpocketItem(fakeItems[newNum].GetComponent<GrabbableObject>());
+            }
+        }
+
+        private void setItemsToSpawnWith(int maxItemsToGive)
+        {
+            if (fakeItems != null)
+            {
+                return; //because you only give them items ONCE when they spawn.
+            }
+            float chanceToGetItems = 0;
+            if (maskedPersonality == Personality.Aggressive)
+            {
+                chanceToGetItems = Plugin.maskedWeaponSpawnChance; //aggressive masked chance of getting a weapon (or multiple weapons)
+            }
+            else
+            {
+                chanceToGetItems = Plugin.maskedItemSpawnChance; //non aggressive masked chance of getting a random item (or multiple items)
+            }
+            if(chanceToGetItems == 0f)
+            {
+                return; //this masked has a 0% chance to get an item
+            }
+            fakeItems = new List<GameObject>(); //remove all previously picked fake items
+            for (int i = 1; i <= maxItemsToGive; i++)
+            {
+                if (Random.Range(0f, 1f) <= chanceToGetItems)
+                {
+                    GameObject? fakeItemToAdd = pickFakeItem();
+                    if(fakeItemToAdd != null)
+                    {
+                        fakeItems.Add(fakeItemToAdd); //add fake items to the list of items a masked will spawn with.
+                        Plugin.mls.LogDebug("Masked selected to spawn with item # " + i + " -> " + fakeItemToAdd.name);
+                    }
+                    else
+                    {
+                        Plugin.mls.LogDebug("Masked failed to select spawn item # " + i + " -> Ran out of attempts (5) to find a unique item to add (not enough options in selection pool?).");
+                    }
+                }
+            }
+            spawnPickedItems();
+        }
+
+        private GameObject? pickFakeItem()
+        {
+            GameObject? selectedFakeItem;
+            List<GrabbableObject> itemsPossible = new List<GrabbableObject>(); //empty list
+            if (maskedPersonality == Personality.Aggressive)
+            {
+                //find weapons in item list
+                itemsPossible = GlobalItemList.Instance.allitems.Where(x => (x is Shovel || x is ShotgunItem || x is KnifeItem || x is StunGrenadeItem)).ToList();
+            }
+            else
+            {
+                //find non weapons in item list
+                itemsPossible = GlobalItemList.Instance.allitems.Where(x => (x is not Shovel && x is not ShotgunItem && x is not KnifeItem && x is not StunGrenadeItem)).ToList();
+            }
+            int attempt = 0;
+            do
+            {
+                if(itemsPossible.Count == 0)
+                {
+                    Plugin.mls.LogDebug("No items available to pick from for masked to spawn with.");
+                    return null; //no items available to pick from
+                }
+                selectedFakeItem = itemsPossible[Random.Range(0, itemsPossible.Count - 1)].gameObject;
+                attempt++;
+            } while (fakeItems.Contains(selectedFakeItem) && attempt<5); //must find new fake item by 5 attempts or selectedFakeItem will be set to null.
+            
+            if(attempt == 5)
+            {
+                selectedFakeItem = null;
+            }
+            return selectedFakeItem;
+        }
+
+        private void spawnPickedItems()
+        {
+            if (fakeItems == null || fakeItems.Count == 0)
+            {
+                return;
+            }
+            Plugin.mls.LogDebug("Masked '" + maskedId + "' spawning " + fakeItems.Count + " fake items.");
+            for (int i = 0; i < fakeItems.Count; i++)
+            {
+                var itemObj = Instantiate(
+                    fakeItems[i],
+                    itemHolder.transform.position,
+                    Quaternion.identity,
+                    itemHolder.transform
+                );
+
+                //remove any bracketed text from the name (e.g. "HandBell(Clone)" -> "HandBell")
+                if(itemObj.name.Contains("("))
+                {
+                    itemObj.name = itemObj.name.Substring(0, itemObj.name.IndexOf("("));
+                }
+
+                //append "(LIMaskedFake)" to the name of the item so it can be identified as from LI.
+                itemObj.name = itemObj.name + " (LIFake-" + maskedId + " #" + i + ")";
+
+                var grabbableItem = itemObj.GetComponent<GrabbableObject>();
+                grabbableItem.SetScrapValue(0); //item is worth nothing as it wont drop.
+                ((Item)grabbableItem.itemProperties).isScrap = false;
+                grabbableItem.Start(); // Execute start immediately to initialize random generator for animated objects
+                var netObject = itemObj.gameObject.GetComponentInChildren<NetworkObject>();
+                netObject.Spawn(destroyWithScene: true);
+
+                if (grabbableItem.grabbable)
+                {
+                    grabbableItem.InteractItem();
+                    grabbableItem.parentObject = itemHolder.transform;
+                    grabbableItem.GrabItemOnClient();
+                }
+                grabbableItem.grabbable = false;
+                fakeItem = grabbableItem;
+                isHoldingObject = true;
+                heldGrabbable = fakeItem;
+                pocketItem(fakeItem);
+            }
+        }
 
         private void giftFakeItems()
         {
