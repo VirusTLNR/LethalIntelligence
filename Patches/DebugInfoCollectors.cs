@@ -26,7 +26,7 @@ namespace LethalIntelligence.Patches
                     "\nEntIsEntranceToBuilding (is outside?) -> " + ent.isEntranceToBuilding +
                     //"\nEntPosition -> " + ent.transform.position +
                     "\nEntEntrancePoint -> " + ent.entrancePoint.transform.position +
-                    "\nEntExitPoint -> " + (ent.exitPoint == null ? "null" : ent.exitPoint.transform.position)
+                    "\nEntExitPoint -> " + (ent.exitScript == null ? "null" : ent.exitScript.transform.position)
                     );
             }
             Plugin.mls.LogError("logAllEntranceDetails End @ " + pointInCode);

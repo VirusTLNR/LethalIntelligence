@@ -371,7 +371,7 @@ namespace LethalIntelligence.Patches
         {
             foreach (EntranceTeleport et in entrancesArray)
             {
-                et.exitPoint = null;
+                et.exitScript = null;
             }
         }
 
