@@ -1,5 +1,11 @@
 ## Changelog
 
+### 0.4.9 - v81 update patch
+- updated mod to work on v81, 0.4.8 will work on v73, this will not.
+- updated dependency versions for Bepinex and LNAPI
+- modified some variables to reflect updates within v81
+- added some checks so if a masked is "modified" by another mod, if its incompatible, it will revert to being a vanilla masked instead of being modified by this mod.
+
 ### 0.4.8
 - fixed item animations and held positions to use original player animations (instead of the old MaskedAIRevamp ones), positions and rotations, all items should now be supported in regards to masked holding them properly when they pick them up. Let me know if any item a masked holds seemed weird, and i will look into if it looks weird!
 
