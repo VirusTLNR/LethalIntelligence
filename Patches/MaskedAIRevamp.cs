@@ -6704,7 +6704,7 @@ namespace LethalIntelligence.Patches
             {
                 if (!idleFarthestNodeSet)
                 {
-                    idleFarthestNode = __instance.ChooseFarthestNodeFromPosition(mainEntrancePosition.Value, false, 0, false, 50, false);
+                    idleFarthestNode = __instance.ChooseFarthestNodeFromPosition(mainEntrancePosition.Value, false, 0, false, 50, -1);
                     idleFarthestNodeSet = true;
                 }
                 if (idleModeVersion.Value == 0)
